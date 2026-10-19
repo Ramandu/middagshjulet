@@ -5,6 +5,8 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -66,8 +68,17 @@ object Store {
         if (minAgeMs > 0 && System.currentTimeMillis() - _state.value.fetchedAt < minAgeMs) return
         _state.update { it.copy(loading = true, error = null) }
         try {
-            val json = client.fetchSnapshotJson(household)
-            val snap = parseSnapshot(json)
+            val (base, checks) = coroutineScope {
+                val snapJob = async { parseSnapshot(client.fetchSnapshotJson(household)) }
+                // Avkrysningene leses rett fra ukedokumentene, så de er ferske selv om
+                // ingen har hatt nettsiden åpen siden noen krysset av på telefonen.
+                val weekJobs = (0 until 4).map { w -> w to async { runCatching { client.fetchWeekChecks(household, w) } } }
+                val snap = snapJob.await()
+                val checks: Map<Int, WeekChecks?> = weekJobs.mapNotNull { (w, job) -> job.await().fold({ w to it }, { null }) }.toMap()
+                snap to checks
+            }
+            val snap = base.withChecks(checks)
+            val json = encodeSnapshot(snap)
             val now = System.currentTimeMillis()
             ds.edit {
                 it[SNAPSHOT] = json
@@ -93,6 +104,39 @@ object Store {
     private suspend fun saveToken(ds: DataStore<Preferences>) {
         val rt = client.refreshToken ?: return
         runCatching { ds.edit { it[REFRESH_TOKEN] = rt } }
+    }
+
+    /**
+     * Krysser av eller ut en vare. Vises med en gang, og lagres så på nett.
+     * Går lagringen ikke, settes varen tilbake og det vises en melding.
+     */
+    suspend fun toggle(view: WeekView, item: Item) {
+        val ds = dataStore ?: return
+        val household = _state.value.household ?: return
+        val occ = view.week.occ ?: return
+        if (!view.checksValid || item.k.isBlank()) return
+        val w = view.week.w
+        val done = !item.done
+        setLocal(ds) { it.withItemDone(w, item.k, done) }
+        try {
+            client.setChecked(household, w, occ, item.k, done, item.b)
+            saveToken(ds)
+        } catch (e: Exception) {
+            setLocal(ds) { it.withItemDone(w, item.k, !done) }
+            _state.update {
+                it.copy(error = (e as? FetchException)?.message ?: "Fikk ikke lagret. Sjekk nettet og prøv igjen.")
+            }
+        }
+    }
+
+    private suspend fun setLocal(ds: DataStore<Preferences>, change: (Snapshot) -> Snapshot) {
+        val snap = mutex.withLock {
+            val current = _state.value.snapshot ?: return
+            val next = change(current)
+            _state.update { it.copy(snapshot = next, error = null) }
+            next
+        }
+        runCatching { ds.edit { it[SNAPSHOT] = encodeSnapshot(snap) } }
     }
 
     suspend fun setHousehold(code: String) {

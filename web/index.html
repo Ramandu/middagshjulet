@@ -990,12 +990,13 @@ window.addEventListener('scroll', ()=>{ lastScroll=Date.now(); }, {passive:true}
 
 // ---------- Light Phone: ferdig utregnet ukeplan og handleliste ----------
 // LP3-appen regner ikke selv. Den leser dokumentet «lp3», som siden skriver når noe endres.
+// Avkrysninger fra LP3 skrives rett i ukedokumentene (w0–w3) med nøkkelen k, og «occ» sier hvilken runde uka gjelder.
 function lp3Items(L, segs, wd){
   const groups = [];
   secOrder().forEach(s=>{
     const its = [];
     segs.forEach(sg=>Object.keys(L[sg]).forEach(k=>{ const it=L[sg][k]; if(it.s!==s) return;
-      its.push({n:it.n, q:(it.qs!=null?it.qs:qtyStr(it.q,it.u)), done:!!wd.checked[sg+'|'+k], tag:it.tag||'', for:(it.for||[]).join(', '), seg:sg}); }));
+      its.push({k:sg+'|'+k, b:it.basis||'', n:it.n, q:(it.qs!=null?it.qs:qtyStr(it.q,it.u)), done:!!wd.checked[sg+'|'+k], tag:it.tag||'', for:(it.for||[]).join(', '), seg:sg}); }));
     its.sort((a,b)=>a.n.localeCompare(b.n,'nb'));
     if(its.length) groups.push({s:secName(s), it:its});
   });
@@ -1011,7 +1012,7 @@ function lp3Snapshot(){
         shop: id==='rest' ? [] : lp3Items(buildList(w,[d],false), ['stor','paafyll'], wd)});
     }
     const L = buildList(w, null, false);
-    weeks.push({w:w, start:isoDate(ws), days:days, stor:lp3Items(L,['stor'],wd), paafyll:lp3Items(L,['paafyll'],wd)});
+    weeks.push({w:w, occ:absFor(w), start:isoDate(ws), days:days, stor:lp3Items(L,['stor'],wd), paafyll:lp3Items(L,['paafyll'],wd)});
   }
   return {v:1, name:CFG.name||'', shop:DAYLONG[0], pad:CFG.padDay>=0?DAYLONG[CFG.padDay]:'', weeks:weeks};
 }

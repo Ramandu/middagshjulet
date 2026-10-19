@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import com.thelightphone.sdk.ui.LightBarButton
 import com.thelightphone.sdk.ui.LightBottomBar
 import com.thelightphone.sdk.ui.LightBottomBarItem
+import com.thelightphone.sdk.ui.LightIcon
 import com.thelightphone.sdk.ui.LightIcons
 import com.thelightphone.sdk.ui.LightScrollView
 import com.thelightphone.sdk.ui.LightText
@@ -108,23 +109,35 @@ fun SectionLabel(text: String) {
     )
 }
 
-/** Handleliste gruppert etter avdeling. Kjøpte varer er gjennomstreket. */
+/**
+ * Handleliste gruppert etter avdeling. Kjøpte varer er gjennomstreket.
+ * Med [onToggle] kan man trykke på en vare for å krysse den av eller ut.
+ */
 @Composable
-fun ShoppingGroups(groups: List<Group>, showDays: Boolean) {
+fun ShoppingGroups(groups: List<Group>, showDays: Boolean, onToggle: ((Item) -> Unit)? = null) {
     groups.forEach { g ->
         SectionLabel(g.s)
-        g.it.forEach { item -> ShoppingItem(item, showDays) }
+        g.it.forEach { item -> ShoppingItem(item, showDays, onToggle?.takeIf { item.k.isNotBlank() }) }
     }
 }
 
 @Composable
-private fun ShoppingItem(item: Item, showDays: Boolean) {
+private fun ShoppingItem(item: Item, showDays: Boolean, onToggle: ((Item) -> Unit)?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (onToggle != null) Modifier.lightClickable { onToggle(item) } else Modifier)
             .padding(vertical = 0.4f.gridUnitsAsDp()),
         verticalAlignment = Alignment.Top,
     ) {
+        if (onToggle != null) {
+            LightIcon(
+                icon = if (item.done) LightIcons.SELECT_ON else LightIcons.SELECT_OFF,
+                size = 1.5f,
+                contentDescription = if (item.done) "Kjøpt" else "Ikke kjøpt",
+                modifier = Modifier.padding(top = 0.15f.gridUnitsAsDp(), end = 0.75f.gridUnitsAsDp()),
+            )
+        }
         Column(modifier = Modifier.weight(1f)) {
             LightText(
                 text = item.n,

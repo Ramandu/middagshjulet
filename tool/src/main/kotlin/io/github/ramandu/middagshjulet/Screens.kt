@@ -38,6 +38,11 @@ class ShopViewModel : LightViewModel<Unit>() {
     private val _paafyll = MutableStateFlow(false)
     val paafyll: StateFlow<Boolean> = _paafyll.asStateFlow()
     fun show(paafyll: Boolean) { _paafyll.value = paafyll }
+    fun toggle(view: WeekView, item: Item) { viewModelScope.launch(Dispatchers.IO) { Store.toggle(view, item) } }
+}
+
+class DayViewModel : LightViewModel<Unit>() {
+    fun toggle(view: WeekView, item: Item) { viewModelScope.launch(Dispatchers.IO) { Store.toggle(view, item) } }
 }
 
 class ShopScreen(sealedActivity: SealedLightActivity, private val offset: Int) :
@@ -75,17 +80,22 @@ class ShopScreen(sealedActivity: SealedLightActivity, private val offset: Int) :
             if (count.isNotBlank()) {
                 LightText(text = count, variant = LightTextVariant.Detail, lighten = true)
             }
-            if (!view.checksValid) {
+            if (!view.canCheck) {
                 LightText(
-                    text = "Avkrysninger vises når uka er i gang på nettsiden.",
+                    text = "Avkrysning blir mulig når nettsiden har lagret denne uka.",
                     variant = LightTextVariant.Fine,
                     lighten = true,
                 )
             }
+            state.error?.let { LightText(text = it, variant = LightTextVariant.Fine, lighten = true) }
             if (groups.isEmpty()) {
                 Paragraph("Lista er tom.", lighten = true, modifier = Modifier.padding(top = 1f.gridUnitsAsDp()))
             } else {
-                ShoppingGroups(groups, showDays = true)
+                ShoppingGroups(
+                    groups,
+                    showDays = true,
+                    onToggle = if (view.canCheck) ({ item: Item -> viewModel.toggle(view, item) }) else null,
+                )
             }
         }
     }
@@ -94,7 +104,10 @@ class ShopScreen(sealedActivity: SealedLightActivity, private val offset: Int) :
 // ---------- Én dag: middagen og det den trenger ----------
 
 class DayScreen(sealedActivity: SealedLightActivity, private val offset: Int, private val dayIndex: Int) :
-    SimpleLightScreen<Unit>(sealedActivity) {
+    LightScreen<Unit, DayViewModel>(sealedActivity) {
+
+    override val viewModelClass: Class<DayViewModel> get() = DayViewModel::class.java
+    override fun createViewModel() = DayViewModel()
 
     @Composable
     override fun Content() {
@@ -132,7 +145,12 @@ class DayScreen(sealedActivity: SealedLightActivity, private val offset: Int, pr
                 )
             } else {
                 SectionLabel("Handle til denne middagen")
-                ShoppingGroups(groups, showDays = false)
+                state.error?.let { LightText(text = it, variant = LightTextVariant.Fine, lighten = true) }
+                ShoppingGroups(
+                    groups,
+                    showDays = false,
+                    onToggle = if (view.canCheck) ({ item: Item -> viewModel.toggle(view, item) }) else null,
+                )
             }
         }
     }

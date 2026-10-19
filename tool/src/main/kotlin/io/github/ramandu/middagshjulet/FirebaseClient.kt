@@ -5,6 +5,7 @@ import io.ktor.client.engine.okhttp.OkHttp
 import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.request.get
+import io.ktor.client.request.patch
 import io.ktor.client.request.header
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -15,6 +16,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -46,40 +49,118 @@ class FirebaseClient(
     /** Lagret refresh-token. Sett før første kall, les etter, så den kan lagres mellom oppstarter. */
     var refreshToken: String? = null
 
-    suspend fun fetchSnapshotJson(household: String): String {
-        val token = token()
-        val url = "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents/" +
-            "households/$household/docs/lp3"
-        var res = http.get(url) {
-            header(HttpHeaders.Authorization, "Bearer $token")
-            header(HttpHeaders.Referrer, Config.WEB_URL)
-        }
-        if (res.status.value == 401) {
-            // Utløpt eller ugyldig innlogging: logg inn på nytt og prøv én gang til.
-            idToken = null
-            refreshToken = null
-            val fresh = token()
-            res = http.get(url) {
-                header(HttpHeaders.Authorization, "Bearer $fresh")
+    private val docsBase =
+        "https://firestore.googleapis.com/v1/projects/$projectId/databases/(default)/documents"
+
+    private fun docUrl(household: String, doc: String) = "$docsBase/households/$household/docs/$doc"
+
+    /** Kjører et innlogget kall. Får vi 401, logger vi inn på nytt og prøver én gang til. */
+    private suspend fun authed(call: suspend (String) -> HttpResponse): HttpResponse {
+        val res = call(token())
+        if (res.status.value != 401) return res
+        idToken = null
+        refreshToken = null
+        return call(token())
+    }
+
+    private fun failure(status: Int, reading: Boolean): FetchException = when (status) {
+        403 -> FetchException(
+            if (reading) "Fikk ikke lov til å lese planen. Sjekk at reglene i Firebase er oppdatert."
+            else "Fikk ikke lov til å lagre. Sjekk at reglene i Firebase er oppdatert.",
+        )
+        else -> FetchException(
+            if (reading) "Fikk ikke hentet planen (feil $status)." else "Fikk ikke lagret (feil $status).",
+        )
+    }
+
+    /** Henter ett dokument. Null hvis det ikke finnes. */
+    private suspend fun getDoc(household: String, doc: String): JsonObject? {
+        val res = authed { t ->
+            http.get(docUrl(household, doc)) {
+                header(HttpHeaders.Authorization, "Bearer $t")
                 header(HttpHeaders.Referrer, Config.WEB_URL)
             }
         }
-        when (res.status.value) {
-            200 -> Unit
-            404 -> throw FetchException(
-                "Planen er ikke klar ennå. Åpne Middagshjulet på nett én gang, så lages den.",
-            )
-            403 -> throw FetchException(
-                "Fikk ikke lov til å lese planen. Sjekk at reglene i Firebase er oppdatert.",
-            )
-            else -> throw FetchException("Fikk ikke hentet planen (feil ${res.status.value}).")
-        }
-        val doc = snapshotJson.parseToJsonElement(res.bodyAsText()).jsonObject
-        return doc["fields"]?.jsonObject
-            ?.get("json")?.jsonObject
+        if (res.status.value == 404) return null
+        if (res.status.value != 200) throw failure(res.status.value, reading = true)
+        return snapshotJson.parseToJsonElement(res.bodyAsText()).jsonObject
+    }
+
+    suspend fun fetchSnapshotJson(household: String): String {
+        val doc = getDoc(household, "lp3") ?: throw FetchException(
+            "Planen er ikke klar ennå. Åpne Middagshjulet på nett én gang, så lages den.",
+        )
+        return doc.fields()?.get("json")?.jsonObject
             ?.get("stringValue")?.jsonPrimitive?.contentOrNull
             ?: throw FetchException("Planen hadde et format appen ikke kjenner.")
     }
+
+    /** Avkrysningene i ukedokumentet w[w]. Null hvis dokumentet ikke finnes. */
+    suspend fun fetchWeekChecks(household: String, w: Int): WeekChecks? {
+        val f = getDoc(household, "w$w")?.fields() ?: return null
+        val occ = f["occ"]?.jsonObject?.let { v ->
+            v["integerValue"]?.jsonPrimitive?.contentOrNull?.toIntOrNull()
+                ?: v["doubleValue"]?.jsonPrimitive?.contentOrNull?.toDoubleOrNull()?.toInt()
+        }
+        val checked = f["checked"]?.jsonObject?.get("mapValue")?.jsonObject?.get("fields")?.jsonObject
+            ?.mapValues { (_, v) -> v.jsonObject["booleanValue"]?.jsonPrimitive?.contentOrNull == "true" }
+            .orEmpty()
+        return WeekChecks(occ, checked)
+    }
+
+    /**
+     * Krysser av eller ut én vare, slik nettsiden gjør.
+     * Gjelder ukedokumentet en eldre runde, lages det på nytt for denne runden (som på nettsiden).
+     * Når en vare som var tom i skapet krysses av, merkes den som «har» i skapet.
+     */
+    suspend fun setChecked(household: String, w: Int, occ: Int, key: String, done: Boolean, basisId: String) {
+        val current = fetchWeekChecks(household, w)
+        val boolField = buildJsonObject {
+            put("mapValue", buildJsonObject {
+                put("fields", buildJsonObject { put(key, buildJsonObject { put("booleanValue", done) }) })
+            })
+        }
+        if (current == null || current.occ != occ) {
+            val body = buildJsonObject {
+                put("fields", buildJsonObject {
+                    put("occ", buildJsonObject { put("integerValue", occ.toString()) })
+                    put("checked", boolField)
+                    put("extra", buildJsonObject { put("mapValue", buildJsonObject {}) })
+                })
+            }
+            patch(household, "w$w", body, mask = null)
+        } else {
+            patch(household, "w$w", buildJsonObject { put("fields", buildJsonObject { put("checked", boolField) }) },
+                mask = "checked.${quoteField(key)}")
+        }
+        if (done && basisId.isNotBlank()) {
+            val body = buildJsonObject {
+                put("fields", buildJsonObject {
+                    put("low", buildJsonObject {
+                        put("mapValue", buildJsonObject {
+                            put("fields", buildJsonObject { put(basisId, buildJsonObject { put("booleanValue", false) }) })
+                        })
+                    })
+                })
+            }
+            runCatching { patch(household, "basis", body, mask = "low.${quoteField(basisId)}") }
+        }
+    }
+
+    private suspend fun patch(household: String, doc: String, body: JsonObject, mask: String?) {
+        val res = authed { t ->
+            http.patch(docUrl(household, doc)) {
+                if (mask != null) url.parameters.append("updateMask.fieldPaths", mask)
+                header(HttpHeaders.Authorization, "Bearer $t")
+                header(HttpHeaders.Referrer, Config.WEB_URL)
+                contentType(ContentType.Application.Json)
+                setBody(body.toString())
+            }
+        }
+        if (res.status.value != 200) throw failure(res.status.value, reading = false)
+    }
+
+    private fun JsonObject.fields(): JsonObject? = this["fields"]?.jsonObject
 
     private suspend fun token(): String {
         val now = System.currentTimeMillis()
@@ -134,4 +215,9 @@ class FirebaseClient(
     private fun JsonObject.str(key: String): String? = this[key]?.jsonPrimitive?.contentOrNull
 
     fun close() = http.close()
+
 }
+
+/** Feltnavn i Firestore-stier: i `backticks`, med \ foran ` og \. */
+internal fun quoteField(name: String): String =
+    "`" + name.replace("\\", "\\\\").replace("`", "\\`") + "`"

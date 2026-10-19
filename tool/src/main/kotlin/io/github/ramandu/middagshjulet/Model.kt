@@ -25,6 +25,8 @@ data class Snapshot(
 @Serializable
 data class Week(
     val w: Int,
+    /** Hvilken runde uka gjelder (nettsidens absFor). Avkrysninger fra en annen runde gjelder ikke. */
+    val occ: Int? = null,
     /** Første dag i uka, ISO-dato (yyyy-mm-dd). */
     val start: String,
     val days: List<Day> = emptyList(),
@@ -58,6 +60,10 @@ data class Group(
 
 @Serializable
 data class Item(
+    /** Nøkkelen avkrysningen lagres under i ukedokumentet, f.eks. «stor|i|Løk|stk». */
+    val k: String = "",
+    /** Id i skapet, hvis varen står på lista fordi den er tom der. */
+    val b: String = "",
     val n: String,
     val q: String = "",
     val done: Boolean = false,
@@ -69,6 +75,42 @@ data class Item(
 val snapshotJson = Json { ignoreUnknownKeys = true; isLenient = true }
 
 fun parseSnapshot(text: String): Snapshot = snapshotJson.decodeFromString(Snapshot.serializer(), text)
+
+fun encodeSnapshot(s: Snapshot): String = snapshotJson.encodeToString(Snapshot.serializer(), s)
+
+/** Avkrysningene i et ukedokument (w0–w3) slik de ligger i Firestore. */
+data class WeekChecks(val occ: Int?, val checked: Map<String, Boolean>)
+
+private fun Group.mapItems(f: (Item) -> Item) = copy(it = it.map(f))
+
+private fun Week.mapItems(f: (Item) -> Item) = copy(
+    stor = stor.map { it.mapItems(f) },
+    paafyll = paafyll.map { it.mapItems(f) },
+    days = days.map { d -> d.copy(shop = d.shop.map { it.mapItems(f) }) },
+)
+
+/**
+ * Legger de ferske avkrysningene fra ukedokumentene over planen.
+ * Da stemmer lista selv om ingen har åpnet nettsiden siden noen krysset av på telefonen.
+ * Uker uten dokument i [checks] beholdes som de er.
+ */
+fun Snapshot.withChecks(checks: Map<Int, WeekChecks?>): Snapshot = copy(
+    weeks = weeks.map { week ->
+        if (!checks.containsKey(week.w) || week.occ == null) return@map week
+        val c = checks[week.w]
+        val valid = c != null && c.occ == week.occ
+        week.mapItems { item ->
+            if (item.k.isBlank()) item else item.copy(done = valid && c!!.checked[item.k] == true)
+        }
+    },
+)
+
+/** Krysser av (eller ut) varen med nøkkel [key] overalt i uke [w]. */
+fun Snapshot.withItemDone(w: Int, key: String, done: Boolean): Snapshot = copy(
+    weeks = weeks.map { week ->
+        if (week.w != w) week else week.mapItems { if (it.k == key) it.copy(done = done) else it }
+    },
+)
 
 /**
  * En uke slik den skal vises i dag.
@@ -84,6 +126,9 @@ data class WeekView(
     val offset: Int,
     val checksValid: Boolean,
 ) {
+    /** Om man kan krysse av i denne uka fra telefonen. */
+    val canCheck: Boolean get() = checksValid && week.occ != null
+
     fun dateOf(dayIndex: Int): LocalDate = start.plusDays(dayIndex.toLong())
 
     fun groups(paafyll: Boolean): List<Group> = visible(if (paafyll) week.paafyll else week.stor)

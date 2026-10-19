@@ -96,9 +96,10 @@ class HomeScreen(sealedActivity: SealedLightActivity) : LightScreen<Unit, HomeVi
         val view = views.getOrNull(offset)
 
         val bottom = if (view == null) null else listOf(
-            if (offset > 0) LightBarButton.Text(text = "‹", contentDescription = "Forrige uke", onClick = { viewModel.move(-1) }) else null,
+            // Pil – tekst – pil: da får «Handleliste» hele bredden i midten.
+            if (offset > 0) LightBarButton.LightIcon(icon = LightIcons.BACK, contentDescription = "Forrige uke", onClick = { viewModel.move(-1) }) else null,
             LightBarButton.Text(text = "Handleliste", onClick = { openShop(offset) }),
-            if (offset < views.size - 1) LightBarButton.Text(text = "›", contentDescription = "Neste uke", onClick = { viewModel.move(1) }) else null,
+            if (offset < views.size - 1) LightBarButton.LightIcon(icon = LightIcons.ARROW_RIGHT, contentDescription = "Neste uke", onClick = { viewModel.move(1) }) else null,
         )
 
         Page(

@@ -11,8 +11,9 @@ class ModelTest {
     // Slik nettsiden skriver det: uka som går nå (Uke 4) først i tid, de andre etter.
     private val json = """
         {"v":1,"name":"","shop":"lørdag","pad":"mandag","weeks":[
-         {"w":0,"start":"2026-10-24","days":[{"date":"2026-10-24","s":"Lør","l":"lørdag","n":"Pizza","t":"1 t","note":"","rest":false,"shop":[]}],
-          "stor":[{"s":"Frukt og grønt","it":[{"n":"Paprika","q":"1 stk","done":true,"tag":"","for":"Lør","seg":"stor"}]}],"paafyll":[]},
+         {"w":0,"occ":4,"start":"2026-10-24","days":[{"date":"2026-10-24","s":"Lør","l":"lørdag","n":"Pizza","t":"1 t","note":"","rest":false,
+          "shop":[{"s":"Frukt og grønt","it":[{"k":"stor|i|Paprika|stk","n":"Paprika","q":"1 stk","done":true,"seg":"stor"}]}]}],
+          "stor":[{"s":"Frukt og grønt","it":[{"k":"stor|i|Paprika|stk","n":"Paprika","q":"1 stk","done":true,"tag":"","for":"Lør","seg":"stor"}]}],"paafyll":[]},
          {"w":1,"start":"2026-10-31","days":[],"stor":[],"paafyll":[]},
          {"w":2,"start":"2026-11-07","days":[],"stor":[],"paafyll":[]},
          {"w":3,"start":"2026-10-17","days":[],"stor":[],"paafyll":[],"ekstra":"ukjent felt"}
@@ -69,5 +70,36 @@ class ModelTest {
     fun formatsDatesLikeTheWebsite() {
         assertEquals("17.10.", shortDate("2026-10-17"))
         assertEquals("1.11.", shortDate(LocalDate.of(2026, 11, 1)))
+    }
+
+    @Test
+    fun checksFromWeekDocumentOverrideSnapshot() {
+        val s = parseSnapshot(json)
+        val fresh = s.withChecks(mapOf(0 to WeekChecks(occ = 4, checked = mapOf("stor|i|Paprika|stk" to false))))
+        assertFalse(fresh.weeks[0].stor[0].it[0].done)
+        assertFalse(fresh.weeks[0].days[0].shop[0].it[0].done)
+        // Ukedokument fra en annen runde: ingenting er krysset av.
+        val old = s.withChecks(mapOf(0 to WeekChecks(occ = 0, checked = mapOf("stor|i|Paprika|stk" to true))))
+        assertFalse(old.weeks[0].stor[0].it[0].done)
+        // Ukedokumentet finnes ikke: ingenting er krysset av.
+        assertFalse(s.withChecks(mapOf(0 to null)).weeks[0].stor[0].it[0].done)
+        // Ingen informasjon om uka: planen beholdes.
+        assertTrue(s.withChecks(emptyMap()).weeks[0].stor[0].it[0].done)
+    }
+
+    @Test
+    fun togglingUpdatesTheItemEverywhereInTheWeek() {
+        val s = parseSnapshot(json).withItemDone(0, "stor|i|Paprika|stk", false)
+        assertFalse(s.weeks[0].stor[0].it[0].done)
+        assertFalse(s.weeks[0].days[0].shop[0].it[0].done)
+        val views = weekViews(s, LocalDate.of(2026, 10, 19))
+        assertTrue(views[1].canCheck)
+        assertFalse(views[0].canCheck) // uke uten occ
+    }
+
+    @Test
+    fun quotesFieldNamesForFirestore() {
+        assertEquals("`stor|i|Løk|stk`", quoteField("stor|i|Løk|stk"))
+        assertEquals("`a\\`b\\\\c`", quoteField("a`b\\c"))
     }
 }
