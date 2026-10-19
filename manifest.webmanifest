@@ -1,0 +1,14 @@
+{
+  "name": "Middagshjulet",
+  "short_name": "Middag",
+  "description": "Fire uker med middager og en felles handleliste for husstanden.",
+  "display": "standalone",
+  "background_color": "#EDF1EE",
+  "theme_color": "#0E5A4E",
+  "lang": "nb",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
