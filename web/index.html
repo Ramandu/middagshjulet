@@ -465,7 +465,16 @@ function buildList(w, days, incl){
   for(const k in (wd.extra||{})){ const e=wd.extra[k]; if(e) add(e.t||'stor','x|'+k,{n:e.n,s:e.s||'a',for:[],tag:'ekstra',extra:k}); }
   if(days && !incl) return out;
   fasteList().forEach(f=>add('stor','f|'+f.id,{n:f.n,s:f.s,for:[],tag:'fast'}));
-  const needs = skapNeeds(w, days); basisList().forEach(b=>{ const k='b|'+b.id; if(S.basis.low[b.id] || wd.checked['stor|'+k]){ const nd=needs[b.n.toLowerCase()]; add('stor',k,{n:b.n,s:b.g==='annet'?'a':'t',for:nd?nd.for.slice():[],tag:'tomt',basis:b.id,qs:nd?needQty(nd):''}); } });
+  // Det som er tomt i skapet, kommer på neste handletur: storhandelen, eller påfyllet hvis storhandelen
+  // denne uka allerede er gjort (fra dagen etter handledagen til og med påfyllsdagen).
+  const di = ((daysSince%7)+7)%7;
+  const lowTarget = (w===curW && CFG.padDay>=0 && di>0 && di<=CFG.padDay) ? 'paafyll' : 'stor';
+  const needs = skapNeeds(w, days); basisList().forEach(b=>{ const k='b|'+b.id; const inStor=!!wd.checked['stor|'+k], inPad=!!wd.checked['paafyll|'+k];
+    // Krysset av = kjøpt. Er den merket tom igjen etterpå, er det et nytt behov til neste tur.
+    const targets = new Set(); if(inStor) targets.add('stor'); if(inPad) targets.add('paafyll');
+    if(S.basis.low[b.id] && !(lowTarget==='stor' ? inStor : inPad)) targets.add(lowTarget);
+    if(!targets.size) return; const nd=needs[b.n.toLowerCase()];
+    targets.forEach(t=>add(t,k,{n:b.n,s:b.g==='annet'?'a':'t',for:nd?nd.for.slice():[],tag:'tomt',basis:b.id,qs:nd?needQty(nd):''})); });
   return out;
 }
 
@@ -537,7 +546,7 @@ function renderWeek(w){
   if(!groups) groups = '<p class="empty">'+(days ? 'Ingenting å kjøpe til '+daysLabel(days)+'. Alt står i skapet.' : UI.seg==='paafyll' ? 'Ingen kortholdbare varer trengs på påfyllsdagen denne uka.' : 'Lista er tom.')+'</p>';
   const dayChips = '<div class="daypick" role="group" aria-label="Handle til dager"><span class="note">Handle til:</span><button class="dchip" data-day="all" aria-pressed="'+!days+'">Hele uka</button>'+DAYN.map((dn,d)=>{ const date=addDays(ws,d); const isT=+date===+today; const dish=all[dishAt(w,d)]; return '<button class="dchip'+(isT?' istoday':'')+'" data-day="'+d+'" aria-pressed="'+!!UI.days[d]+'" title="'+esc(dish?dish.n:'')+'">'+dn+'<small>'+(isT?'i dag':fmt(date))+'</small></button>'; }).join('')+'</div>';
   const segHint = days ? '<p class="note">Viser varene til '+esc(daysLabel(days))+'. '+(UI.dayExtras?'Faste ukevarer og det som er tomt i skapet er tatt med.':'Faste ukevarer og det som er tomt i skapet er skjult.')+' <button class="linkish" data-dayextras>'+(UI.dayExtras?'Skjul dem':'Ta dem med')+'</button></p>' : UI.seg==='paafyll'
-    ? '<p class="note">Bare kortholdbare ting, som fersk koriander, spinat og salat, til retter senere i uka. Holder datoen til dagen retten skal lages, kan dere like gjerne kjøpe dem på handledagen.</p>'
+    ? '<p class="note">Kortholdbare ting, som fersk koriander, spinat og salat, til retter senere i uka, og det dere har merket som tomt i skapet etter storhandelen. Holder datoen til dagen retten skal lages, kan dere like gjerne kjøpe dem på handledagen.</p>'
     : '<p class="note">Alt til uka'+(doubleOn(w)?' ('+DAYLONG[CFG.doubleDay]+'sretten er doblet, så det blir rester til '+DAYLONG[CFG.restDay]+')':'')+', faste ukevarer og det dere har merket som tomt i skapet. Varer merket «sjekk dato» brukes sent i uka. Velg en pakke med dato som holder til den dagen.</p>';
   return '<section class="panel" aria-labelledby="h-w'+w+'">'+
     '<div class="weekhead"><h2 id="h-w'+w+'">Uke '+(w+1)+'</h2><span class="dates">'+DAYN[0].toLowerCase()+' '+fmt(ws)+' – '+DAYN[6].toLowerCase()+' '+fmt(addDays(ws,6))+'</span></div>'+
