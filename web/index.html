@@ -1019,6 +1019,8 @@ function lp3Snapshot(){
 let lp3Last = null, lp3Timer = null;
 function scheduleLp3(){
   if(!db || !HID || !CFG.done) return;
+  // Vent til alt er hentet fra serveren, så vi aldri lagrer en halvferdig plan for LP3.
+  if(!DOCS.every(p=>UI.seen && UI.seen[p]) || !S.plan.base) return;
   clearTimeout(lp3Timer);
   lp3Timer = setTimeout(()=>{
     let js; try{ js = JSON.stringify(lp3Snapshot()); }catch(e){ return; }
@@ -1043,6 +1045,7 @@ function connect(adapter){
   foot.textContent = 'Lista deles live med alle i husstanden.';
   DOCS.forEach(path=>{
     try{ db.doc(path).onSnapshot(s=>{
+      if(!(s.metadata && s.metadata.fromCache)){ UI.seen = UI.seen || {}; if(!UI.seen[path]){ UI.seen[path]=true; scheduleLp3(); } }
       if(path==='app/setup' && !UI.synced){ UI.synced=true; setTimeout(runPendingImport, 800); scheduleRender(); }
       if(!s.exists) return; const js=JSON.stringify(s.data()); if(lastSnap[path]===js) return; lastSnap[path]=js; setDoc(path, JSON.parse(js)); saveLocal(); scheduleRender();
     }, e=>{ UI.connErr='Fikk ikke kontakt med lagringen. Sjekk nettet og prøv igjen.'; foot.textContent='Fikk ikke kontakt med lagringen.'; render(); }); }catch(_){}
@@ -1070,10 +1073,17 @@ async function start(hid){
     try{ fs = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
     catch(e){ fs = initializeFirestore(app, {}); }
     const ref = path => doc(fs, 'households', hid, 'docs', path.split('/')[1]);
+    // Firestore kan ikke lagre lister rett inne i lister (f.eks. varelistene i retter: [["Løk",1,"stk","g"], …]).
+    // Indre lister pakkes derfor inn som {_a:[…]} ved lagring og pakkes ut igjen ved lesing.
+    const isO = v => v && typeof v === 'object' && !Array.isArray(v);
+    const enc = v => Array.isArray(v) ? v.map(x => Array.isArray(x) ? {_a: enc(x)} : enc(x))
+      : isO(v) ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, enc(x)])) : v;
+    const dec = v => Array.isArray(v) ? v.map(dec)
+      : isO(v) ? ((Object.keys(v).length === 1 && Array.isArray(v._a)) ? dec(v._a) : Object.fromEntries(Object.entries(v).map(([k, x]) => [k, dec(x)]))) : v;
     window.mhConnect({ doc: path => { const r = ref(path); return {
-      set: d => setDoc(r, d),
-      update: d => setDoc(r, d, { merge: true }),
-      onSnapshot: (next, err) => onSnapshot(r, s => next({ exists: s.exists(), data: () => s.data(), metadata: s.metadata }), err)
+      set: d => setDoc(r, enc(d)),
+      update: d => setDoc(r, enc(d), { merge: true }),
+      onSnapshot: (next, err) => onSnapshot(r, s => next({ exists: s.exists(), data: () => dec(s.data()), metadata: s.metadata }), err)
     }; } });
   }catch(e){
     window.mhFail && window.mhFail('Fikk ikke koblet til Firebase. Sjekk at oppsettet i firebase-config.js er riktig.');
