@@ -1049,6 +1049,17 @@ function readFile(input, cb){ const f = input.files && input.files[0]; if(!f) re
 const foot = document.getElementById('foot');
 foot.textContent = !HID ? '' : HAS_BACKEND ? 'Kobler til …' : 'Endringer lagres bare på denne enheten.';
 const DOCS = ['app/setup','app/log','app/plan','app/basis','app/w0','app/w1','app/w2','app/w3'];
+// Mangler et dokument på serveren, men denne enheten har innhold for det (lagret sist siden var åpen),
+// lastes det opp igjen. Det reparerer planer som ikke ble lagret før feilen med lister i lister ble rettet.
+const EMPTY = {'app/plan':'{"swaps":{},"custom":{},"edits":{}}','app/basis':'{"low":{},"fasteOff":{},"fasteAdd":{},"basisAdd":{},"basisOff":{}}','app/log':'{"items":[]}'};
+const healed = {};
+function healMissing(path, s){
+  if(healed[path] || (s.metadata && s.metadata.fromCache) || !db) return;
+  const local = docOf(path); const js = JSON.stringify(local||{});
+  if(js==='{}' || js===EMPTY[path]) return;
+  healed[path] = true;
+  db.doc(path).set(clone(local)).catch(()=>{ healed[path]=false; });
+}
 function connect(adapter){
   db = adapter;
   foot.textContent = 'Lista deles live med alle i husstanden.';
@@ -1056,7 +1067,7 @@ function connect(adapter){
     try{ db.doc(path).onSnapshot(s=>{
       if(!(s.metadata && s.metadata.fromCache)){ UI.seen = UI.seen || {}; if(!UI.seen[path]){ UI.seen[path]=true; scheduleLp3(); } }
       if(path==='app/setup' && !UI.synced){ UI.synced=true; setTimeout(runPendingImport, 800); scheduleRender(); }
-      if(!s.exists) return; const js=JSON.stringify(s.data()); if(lastSnap[path]===js) return; lastSnap[path]=js; setDoc(path, JSON.parse(js)); saveLocal(); scheduleRender();
+      if(!s.exists){ healMissing(path, s); return; } const js=JSON.stringify(s.data()); if(lastSnap[path]===js) return; lastSnap[path]=js; setDoc(path, JSON.parse(js)); saveLocal(); scheduleRender();
     }, e=>{ UI.connErr='Fikk ikke kontakt med lagringen. Sjekk nettet og prøv igjen.'; foot.textContent='Fikk ikke kontakt med lagringen.'; render(); }); }catch(_){}
   });
 }
