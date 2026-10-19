@@ -1,0 +1,6 @@
+# Netlify publiserer nettsiden fra mappa web/. Det er ingen byggesteg: filene legges ut som de er.
+# Stier i denne fila regnes fra base-mappa, så publish = "." betyr web/.
+# Endringer utenfor web/ (f.eks. LP3-appen i tool/) gir ingen ny publisering.
+[build]
+  base = "web"
+  publish = "."
