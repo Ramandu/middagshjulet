@@ -1,0 +1,73 @@
+name: LP3-app
+
+# Bygger Middagshjulet for Light Phone III.
+# Når versionName i tool/lighttool.toml er ny, lages en release med APK-en,
+# som Obtainium på telefonen henter.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'tool/**'
+      - 'sdk/**'
+      - 'plugin/**'
+      - 'gradle/**'
+      - '*.gradle.kts'
+      - 'gradle.properties'
+      - '.github/workflows/lp3.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lp3-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Test og bygg
+        run: ./gradlew :tool:testDebugUnitTest :tool:assembleRelease -DlightSdk.toolOnly=true --stacktrace
+
+      - name: Finn versjon
+        id: ver
+        run: |
+          v=$(sed -n 's/^versionName *= *"\(.*\)"/\1/p' tool/lighttool.toml)
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+          cp tool/build/outputs/apk/release/tool-release.apk "Middagshjulet-$v.apk"
+          if git ls-remote --exit-code --tags origin "refs/tags/v$v" >/dev/null; then
+            echo "new=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "new=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Last opp APK (for testing)
+        uses: actions/upload-artifact@v4
+        with:
+          name: Middagshjulet-${{ steps.ver.outputs.version }}
+          path: Middagshjulet-${{ steps.ver.outputs.version }}.apk
+
+      - name: Lag release
+        if: steps.ver.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v=${{ steps.ver.outputs.version }}
+          gh release create "v$v" "Middagshjulet-$v.apk" \
+            --title "Middagshjulet $v for Light Phone III" \
+            --notes "Installer med Obtainium (legg inn https://github.com/${{ github.repository }}) eller med \`adb install -r Middagshjulet-$v.apk\`."

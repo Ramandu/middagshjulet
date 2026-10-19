@@ -1,0 +1,1088 @@
+<!doctype html>
+<html lang="nb">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E5A4E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Middagshjulet">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>Middagshjulet</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:wght@400;700&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#EDF1EE; --surface:#FFFFFF; --surface2:#F6F8F6; --ink:#15221E; --muted:#5A6B65; --line:#D4DDD8;
+  --accent:#0E5A4E; --accent-ink:#FFFFFF; --accent-soft:#DCEBE6; --mark:#F4C44A; --mark-ink:#2B2000;
+  --veg:#35702A; --veg-bg:#E2EFDA; --fisk:#1D5A87; --fisk-bg:#DCE9F4; --ny:#76399A; --ny-bg:#EEE2F5;
+  --helg:#8E5400; --helg-bg:#F8E9CF; --tex:#9E3A2A; --tex-bg:#F7E0DA; --rest:#5A6B65; --rest-bg:#E7ECE9;
+  --shadow:0 1px 2px rgba(20,40,34,.06),0 6px 24px rgba(20,40,34,.07);
+  --display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --body:"Atkinson Hyperlegible","Segoe UI",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#0E1613; --surface:#16211D; --surface2:#1B2823; --ink:#E5EEEA; --muted:#93A69E; --line:#2A3A34;
+    --accent:#5BC1AC; --accent-ink:#06201A; --accent-soft:#1D3730; --mark:#E2B243; --mark-ink:#241A00;
+    --veg:#9BD08A; --veg-bg:#1E3219; --fisk:#8CC0E8; --fisk-bg:#162B3C; --ny:#D2A6EC; --ny-bg:#2D1D38;
+    --helg:#EDB968; --helg-bg:#35270F; --tex:#F0A08F; --tex-bg:#3A1C16; --rest:#93A69E; --rest-bg:#22302B;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.25);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#0E1613; --surface:#16211D; --surface2:#1B2823; --ink:#E5EEEA; --muted:#93A69E; --line:#2A3A34;
+  --accent:#5BC1AC; --accent-ink:#06201A; --accent-soft:#1D3730; --mark:#E2B243; --mark-ink:#241A00;
+  --veg:#9BD08A; --veg-bg:#1E3219; --fisk:#8CC0E8; --fisk-bg:#162B3C; --ny:#D2A6EC; --ny-bg:#2D1D38;
+  --helg:#EDB968; --helg-bg:#35270F; --tex:#F0A08F; --tex-bg:#3A1C16; --rest:#93A69E; --rest-bg:#22302B;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 6px 24px rgba(0,0,0,.25);
+}
+*{box-sizing:border-box}
+html{color-scheme:light}
+body{margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 72px;display:flex;flex-direction:column;gap:18px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;letter-spacing:-.01em}
+h1{font-size:clamp(28px,7vw,40px);font-weight:800;line-height:1.02}
+h2{font-size:22px;font-weight:800}
+h3{font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-family:var(--body)}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;flex-direction:column;gap:10px}
+.top .sub{color:var(--muted);margin:0}
+.now{display:flex;gap:12px;align-items:flex-start;background:var(--mark);color:var(--mark-ink);border-radius:14px;padding:12px 14px}
+.now b{font-family:var(--display);font-weight:800;font-size:17px;display:block}
+.now span{font-size:14px}
+.tabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:8px;margin-inline:-16px;padding-inline:16px}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:0 0 auto;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-weight:700;font-size:15px;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tab .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--mark);margin-left:6px;vertical-align:middle}
+.panel{display:flex;flex-direction:column;gap:18px}
+.card{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+.weekhead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 12px}
+.weekhead .dates{color:var(--muted);font-variant-numeric:tabular-nums}
+.balance{display:flex;flex-wrap:wrap;gap:6px;font-size:13px;color:var(--muted)}
+.days{list-style:none;margin:0;padding:0}
+.day{display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border-top:1px solid var(--line)}
+.day:first-child{border-top:0}
+.day.today{background:var(--accent-soft)}
+.dn{display:flex;flex-direction:column;line-height:1.1}
+.dn b{font-family:var(--display);font-weight:800;font-size:17px}
+.dn small{color:var(--muted);font-variant-numeric:tabular-nums;font-size:13px}
+.dish{display:flex;flex-direction:column;gap:4px;min-width:0}
+.dish .name{font-weight:700;overflow-wrap:anywhere}
+.meta{display:flex;flex-wrap:wrap;gap:5px;align-items:center;font-size:12.5px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:700;letter-spacing:.01em}
+.c-veg{color:var(--veg);background:var(--veg-bg)} .c-fisk{color:var(--fisk);background:var(--fisk-bg)} .c-ny{color:var(--ny);background:var(--ny-bg)}
+.c-helg{color:var(--helg);background:var(--helg-bg)} .c-tex{color:var(--tex);background:var(--tex-bg)} .c-rest{color:var(--rest);background:var(--rest-bg)}
+.c-bytta{color:var(--accent);background:var(--accent-soft)}
+.btn{border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:7px 12px;font-size:14px;font-weight:700}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.small{padding:5px 10px;font-size:13px}
+.shop{padding:14px;display:flex;flex-direction:column;gap:14px}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{border:0;background:transparent;border-radius:9px;padding:8px 6px;font-weight:700;font-size:14px;line-height:1.2}
+.seg button small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.seg button[aria-pressed="true"]{background:var(--surface);box-shadow:var(--shadow)}
+.seg button[aria-pressed="true"] small{color:var(--ink)}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.tools .left{color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.tools .right{display:flex;gap:8px;flex-wrap:wrap}
+.group h3{margin-bottom:4px}
+.items{list-style:none;margin:0;padding:0}
+.item{display:flex;align-items:center;gap:10px;padding:8px 2px;border-bottom:1px dashed var(--line)}
+.item:last-child{border-bottom:0}
+.item input[type=checkbox]{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto;margin:0}
+.item label{flex:1;display:flex;justify-content:space-between;gap:10px;align-items:baseline;cursor:pointer;min-width:0}
+.item .nm{overflow-wrap:anywhere}
+.item .for{display:block;font-size:12px;color:var(--muted)}
+.item .q{font-family:var(--mono);font-size:13.5px;white-space:nowrap;font-variant-numeric:tabular-nums;color:var(--ink)}
+.item.done .nm,.item.done .q{text-decoration:line-through;color:var(--muted)}
+.tagmini{font-size:11px;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:0 5px;margin-left:6px;text-transform:uppercase;letter-spacing:.05em}
+.x{border:0;background:none;color:var(--muted);font-size:18px;padding:0 4px;line-height:1}
+.addrow{display:flex;gap:8px}
+.addrow input,.field input,.field textarea{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:10px;padding:9px 11px;font:inherit;font-size:15px}
+.empty{color:var(--muted);font-size:14px;margin:0}
+.note{font-size:14px;color:var(--muted);margin:0}
+.hint{background:var(--surface2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--muted)}
+.hint b{color:var(--ink)}
+details.dishrow{border-top:1px solid var(--line)}
+details.dishrow:first-of-type{border-top:0}
+details.dishrow summary{list-style:none;display:grid;grid-template-columns:1fr auto;gap:8px;padding:12px 14px;cursor:pointer;align-items:center}
+details.dishrow summary::-webkit-details-marker{display:none}
+details.dishrow summary .used{font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.dishbody{padding:0 14px 14px;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.dishbody ul{margin:0;padding-left:18px}
+.cardhead{padding:14px 14px 4px;display:flex;flex-direction:column;gap:4px}
+.pantry{display:flex;flex-wrap:wrap;gap:8px;padding:14px}
+.pchip{border:1px solid var(--line);background:var(--surface2);border-radius:999px;padding:7px 12px;font-size:14px}
+.pchip[aria-pressed="true"]{background:var(--mark);color:var(--mark-ink);border-color:var(--mark);font-weight:700}
+.form{padding:14px;display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:700}
+.field textarea{min-height:110px;font-weight:400}
+.checks{display:flex;gap:8px;flex-wrap:wrap}
+.checks label{display:flex;gap:6px;align-items:center;font-weight:400;font-size:14px}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(8,16,13,.45);display:flex;align-items:flex-end;justify-content:center}
+.sheet .inner{background:var(--surface);width:100%;max-width:640px;max-height:85%;border-radius:18px 18px 0 0;display:flex;flex-direction:column;padding-bottom:env(safe-area-inset-bottom,0px)}
+.sheet .shead{padding:14px 16px 10px;display:flex;flex-direction:column;gap:10px;border-bottom:1px solid var(--line)}
+.sheet .shead .row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.filters{display:flex;gap:6px;overflow-x:auto}
+.filters button{flex:0 0 auto}
+.sheet .list{overflow-y:auto;padding:4px 0}
+.opt{display:grid;grid-template-columns:1fr auto;gap:8px;width:100%;text-align:left;border:0;background:none;padding:11px 16px;border-top:1px solid var(--line);align-items:center}
+.opt:first-child{border-top:0}
+.opt:hover{background:var(--surface2)}
+.opt.cur{background:var(--accent-soft)}
+.opt .used{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.linkish{border:0;background:none;padding:0;text-align:left;font-weight:700;color:inherit;text-decoration:underline;text-decoration-color:var(--line);text-underline-offset:3px}
+.linkish:hover{text-decoration-color:var(--accent)}
+.rlink{color:var(--accent);font-weight:700;text-decoration:none}
+.rlink:hover{text-decoration:underline}
+.sheet .form.edlist{overflow-y:auto}
+.field input{font-weight:400}
+.eyebrow{font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.search{width:100%;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:10px;padding:10px 12px;font:inherit;font-size:16px}
+#pantry-res .pantry{padding:0}
+.gname{font-size:11px;color:var(--muted);margin-left:4px}
+.pchip[aria-pressed="true"] .gname{color:var(--mark-ink)}
+.addnew{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:14px;color:var(--muted);margin-top:8px}
+.addnew select{border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:8px;padding:6px 8px;font:inherit;font-size:14px}
+details.shelf{border-top:1px solid var(--line)}
+details.shelf summary,details.sjekk summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:8px;padding:12px 14px;cursor:pointer}
+details.shelf summary::-webkit-details-marker,details.sjekk summary::-webkit-details-marker{display:none}
+details.shelf .pantry{padding:0 14px 8px}
+.shelftools{padding:0 14px 12px}
+details.sjekk{border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+details.sjekk summary{padding:10px 12px}
+details.sjekk > p,details.sjekk > ul{margin:0;padding:0 12px 10px}
+.pchip.small{padding:4px 10px;font-size:13px;flex:0 0 auto}
+.addrow.wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.addrow.wrap input{grid-column:1/-1;flex:none}
+.secsel{border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:8px;padding:6px 8px;font:inherit;font-size:13px;max-width:100%;min-width:0}
+.item .secsel{flex:0 1 11em;width:11em}
+.item > .nm{min-width:0}
+.btn[disabled]{opacity:.35;cursor:default}
+.item .btn.small{padding:3px 9px}
+.daypick{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.daypick .note{margin-right:2px}
+.dchip{border:1px solid var(--line);background:var(--surface2);border-radius:10px;padding:5px 9px;font-size:13.5px;font-weight:700;line-height:1.15;text-align:center;min-width:44px}
+.dchip small{display:block;font-weight:400;font-size:11px;color:var(--muted)}
+.dchip.istoday small{color:var(--accent);font-weight:700}
+.dchip[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.dchip[aria-pressed="true"] small{color:var(--accent-ink)}
+.toast{display:flex;align-items:center;gap:12px;pointer-events:none}
+.toast .toastbtn{pointer-events:auto}
+.toastbtn{border:0;background:var(--mark);color:var(--mark-ink);font-weight:700;border-radius:8px;padding:5px 10px;font-size:14px;flex:0 0 auto}
+button,label,summary,select,input,a,.item{touch-action:manipulation}
+.c-kj{color:var(--muted);background:var(--surface2);border:1px solid var(--line)}
+.wizard{padding:18px 16px;display:flex;flex-direction:column;gap:16px}
+.wizard h2{font-size:24px}
+.wizhead{display:flex;flex-direction:column;gap:8px}
+.wizbar{height:6px;border-radius:6px;background:var(--surface2);overflow:hidden}
+.wizbar span{display:block;height:100%;background:var(--accent)}
+.wiznav{display:flex;justify-content:space-between;gap:10px;padding-top:6px;border-top:1px solid var(--line)}
+.stepper{display:flex;align-items:center;gap:14px;margin-top:6px}
+.stepper b{font-family:var(--display);font-size:24px;min-width:2ch;text-align:center}
+.wzdays{display:flex;flex-direction:column;gap:10px}
+.wzday{display:flex;flex-direction:column;gap:6px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+.search.small{padding:7px 10px;font-size:14px}
+.wzgroup{display:flex;flex-direction:column;gap:4px}
+.wzgroup .row{display:flex;justify-content:space-between;align-items:center}
+.counter{margin:0;font-size:14px;color:var(--muted)}
+.summary{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.suggest{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.field .daypick{margin-top:6px}
+.startchoice{display:flex;flex-direction:column;gap:6px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}
+.startchoice h3{font-size:15px;color:var(--ink);text-transform:none;letter-spacing:0}
+.qr{display:flex;justify-content:center;padding:10px;background:#fff;border-radius:12px;width:max-content;margin:0 auto}
+details.leave summary{cursor:pointer}
+.foot{font-size:13px;color:var(--muted);text-align:center}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
+textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);padding:8px}
+@media (prefers-reduced-motion:no-preference){.sheet .inner{animation:up .18s ease-out}@keyframes up{from{transform:translateY(24px);opacity:.6}to{transform:none;opacity:1}}}
+.sheet.top{flex-direction:column;justify-content:flex-start;align-items:center}
+.sheet.top .inner{border-radius:0 0 18px 18px;padding-top:env(safe-area-inset-top,0px);padding-bottom:0}
+.addhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.secchips{display:flex;flex-wrap:wrap;gap:6px}
+.btn.addopen{display:block;width:calc(100% - 28px);margin:10px 14px 14px;padding:11px 12px;font-size:15px}
+@media (pointer:coarse){input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:16px!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <h1 id="ttl">Middagshjulet</h1>
+    <p class="sub" id="sub"></p>
+    <div class="now" id="now"></div>
+  </header>
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Visning"></nav>
+  <main class="panel" id="panel"></main>
+  <p class="foot" id="foot"></p>
+</div>
+<div id="sheet" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="firebase-config.js"></script>
+<script>
+(function(){
+"use strict";
+// ---------- Husstand (lenken er nøkkelen) ----------
+const HID_RX = /h=([A-Za-z0-9]{20,40})/;
+function readHid(){ const m = location.hash.match(HID_RX); try{ if(m){ localStorage.setItem('mh-hid', m[1]); return m[1]; } const v = localStorage.getItem('mh-hid'); return v && /^[A-Za-z0-9]{20,40}$/.test(v) ? v : null; }catch(e){ return m ? m[1] : null; } }
+const HID = readHid();
+if(HID && !HID_RX.test(location.hash)){ try{ history.replaceState(null,'','#h='+HID); }catch(e){} }
+function newHid(){ const a='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'; const r=new Uint8Array(24); crypto.getRandomValues(r); let o=''; r.forEach(x=>{ o+=a[x%62]; }); return o; }
+function shareLink(){ return location.origin + location.pathname + '#h=' + HID; }
+const HAS_BACKEND = !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey && !/LIM_INN/.test(window.FIREBASE_CONFIG.apiKey));
+// ---------- Data ----------
+const DOW_S = ['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
+const DOW_L = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
+const CFG0 = {done:false, name:'', servings:4, shopDow:6, padDay:-1, restDay:-1, doubleDay:-1, quick:{}, maxMin:25, themeDay:-1, themeTag:'tex', notes:{}, veg:1, fish:1, start:'', selected:null};
+let CFG = Object.assign({}, CFG0), START = new Date(), DAYN = DOW_S.slice(), DAYLONG = DOW_L.slice();
+const SEC = {g:'Frukt og grønt',b:'Brød og bakevarer',k:'Kjøtt og kylling',f:'Fisk',m:'Meieri og egg',t:'Tørrvarer og hermetikk',z:'Frysedisk',a:'Annet'};
+const SECORDER0 = ['g','b','k','f','m','t','z','a'];
+function secOrder(){ const add=(S.basis.secAdd)||{}; const off=S.basis.secOff||{}; const all=SECORDER0.filter(k=>!off[k]||k==='a').concat(Object.keys(add).filter(k=>add[k])); const st=(S.basis.secOrder||[]).filter(k=>all.indexOf(k)>=0); all.forEach(k=>{ if(st.indexOf(k)<0) st.push(k); }); return st; }
+function secName(k){ const add=S.basis.secAdd||{}; const rn=S.basis.secRename||{}; return (add[k]&&add[k].n) || rn[k] || SEC[k] || 'Annet'; }
+function resolveSec(k){ return secOrder().indexOf(k)>=0 ? k : 'a'; }
+const TAGS = {veg:'Vegetar',fisk:'Fisk',ny:'Ny',helg:'Helg',tex:'Tex-mex',rest:'Rester'};
+const PLURAL = {boks:'bokser',pose:'poser',bunt:'bunter',bit:'biter',flaske:'flasker',potte:'potter'};
+
+// i: [navn, mengde, enhet, avdeling, fersk (kjøpes på mandag hvis retten er tir/ons)]
+const D = {
+ taco:{n:'Taco',tags:['tex'],t:'30 min',i:[['Kjøttdeig',600,'g','k',1],['Tacokrydder',1,'pose','t'],['Tacolefser eller -skjell',1,'pk','b'],['Tacosaus',1,'glass','t'],['Mais',1,'boks','t'],['Isbergsalat',1,'stk','g'],['Agurk',1,'stk','g'],['Tomater',4,'stk','g'],['Paprika',1,'stk','g'],['Rømme',1,'beger','m'],['Revet ost',1,'pose','m']]},
+ enchiladas:{n:'Enchiladas med spinat og artisjokk',tags:['tex','veg'],t:'1 t',url:'https://vegetarentusiast.no/enchiladas/',note:'Vegetarentusiasts oppskrift er for 4. Mengdene er regnet om til 5. Guacamole og salsa er med. Edamame er valgfritt.',i:[['Tortillalefser, store',8,'stk','b'],['Rødløk',2,'stk','g'],['Artisjokkhjerter',1,'boks','t'],['Spinat, fersk',250,'g','g'],['Edamamebønner (valgfritt)',1,'pose','z'],['Kokoskrem eller crème fraîche',1,'beger','m'],['Revet ost',1,'pose','m'],['Koriander, fersk',1,'potte','g'],['Avokado',3,'stk','g'],['Lime',2,'stk','g'],['Syltet jalapeño',1,'glass','t'],['Cherrytomater',150,'g','g'],['Rød chili',1,'stk','g']],k:[['Sorte bønner',1,'boks'],['Tomatpuré',6,'ss'],['Buljong',1,'terning'],['Chilipulver',null,''],['Spisskummen',null,''],['Oregano',null,''],['Hvitløk',10,'fedd'],['Soyasaus',null,''],['Olivenolje',null,'']]},
+ quesadillas:{n:'Quesadillas',tags:['tex'],t:'25 min',note:'Kyllingen kan byttes med bønner eller rester.',i:[['Tortillalefser',1,'pk','b'],['Kyllinglårfilet',400,'g','k',1],['Revet ost',2,'pose','m'],['Mais',1,'boks','t'],['Paprika',1,'stk','g'],['Rømme',1,'beger','m'],['Salsa',1,'glass','t']]},
+ chili:{n:'Chili con carne med ris',tags:['tex'],t:'45 min',note:'Mye er passiv putring. Ta ut barnas porsjon før ekstra chili.',i:[['Kjøttdeig',600,'g','k',1],['Løk',1,'stk','g'],['Paprika',1,'stk','g'],['Hermetiske tomater',2,'boks','t'],['Kidneybønner',1,'boks','t'],['Mais',1,'boks','t'],['Rømme',1,'beger','m'],['Revet ost',1,'pose','m']]},
+ pizza:{n:'Pizza i langpanne',tags:['helg'],t:'1 t',note:'Mel og tørrgjær fra skapet.',i:[['Knuste tomater',1,'boks','t'],['Revet pizzaost',2,'pose','m'],['Skinke',1,'pk','k'],['Pepperoni',1,'pk','k'],['Paprika',1,'stk','g'],['Mais',1,'boks','t']]},
+ korma:{n:'Saritas chicken korma med ris og naan',c:'Indisk',tags:[],t:'20 min',note:'Ferdig saus fra butikken. Ris fra skapet.',i:[['Kyllingfilet',800,'g','k',1],['Saritas korma-saus',1,'glass','t'],['Naanbrød',1,'pk','b']]},
+ fiskekaker:{n:'Fiskekaker og makaronistuing',tags:['fisk'],t:'25 min',note:'Stuing av makaroni, smør, mel og melk fra skapet. Gulrøtter som råkost.',i:[['Fiskekaker',800,'g','f',1],['Gulrøtter',5,'stk','g']]},
+ linsegryte:{n:'Lynrask linsegryte',tags:['veg'],t:'15 min',url:'https://vegetarentusiast.no/linsegryte/',note:'Vegetarentusiasts oppskrift er for 3. Mengdene er regnet om til 5. Server med naan eller pita, rømme og chiliflak.',i:[['Løk',2,'stk','g'],['Spinat, fersk',1,'pose','g',1],['Rømme',1,'beger','m'],['Naanbrød',1,'pk','b']],k:[['Knuste tomater',2,'boks'],['Kokosmelk',2,'boks'],['Linser, hermetiske',3,'boks'],['Rød karripasta',null,''],['Buljong',1,'terning'],['Hvitløk',4,'fedd'],['Chiliflak',null,''],['Matolje',null,'']]},
+ laks:{n:'Chili- og limeglasert laks med ris',tags:['fisk','ny'],t:'15 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/fisk-og-skalldyr/chili-og-limeglasert-laks-med-ris',rating:'Tine · 4,3 av 5',note:'Søt chili, soya og ris fra skapet. Mengdene er regnet om fra 4 til 5 personer.',i:[['Laksefilet uten skinn',650,'g','f',1],['Lime',1,'stk','g'],['Rød chili',1,'stk','g'],['Ingefær',1,'bit','g'],['Kinakål',1,'stk','g',1],['Sesamfrø',1,'pose','t']]},
+ kjottkaker:{n:'Kjøttkaker med ertepuré, poteter og brun saus',tags:['helg'],t:'1 t',url:'https://www.matprat.no/oppskrifter/familien/hjemmelagde-kjottkaker/',note:'Matprats oppskrift, regnet om til 5. Vann eller melk og smør fra kjøleskapet.',i:[['Kjøttdeig',600,'g','k',1],['Poteter',1500,'g','g'],['Grønne erter',500,'g','z'],['Gulrøtter',4,'stk','g'],['Tyttebærsyltetøy',1,'glass','t']],k:[['Potetmel',3,'ss'],['Hvetemel',3,'ss'],['Storfebuljong',1,'terning'],['Muskat',null,''],['Ingefær, malt',null,''],['Salt',null,''],['Pepper',null,'']]},
+ kyllinglar:{n:'Kyllinglår i ovn med rotgrønnsaker',tags:['helg'],t:'1 t, mest i ovnen',i:[['Kyllinglår eller lårfilet',1200,'g','k',1],['Poteter',1000,'g','g'],['Gulrøtter',4,'stk','g'],['Søtpotet',1,'stk','g'],['Rødløk',2,'stk','g']]},
+ bolognese:{n:'Pasta bolognese',tags:[],t:'40 min',note:'Legg kjøttdeigen i fryseren på handledagen hvis datoen er kort.',i:[['Kjøttdeig',600,'g','k'],['Løk',1,'stk','g'],['Gulrøtter',2,'stk','g'],['Hermetiske tomater',2,'boks','t'],['Parmesan',1,'bit','m']]},
+ fiskeboller:{n:'Fiskeboller i hvit saus med poteter og gulrøtter',tags:['fisk'],t:'25 min',i:[['Fiskeboller',2,'boks','t'],['Poteter',1000,'g','g'],['Gulrøtter',6,'stk','g']]},
+ wok:{n:'Stekte nudler med skinke og egg',tags:['ny'],t:'Under 20 min',url:'https://www.matprat.no/oppskrifter/rask/stekte-nudler/',note:'Matprat kaller den «superenkel». Egg fra skapet. Ingen ferskvarer, så alt kan kjøpes på handledagen. Mengdene er regnet om fra 4 til 5 personer.',i:[['Smårettskinke',250,'g','k'],['Wokgrønnsaker',1,'pose','z'],['Ferdigkokte nudler',400,'g','t'],['Woksaus',1,'pose','t']]},
+ lasagne:{n:'Lasagne, vegetar',tags:['veg','helg'],t:'1 t 20 min',note:'Varelista er et utgangspunkt. Juster mot deres oppskrift.',i:[['Lasagneplater',1,'pk','t'],['Hermetiske tomater',2,'boks','t'],['Røde linser',200,'g','t'],['Løk',1,'stk','g'],['Squash',1,'stk','g'],['Paprika',1,'stk','g'],['Spinat',1,'pose','z'],['Revet ost',1,'pose','m']]},
+ polsemos:{n:'Pølse og potetmos',tags:[],t:'25 min',note:'Kok potetene mens pølsene varmes. Potetmospulver går enda raskere.',i:[['Wienerpølser',1000,'g','k'],['Poteter',1500,'g','g'],['Grønne erter',1,'pose','z']]},
+ tomatsuppe:{n:'Tomatsuppe med egg og makaroni',tags:['veg','ny'],t:'30 min',url:'https://www.matprat.no/oppskrifter/familien/tomatsuppe-med-kokt-egg/',note:'Matprats tomatsuppe med kokt egg, med makaroni i. Tomatpuré, buljong og egg fra skapet. Grovbrød til.',i:[['Hermetiske tomater',3,'boks','t'],['Løk',1,'stk','g'],['Basilikum',1,'potte','g',1]]},
+ laksewraps:{n:'Laksewraps med karri',tags:['fisk'],t:'25 min',i:[['Laksefilet',600,'g','f',1],['Tortillalefser',1,'pk','b'],['Isbergsalat',1,'stk','g',1],['Agurk',1,'stk','g'],['Paprika',1,'stk','g'],['Crème fraîche',1,'beger','m']]},
+ burger:{n:'Hjemmelagde hamburgere med ovnspoteter',tags:['helg','ny'],t:'45 min',url:'https://www.matprat.no/oppskrifter/familien/hamburger/',note:'Matprats oppskrift er for 4. Ovnspoteter ved siden av.',i:[['Kjøttdeig',600,'g','k',1],['Hamburgerbrød',1,'pk','b'],['Ost i skiver',1,'pk','m'],['Isbergsalat',1,'stk','g'],['Tomater',3,'stk','g'],['Rødløk',1,'stk','g'],['Sylteagurk',1,'glass','t'],['Poteter',1200,'g','g']]},
+ marryme:{n:'Marry me chicken med pasta',p:6,tags:[],t:'40 min',url:'https://gladkokken.no/oppskrifter/marry-me-chicken',note:'Gladkokkens oppskrift (3 kyllingbryst = 3 porsjoner), doblet til 6 porsjoner. Soltørkede tomater: 8 ss. Tiden er anslått ut fra 10 min reduksjon av sausen og 20 min putring. Server med pasta.',i:[['Kyllingbryst',6,'stk','k',1],['Kremfløte',6,'dl','m'],['Kyllingkraft',6,'dl','t'],['Parmesan',300,'g','m'],['Soltørkede tomater',1,'glass','t'],['Sitron',2,'stk','g'],['Persille, fersk',1,'potte','g',1]],k:[['Annen pasta',null,''],['Løk',2,'stk'],['Hvitløk',12,'fedd'],['Smør',4,'ss'],['Tomatpuré',2,'ss'],['Oregano',2,'ss'],['Chiliflak',4,'ts'],['Sennep',2,'ss'],['Salt',2,'ts'],['Pepper',2,'ts'],['Hvitløkspulver',2,'ts'],['Paprikapulver',2,'ts'],['Cayennepepper',1,'ts']]},
+ fisketaco:{n:'Fisketaco med panert torsk',tags:['tex','fisk','ny'],t:'40 min',url:'https://www.matprat.no/oppskrifter/kos/fisketaco-med-panert-torsk/',note:'Matprat kaller den en favoritt for hele familien. Kjøp gjerne fryst torsk og tin den på torsdag, så slipper dere å tenke på datoen. Syltet rødløk og urtedressing hører til. Mengdene er regnet om til 5.',i:[['Torskefilet',750,'g','f',1],['Panko',1,'pose','t'],['Tacolefser',1,'pk','b'],['Rømme',1,'beger','m'],['Persille, fersk',1,'potte','g',1],['Rødløk',1,'stk','g'],['Isbergsalat',1,'stk','g']],k:[['Majones',null,''],['Sennep',null,''],['Paprikapulver',null,''],['Hvitløkspulver',null,''],['Oregano',null,''],['Hvitløk',1,'fedd'],['Eddik',null,''],['Sukker',null,'']]},
+ torskeform:{n:'Torskeform med ost',tags:['fisk','helg','ny'],t:'50 min',url:'https://www.matprat.no/oppskrifter/familien/torskeform-med-ost/',note:'Matprats oppskrift, regnet om til 5. Server med poteter eller ris.',i:[['Torskefilet',1000,'g','f',1],['Tomater',4,'stk','g'],['Purre',1,'stk','g'],['Kremfløte',1,'beger','m'],['Revet ost',1,'pose','m'],['Poteter',1200,'g','g']],k:[]},
+ finnbiff:{n:'Kremet finnbiff med potetmos',tags:['ny'],t:'40 min',url:'https://www.matprat.no/oppskrifter/rask/kremet-finnbiff-med-potetmos/',note:'Matprats oppskrift, regnet om til 5. Oppskriften bruker crème fraîche, men sier at fløte, rømme eller en blanding går fint. Her er det satt opp rømme og fløte. Bruk sopp dere har plukket, eller kjøp aromasopp. Høstrett.',i:[['Reinsdyrskav, fryst',500,'g','z'],['Sopp, frisk (om dere ikke har plukket)',400,'g','g'],['Rømme',1,'beger','m'],['Fløte',1,'beger','m'],['Gressløk',1,'bunt','g'],['Poteter',1000,'g','g'],['Tyttebærsyltetøy',1,'glass','t']],k:[['Løk',1,'stk'],['Einebær',6,'stk'],['Timian',null,'']]},
+ redcurry:{n:'Thai red curry med kylling',c:'Thai',tags:['ny'],t:'40 min',url:'https://www.matprat.no/oppskrifter/kos/red-curry-med-kylling/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Galangarot, kaffirlimeblader og sitrongress finnes i asiatiske butikker. Server med jasminris.',i:[['Kyllinglårfilet',750,'g','k',1],['Aspargesbønner',250,'g','g',1],['Thai aubergine',2,'stk','g'],['Galangarot',1,'bit','g'],['Kaffirlimeblader',1,'pk','g'],['Sitrongress',2,'stk','g'],['Bambusskudd',1,'boks','t'],['Lime',2,'stk','g']],k:[['Rød karripasta',4,'ss'],['Kokosmelk',2,'boks'],['Fiskesaus',4,'ss'],['Sukker',2,'ss'],['Ris',500,'g']]},
+ tomkha:{n:'Tom kha gai',c:'Thai',tags:['ny'],t:'30 min',url:'https://www.matprat.no/oppskrifter/sunn/tom-kah-gai-med-kyllingfilet/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Matprat bruker ingefær. Har dere galangal og kaffirlimeblader fra den asiatiske butikken, kan de brukes i stedet eller i tillegg. Server med ris.',i:[['Kyllingfilet',600,'g','k',1],['Ingefær',125,'g','g'],['Sitrongress',2,'stk','g'],['Kyllingkraft',10,'dl','t'],['Lime',2,'stk','g'],['Koriander, fersk',1,'potte','g',1]],k:[['Kokosmelk',1,'boks'],['Fiskesaus',3,'ss'],['Hvitløk',3,'fedd'],['Chiliflak',null,''],['Ris',250,'g']]},
+ padthai:{n:'Pad thai med svinekjøtt',c:'Thai',tags:['ny'],t:'30 min',url:'https://www.matprat.no/oppskrifter/gjester/pad-thai---stekte-nudler-med-svinekjott/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Press lime over, og sett frem ekstra vårløk, peanøtter og bønnespirer.',i:[['Risnudler',375,'g','t'],['Svinekjøtt i strimler',375,'g','k',1],['Tofu',1,'pk','g'],['Vårløk',1,'bunt','g',1],['Bønnespirer',1,'pose','g',1],['Peanøtter',1,'pose','t'],['Tamarindsaus',1,'flaske','t'],['Østerssaus',1,'flaske','t'],['Rødløk',1,'stk','g'],['Lime',2,'stk','g']],k:[['Fiskesaus',3,'ss'],['Sukker',1,'ss'],['Chilipulver',null,''],['Hvitløk',2,'fedd'],['Matolje',null,'']]},
+ sursot:{n:'Wok med kylling og sursøt saus',c:'Kinesisk',tags:['ny'],t:'Under 20 min',url:'https://www.matprat.no/oppskrifter/rask/wok-med-kylling-og-sursot-saus/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. 2–3 egg fra kjøleskapet. Server med ris eller nudler.',i:[['Kyllingfilet',600,'g','k',1],['Paprika',4,'stk','g'],['Rød chili',1,'stk','g'],['Ingefær',1,'bit','g']],k:[['Ananas',2,'boks'],['Løk',1,'stk'],['Maisenna',6,'ss'],['Sukker',4,'ss'],['Eddik',3,'ss'],['Kyllingbuljong',1,'terning'],['Soyasaus',5,'ss'],['Ris',500,'g']]},
+ butterchicken:{n:'Butter chicken på 20 minutter',c:'Indisk',tags:['ny'],t:'20 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/kylling-og-fjarkre/butter-chicken-pa-20-minutter',rating:'Tine · 4,1 av 5',note:'Tines oppskrift for 4, regnet om til 5. Server med ris, naan eller salat.',i:[['Kyllingfilet',800,'g','k',1],['Rødløk',1,'stk','g'],['Ingefær',1,'bit','g'],['Sitron',1,'stk','g'],['Crème fraîche',1,'beger','m'],['Spinat, fersk',1,'pose','g',1],['Naanbrød',1,'pk','b']],k:[['Hermetiske tomater',1,'boks'],['Gurkemeie',2,'ss'],['Spisskummen',2,'ts'],['Garam masala',1,'ss'],['Koriander, malt',1,'ss'],['Chiliflak',null,''],['Hvitløk',2,'fedd'],['Honning',1,'ss'],['Matolje',null,''],['Ris',500,'g']]},
+ chanamasala:{n:'Chana masala',c:'Indisk',tags:['veg','helg','ny'],t:'1 t 30 min',url:'https://www.saritas.no/chana-masala-vegetargryte',note:'Saritas oppskrift for 4, regnet om til 5. Server med basmatiris og mango chutney.',i:[['Grønn chili',2,'stk','g'],['Tomater',3,'stk','g'],['Ingefær',1,'bit','g'],['Koriander, fersk',1,'bunt','g',1],['Lime',1,'stk','g'],['Mango chutney',1,'glass','t']],k:[['Kikerter',4,'boks'],['Hermetiske tomater',2,'boks'],['Løk',3,'stk'],['Hvitløk',5,'fedd'],['Spisskummen',null,''],['Garam masala',3,'ts'],['Matolje',null,''],['Ris',500,'g']]},
+ gyros:{n:'Gyros i pita',c:'Gresk',tags:['helg','ny'],t:'Over 1 t med marinering',url:'https://www.matprat.no/oppskrifter/kos/gyros/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Tzatziki kan kjøpes ferdig.',i:[['Svinenakke',625,'g','k',1],['Pitabrød',5,'stk','b'],['Pommes frites',250,'g','z'],['Rødløk',1,'stk','g'],['Sitron',1,'stk','g'],['Tzatziki',1,'beger','m'],['Agurk',1,'stk','g'],['Tomater',2,'stk','g'],['Fetaost',1,'pk','m']],k:[['Løk',1,'stk'],['Hvitløk',3,'fedd'],['Oregano',null,''],['Rosmarin',null,''],['Olivenolje',null,'']]},
+ moussaka:{n:'Moussaka',c:'Gresk',tags:['helg','ny'],t:'Over 1 t',url:'https://www.matprat.no/oppskrifter/gjester/moussaka/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Smør, melk (5 dl) og 2 egg fra kjøleskapet.',i:[['Lammekjøttdeig',500,'g','k',1],['Aubergine',4,'stk','g'],['Bladpersille',1,'bunt','g'],['Basilikum',1,'potte','g'],['Revet ost',1,'pose','m']],k:[['Løk',2,'stk'],['Hvitløk',2,'fedd'],['Hermetiske tomater',1,'boks'],['Kanel',null,''],['Hvetemel',4,'ss'],['Matolje',null,'']]},
+ kofte:{n:'Izmir köfte med poteter og tomatsaus',c:'Tyrkisk',tags:['helg','ny'],t:'1 t 15 min',url:'https://www.etkjokken.com/2017/01/izmir-kofte/',note:'Et Kjøkkens oppskrift er for 2–4 porsjoner. Mengdene er doblet for 5. 2 egg og 4 skiver brød fra kjøleskapet. Server med ris og yoghurt.',i:[['Kjøttdeig',800,'g','k',1],['Poteter',1000,'g','g'],['Gulrøtter',2,'stk','g'],['Paprika',2,'stk','g'],['Tomater',800,'g','g'],['Bladpersille',1,'bunt','g'],['Yoghurt naturell',1,'beger','m']],k:[['Chiliflak',2,'ts'],['Spisskummen',2,'ts'],['Hvitløk',2,'fedd'],['Tomatpuré',null,''],['Olivenolje',null,''],['Ris',500,'g']]},
+ tagine:{n:'Marokkansk tagine med kikerter og dadler',c:'Marokkansk',tags:['veg','ny'],t:'30 min',url:'https://aichasmat.no/marokkansk-tagine-med-kikerter-og-dadler/',note:'Aichas oppskrift for 4, regnet om til 5. Tiden er ikke oppgitt i oppskriften og er anslått. Server med couscous, ris eller quinoa.',i:[['Dadler, steinfrie',1,'pose','t'],['Gulrøtter',3,'stk','g'],['Rød chili',1,'stk','g'],['Sitron',1,'stk','g'],['Koriander, fersk',1,'potte','g',1]],k:[['Kikerter',3,'boks'],['Hermetiske tomater',1,'boks'],['Løk',1,'stk'],['Hvitløk',3,'fedd'],['Spisskummen',1,'ts'],['Koriander, malt',1,'ts'],['Ingefær, malt',1,'ts'],['Kanel',null,''],['Olivenolje',null,''],['Couscous',null,'']]},
+ shakshuka:{n:'Shakshuka',c:'Midtøsten',tags:['veg','ny'],t:'30 min',url:'https://www.matprat.no/oppskrifter/sunn/shakshuka/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. 8 egg fra kjøleskapet. Server med agurk- og rødløksalat og grovt brød.',i:[['Paprika',1,'stk','g'],['Rød chili',1,'stk','g'],['Agurk',1,'stk','g'],['Rødløk',1,'stk','g'],['Sitron',1,'stk','g'],['Bladpersille',1,'potte','g',1],['Fetaost',1,'pk','m']],k:[['Hermetiske tomater',3,'boks'],['Løk',1,'stk'],['Hvitløk',3,'fedd'],['Spisskummen',2,'ts'],['Matolje',null,'']]},
+ fiskesuppe:{n:'Rød fiskesuppe med torsk',c:'Norsk',tags:['fisk','ny'],t:'30 min',url:'https://www.matprat.no/oppskrifter/familien/rod-fiskesuppe/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Server med ferskt brød.',i:[['Torskefilet',750,'g','f',1],['Paprika',1,'stk','g'],['Ingefær',1,'bit','g'],['Fennikel',1,'stk','g'],['Koriander, fersk',1,'potte','g',1]],k:[['Hermetiske tomater',1,'boks'],['Tomatpuré',3,'ss'],['Fiskebuljong',3,'terning'],['Løk',1,'stk'],['Hvitløk',2,'fedd'],['Stjerneanis',2,'stk'],['Cayennepepper',null,''],['Olivenolje',null,'']]},
+ plukkfisk:{n:'Plukkfisk',c:'Norsk',tags:['fisk','ny'],t:'40 min',url:'https://www.matprat.no/oppskrifter/tradisjon/plukkfisk/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Melk (ca. 1,25 l) og smør fra kjøleskapet. Server med flatbrød, gjerne med sprøstekt bacon.',i:[['Lettsaltet torsk',750,'g','f',1],['Poteter',500,'g','g'],['Purre',1,'stk','g'],['Dill, fersk',1,'bunt','g',1],['Bacon (valgfritt)',1,'pk','k']],k:[['Løk',2,'stk'],['Hvetemel',5,'ss'],['Muskat',null,''],['Flatbrød',null,'']]},
+ kjottsuppe:{n:'Kjøttsuppe',c:'Norsk',tags:['helg','ny'],t:'Over 1 t',url:'https://www.matprat.no/oppskrifter/tradisjon/kjottsuppe/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner og økt til 5. Server med flatbrød eller brød og smør. Lag gjerne dobbelt på søndag.',i:[['Suppekjøtt uten bein (lam eller storfe)',900,'g','k',1],['Purre',1,'stk','g'],['Gulrøtter',3,'stk','g'],['Sellerirot',1,'stk','g'],['Kålrot',1,'stk','g'],['Persillerot',2,'stk','g'],['Poteter',750,'g','g'],['Timian, fersk',1,'potte','g']],k:[['Løk',1,'stk'],['Storfebuljong',4,'terning'],['Flatbrød',null,'']]},
+ rekordsuppe:{n:'Enkel suppe med suppeboller',c:'Norsk',tags:['ny'],t:'Under 20 min',url:'https://www.matprat.no/oppskrifter/rask/rekordsuppe/',note:'Matprats oppskrift for 4, regnet om til 5. Godt med rundstykker.',i:[['Lapskausblanding, fryst',1000,'g','z'],['Suppeboller',1,'boks','t']],k:[['Storfebuljong',3,'terning']]},
+ gnocchi:{n:'Gnocchiform med brokkoli, ost og tomatsaus',tags:['veg','ny'],t:'30 min',url:'https://vegetarentusiast.no/gnocchiform/',note:'Fra Vegetarentusiast. Pestoen er valgfri. Mengdene er regnet om fra 4 til 5 personer.',i:[['Fersk gnocchi',2,'pk','t'],['Brokkoli',1,'stk','g',1],['Gulrøtter',2,'stk','g'],['Hvite bønner',1,'boks','t'],['Tomatsaus med basilikum',2,'glass','t'],['Revet ost',1,'pose','m']]},
+ fiskegrateng:{n:'Fiskegrateng med råkost',tags:['fisk'],t:'50 min',note:'Kan lages kvelden før og settes rett i ovnen.',i:[['Torsk eller sei, fryst',600,'g','z'],['Revet ost',1,'pose','m'],['Gulrøtter',4,'stk','g']]},
+ linsepannekaker:{n:'Linsepannekaker med spinat',tags:['veg'],t:'20 min',url:'https://vegetarentusiast.no/linsepannekaker/',note:'«Pannekaker med skjulte linser», grønn variant. Oppskriften er for 4, mengdene er regnet om til 5. Melk (ca. 8 dl) og 3 egg fra kjøleskapet.',i:[['Spinat, fersk',1,'pose','g',1]],k:[['Linser, hermetiske',1,'boks'],['Hvetemel',375,'g'],['Bakepulver',null,''],['Sukker',null,''],['Salt',null,'']]},
+ carbonara:{n:'Pasta carbonara',tags:['ny'],t:'20 min',url:'https://www.matprat.no/oppskrifter/kos/pasta-carbonara/',note:'Egg og spaghetti fra skapet. Salat ved siden av.',i:[['Bacon',2,'pk','k'],['Parmesan',1,'bit','m'],['Salatmiks',1,'pose','g',1]]},
+ gronngrateng:{n:'Grønnsaksgrateng',tags:['veg'],t:'50 min',note:'Kan lages kvelden før og settes rett i ovnen.',i:[['Brokkoli',1,'stk','g',1],['Blomkål',1,'stk','g',1],['Gulrøtter',3,'stk','g'],['Revet ost',1,'pose','m']]},
+ // I banken: klare til å byttes inn
+ polsegrateng:{n:'Pølsegrateng',tags:[],t:'45 min',i:[['Wienerpølser',800,'g','k'],['Revet ost',1,'pose','m'],['Brokkoli',1,'stk','g',1]]},
+ kyllingform:{n:'Kyllingform i fløtesaus med ost, pasta og brokkoli',tags:[],t:'40 min',i:[['Kyllingfilet',800,'g','k',1],['Matfløte',1,'beger','m'],['Revet ost',1,'pose','m'],['Brokkoli',1,'stk','g',1]]},
+ kjottboller:{n:'Kjøttboller og pasta med tomatsaus',tags:[],t:'40 min',i:[['Kjøttdeig',600,'g','k',1],['Løk',1,'stk','g'],['Hermetiske tomater',2,'boks','t']]},
+ lapskaus:{n:'Lapskaus',tags:['helg'],t:'1 t 30 min',i:[['Lapskauskjøtt',600,'g','k',1],['Poteter',1500,'g','g'],['Gulrøtter',4,'stk','g'],['Kålrot',1,'stk','g'],['Løk',1,'stk','g'],['Flatbrød',1,'pk','b']]},
+ farikal:{n:'Fårikål',tags:['helg','ny'],t:'2 t 30 min, mest passivt',url:'https://www.matprat.no/oppskrifter/tradisjon/farikal/',note:'Sesongrett i september og oktober.',i:[['Fårikålkjøtt',1500,'g','k',1],['Hodekål',1,'stk','g'],['Poteter',1500,'g','g'],['Hel pepper',1,'pose','t']]},
+ pannekaker:{n:'Pannekaker med bacon og blåbærsyltetøy',tags:['ny'],t:'40 min',url:'https://www.matprat.no/oppskrifter/familien/pannekaker/',note:'Røren må hvile i 30 min. Mel, egg og melk fra skapet.',i:[['Bacon',2,'pk','k'],['Blåbærsyltetøy',1,'glass','t']]},
+ rest:{n:'Restedag',tags:['rest'],t:'',note:'Rester fra dagen med dobbel porsjon, eller brødmat.',i:[]}
+};
+function baseAt(w,d){ const b=S.plan.base; return (b&&b[w]&&b[w][d])||'rest'; }
+function isQuickDay(d){ return !!(CFG.quick&&CFG.quick[d]); }
+function dayNote(w,d){ let n=(CFG.notes&&CFG.notes[d])||''; if(d===CFG.doubleDay && doubleOn(w)) n = n ? 'Lag dobbel porsjon · '+n : 'Lag dobbel porsjon'; return n; }
+const SHORT_RE = /koriander|spinat|salat|basilikum|bønnespirer|vårløk|persille|ruccola/i;
+function minutes(t){ if(!t) return 0; const h=(t.match(/(\d+)\s*t\b/)||[])[1]; const m=(t.match(/(\d+)\s*min/)||[])[1]; return (h?+h*60:0)+(m?+m:0); }
+function isQuick(d){ const m=minutes(d.t); return d.tags && d.tags.indexOf('rest')<0 && m>0 && m<=(CFG.maxMin||25); }
+function doubleOn(w){ return CFG.doubleDay>=0 && CFG.restDay>=0 && dishAt(w,CFG.restDay)==='rest'; }
+const FASTE = [['melk','Melk','m'],['brod','Brød','b'],['egg','Egg, 18 stk','m'],['smor','Smør eller margarin','m'],['palegg','Pålegg (ost, leverpostei, skinke)','m'],['frukt','Frukt (bananer, epler, klementiner)','g'],['yoghurt','Yoghurt','m'],['knekke','Knekkebrød','b']];
+const GROUPS = [['krydder','Krydder'],['flytende','Oljer, eddik og sauser'],['torr','Ris, pasta, mel og bakst'],['belg','Bønner og linser'],['fro','Frø, nøtter og søtt'],['hermetikk','Hermetikk og buljong'],['kjol','Kjøleskap og bod'],['annet','Husholdning og annet']];
+const GNAME = Object.fromEntries(GROUPS);
+const BASIS = [
+ ['salt','Salt','krydder'],['pepper','Pepper','krydder'],['helpepper','Hel pepper','krydder'],['paprikap','Paprikapulver','krydder'],['rokpaprika','Røkt paprika','krydder'],['spisskummen','Spisskummen','krydder'],['koriandermalt','Koriander, malt','krydder'],['chilip','Chilipulver','krydder'],['chiliflak','Chiliflak','krydder'],['cayenne','Cayennepepper','krydder'],['oregano','Oregano','krydder'],['basilikumt','Basilikum, tørket','krydder'],['timian','Timian','krydder'],['einebaer','Einebær','krydder'],['rosmarin','Rosmarin','krydder'],['laurbaer','Laurbærblad','krydder'],['karri','Karri','krydder'],['garam','Garam masala','krydder'],['gurkemeie','Gurkemeie','krydder'],['ingefaerm','Ingefær, malt','krydder'],['kanel','Kanel','krydder'],['kardemomme','Kardemomme','krydder'],['muskat','Muskat','krydder'],['hvitlokp','Hvitløkspulver','krydder'],['tacokrydder','Tacokrydder','krydder'],['hvitlok','Hvitløk','kjol'],['lok','Løk','kjol'],
+ ['olje','Matolje','flytende'],['olivenolje','Olivenolje','flytende'],['sesamolje','Sesamolje','flytende'],['eddik','Eddik','flytende'],['balsamico','Balsamico','flytende'],['soya','Soyasaus','flytende'],['ketjap','Ketjap manis','flytende'],['sotchili','Søt chili','flytende'],['karripasta','Rød karripasta','flytende'],['sriracha','Sriracha','flytende'],['fiskesaus','Fiskesaus','flytende'],['ketchup','Ketchup','flytende'],['sennep','Sennep','flytende'],['majones','Majones','flytende'],
+ ['ris','Ris','torr'],['spaghetti','Spaghetti','torr'],['makaroni','Makaroni','torr'],['pasta','Annen pasta','torr'],['lasagneplater','Lasagneplater','torr'],['eggnudler','Eggnudler','torr'],['couscous','Couscous','torr'],['havregryn','Havregryn','torr'],['mel','Hvetemel','torr'],['maisenna','Maisenna','torr'],['potetmel','Potetmel','torr'],['gjaer','Tørrgjær','torr'],['bakepulver','Bakepulver','torr'],['sukker','Sukker','torr'],['brunsukker','Brunt sukker','torr'],
+ ['rodelinser','Røde linser','belg'],['linserherm','Linser, hermetiske','belg'],['kikerter','Kikerter','belg'],['kidney','Kidneybønner','belg'],['sortebonner','Sorte bønner','belg'],['hvitebonner','Hvite bønner','belg'],
+ ['sesamfro','Sesamfrø','fro'],['solsikke','Solsikkekjerner','fro'],['gresskar','Gresskarkjerner','fro'],['linfro','Linfrø','fro'],['chia','Chiafrø','fro'],['kokosmasse','Kokosmasse','fro'],['kokosflak','Kokosflak','fro'],['kakao','Kakao','fro'],['rosiner','Rosiner','fro'],['cashew','Cashewnøtter','fro'],
+ ['hermtomat','Hermetiske tomater','hermetikk'],['knustetomat','Knuste tomater','hermetikk'],['tomatpure','Tomatpuré','hermetikk'],['kokosmelk','Kokosmelk','hermetikk'],['mais','Mais','hermetikk'],['ananas','Ananas','hermetikk'],['buljong','Buljong','hermetikk'],['kyllingbuljong','Kyllingbuljong','hermetikk'],['storfebuljong','Storfebuljong','hermetikk'],['fiskebuljong','Fiskebuljong','hermetikk'],['brunsaus','Brun saus / sjysaus','hermetikk'],
+ ['bakepapir','Bakepapir','annet'],['folie','Matpakkepapir','annet'],['aluminium','Aluminiumsfolie','annet'],['fryseposer','Fryseposer','annet']
+];
+const GUESSG = [['kjol',/^(løk|gul løk|rødløk|hvitløk|sjalottløk|poteter|potet|gulrøtter|gulrot)$/],['hermetikk',/hermetisk|tomater|tomatpuré|kokosmelk|^mais|ananas|buljong|boks/],['flytende',/olje|eddik|saus|soya|ketchup|sennep|majones|sirup|balsamico|sriracha/],['belg',/bønner|linser|kikert|erter/],['fro',/frø|kjerner|nøtt|kokos|kakao|rosin|mandler|sjokolade/],['torr',/ris\b|pasta|spaghetti|makaroni|mel\b|mel$|nudler|gryn|couscous|bulgur|gjær|sukker|bakepulver|natron|maisenna|lasagne|flatbrød/],['krydder',/pulver|krydder|pepper|salt|kanel|karri|masala|oregano|timian|basilikum|rosmarin|kummen|kardemomme|muskat|laurbær|chili|paprika|nellik|koriander|gurkemeie|hvitløk/]];
+function guessGroup(n){ const l=n.toLowerCase(); for(const [g,re] of GUESSG) if(re.test(l)) return g; return 'annet'; }
+const PANTRY_RE = /^(hermetiske tomater|knuste tomater|mais|kidneybønner|sorte bønner|hvite bønner|røde linser|kokosmelk|sesamfrø|hel pepper)$/i;
+const SKAP = {pizza:['Hvetemel','Tørrgjær','Ananas'],laks:['Ris','Søt chili','Soyasaus'],korma:['Ris'],fiskekaker:['Makaroni','Hvetemel'],chili:['Ris','Spisskummen','Chilipulver'],carbonara:['Spaghetti'],linsegryte:[],linsepannekaker:[],tomatsuppe:['Makaroni','Tomatpuré','Buljong'],fiskegrateng:['Makaroni','Hvetemel'],gronngrateng:['Hvetemel'],kjottkaker:[],enchiladas:[],marryme:[],lasagne:['Lasagneplater','Oregano'],fiskeboller:['Hvetemel'],polsemos:['Ketchup','Sennep'],burger:['Ketchup'],kyllinglar:['Olivenolje'],laksewraps:['Karri'],pannekaker:['Hvetemel'],kjottboller:['Spaghetti'],polsegrateng:['Makaroni'],kyllingform:['Annen pasta'],taco:['Ananas'],quesadillas:[],bolognese:['Spaghetti','Tomatpuré','Oregano'],wok:[]};
+for(const id in D){ const d=D[id]; const keep=[], k=[]; (d.i||[]).forEach(r=>{ (PANTRY_RE.test(r[0])?k:keep).push(r); }); (SKAP[id]||[]).forEach(n=>k.push([n,null,''])); d.i=keep; d.k=(d.k||[]).concat(k); }
+
+// ---------- State ----------
+const S = {setup:{}, log:{items:[]}, plan:{swaps:{},custom:{},edits:{}}, basis:{low:{},fasteOff:{},fasteAdd:{},basisAdd:{},basisOff:{}}, w:[{},{},{},{}]};
+const UI = {days:{}, dayExtras:false, secEdit:null, arrange:false, tab:null, seg:'stor', filter:'alle', sheet:null, edit:null, pq:'', open:{}, tidy:{}};
+let db = null;
+const isObj = v => v && typeof v === 'object' && !Array.isArray(v);
+function merge(t,p){ for(const k in p){ if(isObj(p[k])){ t[k]=merge(isObj(t[k])?t[k]:{},p[k]); } else t[k]=p[k]; } return t; }
+function clone(o){ return JSON.parse(JSON.stringify(o||{})); }
+function docOf(path){ if(path==='app/setup') return S.setup; if(path==='app/log') return S.log; if(path==='app/plan') return S.plan; if(path==='app/basis') return S.basis; return S.w[+path.slice(5)]; }
+function setDoc(path,val){ if(path==='app/setup'){ S.setup=val||{}; applyConfig(); return; } if(path==='app/log'){ S.log={items:Array.isArray(val&&val.items)?val.items:[]}; return; } if(path==='app/plan') S.plan=merge({swaps:{},custom:{},edits:{}},val); else if(path==='app/basis') S.basis=merge({low:{},fasteOff:{},fasteAdd:{},basisAdd:{},basisOff:{}},val); else S.w[+path.slice(5)]=val; }
+try{ const saved = JSON.parse(localStorage.getItem('mh-data-'+(HID||'lokal'))||'null'); if(saved){ setDoc('app/plan',saved.plan||{}); if(saved.setup) S.setup=saved.setup; if(saved.log) setDoc('app/log',saved.log); setDoc('app/basis',saved.basis||{}); (saved.w||[]).forEach((w,i)=>{ if(i<4) S.w[i]=w||{}; }); } }catch(e){}
+function saveLocal(){ try{ localStorage.setItem('mh-data-'+(HID||'lokal'), JSON.stringify(S)); }catch(e){} }
+const queues = {};
+function inverseOf(doc, patch){ const inv={}; for(const k in patch){ const old = doc ? doc[k] : undefined; if(isObj(patch[k]) && isObj(old)) inv[k]=inverseOf(old, patch[k]); else inv[k] = (old===undefined) ? null : clone({v:old}).v; } return inv; }
+function dayLabel(key){ const [w,d]=key.split('-').map(Number); return 'Uke '+(w+1)+' '+DAYLONG[d]; }
+function describe(path, patch){
+  const all = allDishes(); const out=[];
+  if(path==='app/plan'){
+    for(const k in (patch.swaps||{})){ const [w,d]=k.split('-').map(Number); const from=all[dishAt(w,d)]; const to=all[patch.swaps[k]||baseAt(w,d)]; out.push(dayLabel(k)+': '+(from?from.n:'?')+' → '+(to?to.n:'?')); }
+    for(const k in (patch.edits||{})){ const d=all[k]; out.push(patch.edits[k]===null ? 'Satte '+(d?d.n:k)+' tilbake til original' : 'Endret '+(patch.edits[k].n||(d&&d.n)||k)); }
+    for(const k in (patch.custom||{})){ const d=all[k]; out.push(patch.custom[k]===null ? 'Slettet '+(d?d.n:k) : (d?'Endret ':'La til ')+(patch.custom[k].n||(d&&d.n)||k)); }
+  } else if(path==='app/basis'){
+    const bl = basisList(); const nm = id => { const b=bl.find(x=>x.id===id); return b?b.n:((patch.basisAdd&&patch.basisAdd[id]&&patch.basisAdd[id].n)||id); };
+    if(patch.basisAdd){ for(const id in patch.basisAdd){ const v=patch.basisAdd[id]; out.push(v===null?'Fjernet '+nm(id)+' fra skapet':(v.n?'La til '+v.n+' i skapet':'Endret '+nm(id))); } }
+    else if(patch.basisOff){ for(const id in patch.basisOff) out.push('Fjernet '+nm(id)+' fra skapet'); }
+    else if(patch.low){ for(const id in patch.low) out.push(nm(id)+(patch.low[id]?' merket tomt':' merket som «har»')); }
+    if(patch.fasteAdd||patch.fasteOff||patch.fasteSec) out.push('Endret faste ukevarer');
+    if(patch.secAdd||patch.secOrder||patch.secOff||patch.secRename) out.push('Endret avdelinger i butikken');
+    if(patch.itemSec){ for(const n in patch.itemSec) if(patch.itemSec[n]) out.push('Flyttet '+n+' til '+secName(patch.itemSec[n])); }
+  }
+  return out.filter((x,i,a)=>a.indexOf(x)===i).join(' · ') || 'Endring';
+}
+function logChange(path, patch){
+  const entry = {id:'h'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), t:Date.now(), path:path, inv:inverseOf(docOf(path), patch), label:describe(path, patch)};
+  const items = (S.log.items||[]).concat([entry]).slice(-25);
+  return {entry:entry, items:items};
+}
+function write(path, patch, replace, opts){
+  let logged = null;
+  if(!replace && !(opts&&opts.nolog) && (path==='app/plan'||path==='app/basis')) logged = logChange(path, patch);
+  if(replace) setDoc(path, clone(patch)); else merge(docOf(path), clone(patch));
+  if(logged){ S.log={items:logged.items}; if(!(opts&&opts.quiet)) UI.lastUndo = logged.entry.id; persistLog(); }
+  saveLocal(); render();
+  if(logged && !(opts&&opts.quiet)) toast(logged.entry.label, logged.entry.id);
+  if(!db) return;
+  const full = clone(docOf(path));
+  queues[path] = (queues[path]||Promise.resolve()).then(()=>{
+    const ref = db.doc(path);
+    const p = replace ? ref.set(full) : ref.update(patch);
+    return p.catch(e=>{ if(!replace && e && e.code==='invalid_argument') return ref.set(clone(docOf(path))); throw e; });
+  }).catch(e=>{ toast(e && e.code==='invalid_argument' ? 'Du har bare lesetilgang til denne lista.' : 'Endringen ble ikke lagret. Prøv igjen.'); });
+}
+
+// ---------- Dates ----------
+function atMid(d){ return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+const DAYMS = 864e5;
+function addDays(d,n){ const x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function fmt(d){ return d.getDate()+'.'+(d.getMonth()+1)+'.'; }
+const today = atMid(new Date());
+let daysSince=0, isShop=false, isPad=false, refAbs=0, curAbs=-1, curW=-1, daysToShop=0, nextShopW=0;
+function absFor(w){ return refAbs + ((w - (refAbs%4)) + 4) % 4; }
+function weekStart(w){ return addDays(START, absFor(w)*7); }
+function isoDate(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function parseDate(s){ const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? new Date(+m[1], +m[2]-1, +m[3]) : null; }
+function lastShopDay(dow){ return addDays(today, -((today.getDay()-dow+7)%7)); }
+function applyConfig(){
+  CFG = Object.assign({}, CFG0, S.setup||{});
+  DAYN=[]; DAYLONG=[]; for(let i=0;i<7;i++){ DAYN.push(DOW_S[(CFG.shopDow+i)%7]); DAYLONG.push(DOW_L[(CFG.shopDow+i)%7]); }
+  START = parseDate(CFG.start) || lastShopDay(CFG.shopDow);
+  daysSince = Math.round((today-START)/DAYMS); const di=((daysSince%7)+7)%7;
+  isShop = di===0; isPad = CFG.padDay>=0 && di===CFG.padDay;
+  refAbs = Math.floor(Math.max(daysSince,0)/7); curAbs = daysSince>=0 ? Math.floor(daysSince/7) : -1; curW = curAbs>=0 ? curAbs%4 : -1;
+  daysToShop = (7-di)%7; nextShopW = ((Math.floor((daysSince+daysToShop)/7)%4)+4)%4;
+}
+applyConfig();
+UI.tab = 'w' + (curW<0 ? 0 : curW);
+
+
+// ---------- Helpers ----------
+function scaleQ(q,u,f){ const x=q*f; if(u==='g') return x>=100 ? Math.round(x/50)*50 : Math.max(10, Math.round(x/10)*10); if(['dl','ss','ts','l'].indexOf(u)>=0) return Math.max(0.5, Math.round(x*2)/2); return Math.max(1, Math.round(x)); }
+function scaleDish(d){ const f=(CFG.servings||4)/(d.p||5); if(Math.abs(f-1)<0.01) return d; const sc=r=>{ const x=r.slice(); if(r[1]!=null) x[1]=scaleQ(r[1],r[2],f); return x; }; return Object.assign({}, d, {i:(d.i||[]).map(sc), k:(d.k||[]).map(sc), p:CFG.servings}); }
+function allDishes(){ const o = {}; const E = S.plan.edits||{}; for(const k in D){ o[k] = scaleDish(E[k] ? Object.assign({}, D[k], {k:[]}, E[k]) : D[k]); } for(const k in S.plan.custom){ const c=S.plan.custom[k]; if(c) o[k]=scaleDish(c); } return o; }
+function dishAt(w,d){ const k = S.plan.swaps[w+'-'+d]; const all = allDishes(); return (k && all[k]) ? k : baseAt(w,d); }
+function usage(id){ const u=[]; for(let w=0;w<4;w++) for(let d=0;d<7;d++) if(dishAt(w,d)===id) u.push('Uke '+(w+1)+' '+DAYN[d].toLowerCase()); return u; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function cz(d){ return d && d.c ? '<span class="chip c-kj">'+esc(d.c)+'</span>' : ''; }
+function chips(tags){ return (tags||[]).filter(t=>t!=='ny').map(t=>'<span class="chip c-'+t+'">'+esc(TAGS[t]||t)+'</span>').join(''); }
+function qtyStr(q,u){
+  if(q==null) return '';
+  if(u==='g'){ return q>=1000 ? String(+(q/1000).toFixed(2)).replace('.',',')+' kg' : q+' g'; }
+  const n = String(+q.toFixed(2)).replace('.',',');
+  return n+' '+(q>1 && PLURAL[u] ? PLURAL[u] : u);
+}
+function weekDoc(w){ const d=S.w[w]||{}; return d.occ===absFor(w) ? d : {occ:absFor(w),checked:{},extra:{}}; }
+function setWeek(w, patch){
+  const d = S.w[w]||{};
+  if(d.occ!==absFor(w)){ const fresh = merge({occ:absFor(w),checked:{},extra:{}}, patch); write('app/w'+w, fresh, true); }
+  else write('app/w'+w, patch, false);
+}
+function fasteList(){ const ov=S.basis.fasteSec||{}; const l = FASTE.filter(f=>!S.basis.fasteOff[f[0]]).map(f=>({id:f[0],n:f[1],s:ov[f[0]]||f[2]})); for(const k in S.basis.fasteAdd){ const v=S.basis.fasteAdd[k]; if(v) l.push({id:k,n:v.n,s:v.s||'a',custom:1}); } return l; }
+function autoSec(n){ const l=n.toLowerCase(); if(/banan|eple|appelsin|klementin|frukt|drue|pære|agurk|tomat|salat|paprika|løk|potet|gulr|brokkoli|kål|avokado|sitron|lime|bær|squash|sopp|urter|koriander|spinat|mango|kiwi|melon/.test(l)) return 'g'; if(/gryn|müsli|musli|kornblanding|cornflakes/.test(l)) return 't'; for(const [s,re] of GUESS) if(re.test(l)) return s; return 'a'; }
+function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '+(attrs||'')+' aria-label="Avdeling">'+(val==null?'<option value="">Finn avdeling selv</option>':'')+secOrder().map(k=>'<option value="'+k+'"'+(k===val?' selected':'')+'>'+secName(k)+'</option>').join('')+'</select>'; }
+function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
+function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
+function pantryNames(){ const m={}; basisList().forEach(b=>{ m[b.n.toLowerCase()]=b; }); return m; }
+function skapNeeds(w, days){ const all=allDishes(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=all[dishAt(w,d)]; if(!dish) continue; const mult=(d===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
+function needQty(o){ return Object.keys(o.parts).map(u=>qtyStr(o.parts[u],u)).join(' + '); }
+function toggleLowByName(n){ const b=pantryByName(n); if(b){ write('app/basis',{low:{[b.id]:!S.basis.low[b.id]}}); } else { const id='u'+Date.now().toString(36); write('app/basis',{basisAdd:{[id]:{n:n,g:guessGroup(n)}}, low:{[id]:true}}); } }
+
+function buildList(w, days, incl){
+  const all = allDishes(); const wd = weekDoc(w);
+  const out = {stor:{}, paafyll:{}};
+  const OV = S.basis.itemSec||{};
+  function add(target, key, item){ if(item.n && OV[item.n.toLowerCase()]) item.s=OV[item.n.toLowerCase()]; item.s=resolveSec(item.s); const b=out[target]; if(b[key]){ if(item.tag && !b[key].tag) b[key].tag=item.tag; if(item.q!=null) b[key].q=(b[key].q||0)+item.q; item.for.forEach(f=>{ if(b[key].for.indexOf(f)<0) b[key].for.push(f); }); } else b[key]=item; }
+  const PN = pantryNames();
+  for(let d=0; d<7; d++){
+    if(days && days.indexOf(d)<0) continue;
+    const dish = all[dishAt(w,d)]; if(!dish) continue;
+    (dish.i||[]).forEach(r=>{
+      if(PN[r[0].toLowerCase()]) return; // står i skapet: havner på sjekklista
+      const late = r[4] && d>=3;
+      const target = (CFG.padDay>=0 && r[4] && d>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
+      const mult = (d===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
+      add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:r[3]||'a', for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined});
+    });
+  }
+  for(const k in (wd.extra||{})){ const e=wd.extra[k]; if(e) add(e.t||'stor','x|'+k,{n:e.n,s:e.s||'a',for:[],tag:'ekstra',extra:k}); }
+  if(days && !incl) return out;
+  fasteList().forEach(f=>add('stor','f|'+f.id,{n:f.n,s:f.s,for:[],tag:'fast'}));
+  const needs = skapNeeds(w, days); basisList().forEach(b=>{ const k='b|'+b.id; if(S.basis.low[b.id] || wd.checked['stor|'+k]){ const nd=needs[b.n.toLowerCase()]; add('stor',k,{n:b.n,s:b.g==='annet'?'a':'t',for:nd?nd.for.slice():[],tag:'tomt',basis:b.id,qs:nd?needQty(nd):''}); } });
+  return out;
+}
+
+// ---------- Render ----------
+function renderNow(){
+  const el = document.getElementById('now');
+  let title, text;
+  const nextShop = addDays(today, daysToShop);
+  if(isShop && curW>=0){ title='I dag: storhandel for Uke '+(curW+1); text='Menyen gjelder '+DAYLONG[0]+' '+fmt(weekStart(curW))+' til '+DAYLONG[6]+' '+fmt(addDays(weekStart(curW),6)); }
+  else if(isPad && curW>=0){ title='Lite påfyll i dag, om dere trenger det'; text='Bare kortholdbare ting som koriander, spinat og salat til resten av uka. Se «Påfyll» under handlelista.'; }
+  else { title='Neste storhandel: '+DAYLONG[0]+' '+fmt(nextShop); text= curW>=0 ? 'Nå går Uke '+(curW+1)+'. Da handles det inn til Uke '+(nextShopW+1)+'.' : ''; }
+  el.innerHTML = '<div><b>'+esc(title)+'</b>'+(text?'<span>'+esc(text)+'</span>':'')+'</div>';
+  const parts = ['Fire uker med middager for '+CFG.servings+'.'];
+  const q = Object.keys(CFG.quick||{}).filter(k=>CFG.quick[k]).map(Number).sort((a,b)=>a-b);
+  if(CFG.restDay>=0) parts.push('Rester '+DAYLONG[CFG.restDay]+'.');
+  if(q.length) parts.push('Raske middager '+q.map(d=>DAYLONG[d]).join(', ').replace(/, ([^,]*)$/,' og $1')+'.');
+  parts.push('Storhandel '+DAYLONG[0]+(CFG.padDay>=0?', lite påfyll '+DAYLONG[CFG.padDay]:'')+'.');
+  document.getElementById('sub').textContent = (CFG.name ? CFG.name+' · ' : '') + parts.join(' ');
+}
+function renderTabs(){
+  const t = [['w0','Uke 1'],['w1','Uke 2'],['w2','Uke 3'],['w3','Uke 4'],['retter','Rettene'],['skapet','Skapet'],['oppsett','Oppsett']];
+  document.getElementById('tabs').innerHTML = t.map(([id,l])=>{
+    const dot = (id==='w'+curW) ? '<span class="dot" title="Denne uka"></span>' : '';
+    return '<button class="tab" role="tab" id="tab-'+id+'" data-tab="'+id+'" aria-selected="'+(UI.tab===id)+'">'+l+dot+'</button>';
+  }).join('');
+}
+function activeDays(){ const d=Object.keys(UI.days).filter(k=>UI.days[k]).map(Number).sort((a,b)=>a-b); return d.length?d:null; }
+function viewOf(w){
+  const days = activeDays(); const L = buildList(w, days, UI.dayExtras);
+  const segs = days ? ['stor','paafyll'] : [UI.seg]; const cur = {};
+  segs.forEach(sg=>Object.keys(L[sg]).forEach(k=>{ const it=L[sg][k]; if(days && sg==='paafyll' && !it.tag) it.tag='påfyll-vare'; cur[sg+'|'+k]=it; }));
+  return {days:days, L:L, cur:cur};
+}
+function daysLabel(days){ return days.map(d=>DAYLONG[d]).join(', ').replace(/, ([^,]*)$/,' og $1'); }
+function renderWeek(w){
+  const all = allDishes(); const ws = weekStart(w); const wd = weekDoc(w);
+  const cnt = {veg:0,fisk:0,ny:0};
+  let rows='';
+  for(let d=0; d<7; d++){
+    const id = dishAt(w,d); const dish = all[id]; const date = addDays(ws,d);
+    (dish.tags||[]).forEach(t=>{ if(t in cnt) cnt[t]++; });
+    const swapped = S.plan.swaps[w+'-'+d] && S.plan.swaps[w+'-'+d]!==baseAt(w,d);
+    const isToday = +date===+today;
+    rows += '<li class="day'+(isToday?' today':'')+'"><div class="dn"><b>'+DAYN[d]+'</b><small>'+fmt(date)+'</small></div>'+
+      '<div class="dish">'+(dayNote(w,d)?'<span class="eyebrow">'+esc(dayNote(w,d))+'</span>':'')+'<button class="name linkish" data-edit="'+id+'" aria-label="Rediger '+esc(dish.n)+'">'+esc(dish.n)+'</button><span class="meta">'+chips(dish.tags)+cz(dish)+(swapped?'<span class="chip c-bytta">Byttet</span>':'')+(isQuickDay(d) && id!=='rest' && !isQuick(dish)?'<span class="chip c-tex">Tar lengre tid</span>':'')+(dish.t?'<span>'+esc(dish.t)+'</span>':'')+(dish.url?'<a class="rlink" href="'+esc(dish.url)+'" target="_blank" rel="noopener">Oppskrift ↗</a>':'')+'</span>'+(dish.note && id==='rest'?'<span class="note">'+esc(dish.note)+'</span>':'')+'</div>'+
+      '<button class="btn small" data-swap="'+w+'-'+d+'" aria-label="Bytt middag '+DAYLONG[d]+'">Bytt</button></li>';
+  }
+  if(CFG.padDay<0) UI.seg='stor';
+  const V = viewOf(w); const L = V.L; const cur = V.cur; const days = V.days;
+  const keys = Object.keys(cur);
+  const doneN = keys.filter(k=>wd.checked[k]).length;
+  const countOf = seg => Object.keys(L[seg]).length;
+  let groups = '';
+  secOrder().forEach(s=>{
+    const ks = keys.filter(k=>cur[k].s===s).sort((a,b)=>cur[a].n.localeCompare(cur[b].n,'nb'));
+    if(!ks.length) return;
+    groups += '<div class="group"><h3>'+secName(s)+'</h3><ul class="items">'+ks.map(k=>{
+      const it = cur[k]; const ck = k; const done = !!wd.checked[ck]; const iid = 'c'+w+'-'+btoa(unescape(encodeURIComponent(ck))).replace(/[^a-z0-9]/gi,'');
+      const tag = it.tag ? '<span class="tagmini">'+it.tag+'</span>' : '';
+      const forTxt = it.for && it.for.length ? '<span class="for">'+it.for.join(', ')+'</span>' : '';
+      const del = it.extra ? '<button class="x" data-delextra="'+w+'|'+it.extra+'" aria-label="Fjern '+esc(it.n)+'">×</button>' : '';
+      return '<li class="item'+(done?' done':'')+'"><input type="checkbox" id="'+iid+'" data-check="'+w+'" data-key="'+esc(ck)+'"'+(it.basis?' data-basis="'+it.basis+'"':'')+(done?' checked':'')+'><label for="'+iid+'"><span class="nm">'+esc(it.n)+tag+forTxt+'</span><span class="q">'+(it.qs!=null?esc(it.qs):qtyStr(it.q,it.u))+'</span></label>'+(UI.arrange?secSelect('isec-'+iid,it.s,'data-itemsec="'+esc(it.n)+'"'):'')+del+'</li>';
+    }).join('')+'</ul></div>';
+  });
+  let sjekk = '';
+  if(days || UI.seg==='stor'){ const nd = skapNeeds(w, days); const ks = Object.keys(nd).sort((a,b)=>nd[a].n.localeCompare(nd[b].n,'nb'));
+    if(ks.length) sjekk = '<details class="sjekk" id="sjekk-'+w+'"'+(UI.open['sjekk']?' open':'')+' data-openkey="sjekk"><summary><span><b>Sjekk i skapet</b> <span class="note">· '+ks.length+' varer '+(days?'disse middagene':'ukas middager')+' trenger</span></span><span class="note">'+ks.filter(k=>{const b=pantryByName(nd[k].n); return b&&S.basis.low[b.id];}).length+' mangler</span></summary><p class="note">Trykk «Mangler» på det dere er tomme for, så kommer det på lista. Resten regner vi med at dere har.</p><ul class="items">'+ks.map(k=>{ const o=nd[k]; const b=pantryByName(o.n); const low=!!(b&&S.basis.low[b.id]); const q=needQty(o);
+      return '<li class="item"><span class="nm" style="flex:1">'+esc(o.n)+'<span class="for">'+o.for.join(', ')+(q?' · '+esc(q):'')+'</span></span><button class="pchip small" data-lowname="'+esc(o.n)+'" aria-pressed="'+low+'">'+(low?'Mangler':'Har')+'</button></li>'; }).join('')+'</ul></details>'; }
+  if(!groups) groups = '<p class="empty">'+(days ? 'Ingenting å kjøpe til '+daysLabel(days)+'. Alt står i skapet.' : UI.seg==='paafyll' ? 'Ingen kortholdbare varer trengs på påfyllsdagen denne uka.' : 'Lista er tom.')+'</p>';
+  const dayChips = '<div class="daypick" role="group" aria-label="Handle til dager"><span class="note">Handle til:</span><button class="dchip" data-day="all" aria-pressed="'+!days+'">Hele uka</button>'+DAYN.map((dn,d)=>{ const date=addDays(ws,d); const isT=+date===+today; const dish=all[dishAt(w,d)]; return '<button class="dchip'+(isT?' istoday':'')+'" data-day="'+d+'" aria-pressed="'+!!UI.days[d]+'" title="'+esc(dish?dish.n:'')+'">'+dn+'<small>'+(isT?'i dag':fmt(date))+'</small></button>'; }).join('')+'</div>';
+  const segHint = days ? '<p class="note">Viser varene til '+esc(daysLabel(days))+'. '+(UI.dayExtras?'Faste ukevarer og det som er tomt i skapet er tatt med.':'Faste ukevarer og det som er tomt i skapet er skjult.')+' <button class="linkish" data-dayextras>'+(UI.dayExtras?'Skjul dem':'Ta dem med')+'</button></p>' : UI.seg==='paafyll'
+    ? '<p class="note">Bare kortholdbare ting, som fersk koriander, spinat og salat, til retter senere i uka. Holder datoen til dagen retten skal lages, kan dere like gjerne kjøpe dem på handledagen.</p>'
+    : '<p class="note">Alt til uka'+(doubleOn(w)?' ('+DAYLONG[CFG.doubleDay]+'sretten er doblet, så det blir rester til '+DAYLONG[CFG.restDay]+')':'')+', faste ukevarer og det dere har merket som tomt i skapet. Varer merket «sjekk dato» brukes sent i uka. Velg en pakke med dato som holder til den dagen.</p>';
+  return '<section class="panel" aria-labelledby="h-w'+w+'">'+
+    '<div class="weekhead"><h2 id="h-w'+w+'">Uke '+(w+1)+'</h2><span class="dates">'+DAYN[0].toLowerCase()+' '+fmt(ws)+' – '+DAYN[6].toLowerCase()+' '+fmt(addDays(ws,6))+'</span></div>'+
+    '<div class="balance">'+(cnt.veg?'<span class="chip c-veg">'+cnt.veg+' vegetar</span>':'')+(cnt.fisk?'<span class="chip c-fisk">'+cnt.fisk+' fisk</span>':'')+'</div>'+
+    '<div class="card"><ol class="days">'+rows+'</ol></div>'+
+    '<div class="card shop"><div class="weekhead"><h2>Handleliste</h2></div>'+
+      dayChips+((days||CFG.padDay<0)?'':'<div class="seg" role="group" aria-label="Handletur">'+
+        '<button data-seg="stor" aria-pressed="'+(UI.seg==='stor')+'">Storhandel<small>'+DAYLONG[0]+' '+fmt(ws)+' · '+countOf('stor')+' varer</small></button>'+
+        '<button data-seg="paafyll" aria-pressed="'+(UI.seg==='paafyll')+'">Påfyll<small>'+(CFG.padDay>=0?DAYLONG[CFG.padDay]+' '+fmt(addDays(ws,CFG.padDay)):'')+' · '+countOf('paafyll')+' varer</small></button>'+
+      '</div>')+ segHint +
+      '<div class="tools"><span class="left">'+doneN+' av '+keys.length+' i kurven</span><span class="right"><button class="btn small" data-copy="'+w+'">Kopier lista</button><button class="btn small" data-reset="'+w+'">Nullstill</button><button class="btn small" data-arrange aria-pressed="'+!!UI.arrange+'">'+(UI.arrange?'Ferdig':'Flytt varer')+'</button></span></div>'+(UI.arrange?'<p class="note">Velg avdeling for en vare, så ligger den der hver gang den dukker opp. Egne avdelinger og rekkefølgen lager dere under Skapet → Avdelinger i butikken.</p>':'')+
+      '<div id="copyfb"></div>'+
+      sjekk+groups+
+      '<button class="btn primary addopen" type="button" data-addopen="x'+w+'">＋ Legg til vare</button>'+
+    '</div></section>';
+}
+function renderRetter(){
+  const all = allDishes();
+  const inPlan = [], bank = [];
+  Object.keys(all).forEach(id=>{ if(id==='rest') return; (usage(id).length ? inPlan : bank).push(id); });
+  const row = id => { const d = all[id]; const u = usage(id); const custom = !D[id];
+    return '<details class="dishrow"><summary><span class="dish"><span class="name">'+esc(d.n)+'</span><span class="meta">'+chips(d.tags)+cz(d)+(d.t?'<span>'+esc(d.t)+'</span>':'')+'</span></span><span class="used">'+(u.length?esc(u.join(', ')):'I banken')+'</span></summary>'+
+    '<div class="dishbody">'+(d.url?'<span><a class="rlink" href="'+esc(d.url)+'" target="_blank" rel="noopener">Åpne oppskriften ↗</a>'+(d.rating?' <span class="note">· '+esc(d.rating)+'</span>':'')+'</span>':'')+(d.src?'<span class="note">Oppskrift: '+esc(d.src)+'</span>':'')+(d.note?'<span class="note">'+esc(d.note)+'</span>':'')+
+    ((d.i&&d.i.length)?'<ul>'+d.i.map(r=>'<li>'+esc(r[0])+(r[1]!=null?' – '+qtyStr(r[1],r[2]):'')+(r[4]?' <span class="tagmini">fersk</span>':'')+'</li>').join('')+'</ul>':'<span class="note">Ingen varer registrert.</span>')+((d.k&&d.k.length)?'<span class="note">Fra skapet: '+esc(d.k.map(r=>r[0]+(r[1]!=null?' ('+qtyStr(r[1],r[2])+')':'')).join(', '))+'</span>':'')+
+    '<div><button class="btn small" data-edit="'+id+'">Rediger</button></div></div></details>'; };
+  return '<section class="panel">'+renderLog()+'<div class="hint"><b>Bytte:</b> trykk «Bytt» på en dag i ukeplanen. <b>Endre en rett:</b> trykk på navnet i ukeplanen eller «Rediger» her. Handlelista oppdateres med en gang.</div>'+
+    '<div class="card"><div class="cardhead"><h2>I rotasjonen</h2><p class="note">'+inPlan.length+' retter fordelt på fire uker.</p></div>'+inPlan.map(row).join('')+'</div>'+
+    '<div class="card"><div class="cardhead"><h2>I banken</h2><p class="note">Retter dere har, men som ikke står i planen nå.</p></div>'+(bank.length?bank.map(row).join(''):'<p class="empty" style="padding:0 14px 14px">Alle retter er i bruk.</p>')+'</div>'+
+    '<div class="card"><div class="cardhead"><h2>Legg til en rett</h2><p class="note">Den havner i banken og kan byttes inn på hvilken som helst dag.</p></div><div class="form"><div><button class="btn primary" data-edit="new">Ny rett</button></div></div></div></section>';
+}
+function pantryResults(){
+  const q = UI.pq.trim().toLowerCase(); if(!q) return '';
+  const b = basisList(); const hits = b.filter(x=>x.n.toLowerCase().indexOf(q)>=0).slice(0,10);
+  const exact = b.some(x=>x.n.toLowerCase()===q);
+  let h = '<div class="pantry">'+hits.map(x=>'<button class="pchip" data-low="'+x.id+'" aria-pressed="'+!!S.basis.low[x.id]+'">'+esc(x.n)+' <span class="gname">'+esc(GNAME[x.g]||'')+'</span></button>').join('')+'</div>';
+  if(!exact){ const g = guessGroup(UI.pq.trim()); h += '<div class="addnew"><span>Ikke i skapet ennå. Legg til «'+esc(UI.pq.trim())+'» under</span><select id="pantry-g" aria-label="Hylle">'+GROUPS.map(x=>'<option value="'+x[0]+'"'+(x[0]===g?' selected':'')+'>'+x[1]+'</option>').join('')+'</select><button class="btn small primary" data-addpantry>Legg til som tomt</button></div>'; }
+  if(!hits.length && exact) h='';
+  return h;
+}
+function renderStore(){
+  const o = secOrder(); const offN = Object.keys(S.basis.secOff||{}).filter(k=>S.basis.secOff[k]).length;
+  const row = (k,i)=> UI.secEdit===k
+    ? '<li class="item"><form class="addrow" data-secrename="'+k+'" style="flex:1"><input id="secren-'+k+'" value="'+esc(secName(k))+'" aria-label="Nytt navn"><button class="btn small primary" type="button" data-submit>Lagre</button><button class="btn small" type="button" data-secedit="">Avbryt</button></form></li>'
+    : '<li class="item"><button class="nm linkish" style="flex:1;font-weight:400" data-secedit="'+k+'" aria-label="Endre navn på '+esc(secName(k))+'">'+esc(secName(k))+'</button>'+
+      '<button class="btn small" data-secmove="'+k+'|-1" aria-label="Flytt '+esc(secName(k))+' opp"'+(i===0?' disabled':'')+'>↑</button>'+
+      '<button class="btn small" data-secmove="'+k+'|1" aria-label="Flytt '+esc(secName(k))+' ned"'+(i===o.length-1?' disabled':'')+'>↓</button>'+
+      (k!=='a'?'<button class="x" data-secdel="'+k+'" aria-label="Slett '+esc(secName(k))+'">×</button>':'<span class="x" aria-hidden="true" style="visibility:hidden">×</span>')+'</li>';
+  return '<div class="card"><div class="cardhead"><h2>Avdelinger i butikken</h2><p class="note">Trykk på et navn for å endre det. Sett avdelingene i den rekkefølgen dere går gjennom butikken, så følger handlelista samme rekkefølge. Varer i en avdeling dere sletter, havner under «'+esc(secName('a'))+'».</p></div>'+
+    '<ul class="items" style="padding:0 14px">'+o.map(row).join('')+'</ul>'+
+    '<form class="addrow" data-addsec style="padding:10px 14px 4px"><input id="sec-new" placeholder="Ny avdeling, f.eks. Pålegg og salater" aria-label="Ny avdeling"><button class="btn" type="button" data-submit>Legg til</button></form>'+
+    (offN?'<div style="padding:6px 14px 14px"><button class="btn small" data-secrestore>Hent tilbake slettede standardavdelinger ('+offN+')</button></div>':'<div style="height:10px"></div>')+'</div>';
+}
+function renderSkapet(){
+  const b = basisList(); const f = fasteList();
+  const low = b.filter(x=>S.basis.low[x.id]);
+  const groups = GROUPS.map(([g,gn])=>{ const items=b.filter(x=>x.g===g).sort((a,c)=>a.n.localeCompare(c.n,'nb')); const lowN=items.filter(x=>S.basis.low[x.id]).length; const tidy=!!UI.tidy[g];
+    return '<details class="shelf" data-openkey="g-'+g+'"'+(UI.open['g-'+g]?' open':'')+'><summary><span><b>'+gn+'</b> <span class="note">· '+items.length+'</span></span>'+(lowN?'<span class="chip c-helg">'+lowN+' tomt</span>':'')+'</summary>'+
+      '<div class="pantry">'+items.map(x=> tidy ? '<button class="pchip" data-delpantry="'+x.id+'" aria-label="Fjern '+esc(x.n)+'">'+esc(x.n)+' ×</button>' : '<button class="pchip" data-low="'+x.id+'" aria-pressed="'+!!S.basis.low[x.id]+'">'+esc(x.n)+'</button>').join('')+'</div>'+
+      '<div class="shelftools"><button class="btn small" data-tidy="'+g+'">'+(tidy?'Ferdig':'Fjern varer')+'</button></div></details>'; }).join('');
+  return '<section class="panel">'+
+    '<div class="card"><div class="cardhead"><h2>Noe som er tomt?</h2><p class="note">Søk opp varen og trykk på den, så kommer den på handlelista. Finnes den ikke, legger dere den til med en gang.</p></div>'+
+    '<div class="form"><input id="pantry-q" class="search" type="search" autocomplete="off" placeholder="F.eks. kanel, balsamico, kikerter" aria-label="Søk i skapet"><div id="pantry-res">'+pantryResults()+'</div></div></div>'+
+    '<div class="card"><div class="cardhead"><h2>Tomt nå</h2><p class="note">'+(low.length?'Står på storhandelslista. Trykk for å fjerne.':'Ingenting er merket som tomt.')+'</p></div>'+
+    (low.length?'<div class="pantry">'+low.map(x=>'<button class="pchip" data-low="'+x.id+'" aria-pressed="true">'+esc(x.n)+'</button>').join('')+'</div>':'<div style="height:6px"></div>')+'</div>'+
+    '<div class="card"><div class="cardhead"><h2>Hyllene</h2><p class="note">Alt dere pleier å ha hjemme, også ting i kjøleskapet og storinnkjøp som løk og hvitløk. Står en vare her, havner den på «Sjekk i skapet» i stedet for handlelista, i alle oppskrifter.</p></div>'+groups+'</div>'+
+    renderStore()+
+    '<div class="card"><div class="cardhead"><h2>Faste ukevarer</h2><p class="note">Kommer på storhandelslista hver uke. Tilpass til det dere faktisk kjøper.</p></div>'+
+    '<ul class="items" style="padding:0 14px">'+f.map(x=>'<li class="item"><span class="nm" style="flex:1">'+esc(x.n)+' </span>'+secSelect('fsec-'+x.id,resolveSec(x.s),'data-fastsec="'+x.id+'"')+'<button class="x" data-delfast="'+x.id+'" aria-label="Fjern '+esc(x.n)+'">×</button></li>').join('')+'</ul>'+
+    '<button class="btn addopen" type="button" data-addopen="fast">＋ Legg til fast ukevare</button></div></section>';
+}
+function itemsToText(items){ return (items||[]).map(r=> r[0] + (r[1]!=null ? ' '+qtyStr(r[1],r[2]) : '') + (r[4] ? ' *' : '')).join('\n'); }
+function renderEditor(el){
+  const isNew = UI.edit==='new'; const all = allDishes();
+  const d = isNew ? {n:'',tags:[],t:'',i:[]} : all[UI.edit];
+  const edited = !isNew && D[UI.edit] && S.plan.edits && S.plan.edits[UI.edit];
+  const custom = !isNew && !D[UI.edit];
+  const T = ['veg','fisk','helg','tex'];
+  el.className='sheet'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Rediger rett"><div class="shead"><div class="row"><h2>'+(isNew?'Ny rett':'Rediger rett')+'</h2><button class="btn small" data-close>Lukk</button></div></div>'+
+   '<form class="form edlist" id="editform">'+
+   '<label class="field">Navn<input id="ed-n" required value="'+esc(d.n)+'"></label>'+
+   '<label class="field">Tid<input id="ed-t" value="'+esc(d.t||'')+'" placeholder="F.eks. 30 min"></label>'+
+   '<div class="checks">'+T.map(t=>'<label><input type="checkbox" id="ed-tag-'+t+'"'+((d.tags||[]).indexOf(t)>=0?' checked':'')+'> '+TAGS[t]+'</label>').join('')+'</div>'+
+   '<label class="field">Lenke til oppskrift<input id="ed-url" type="url" inputmode="url" value="'+esc(d.url||'')+'" placeholder="https://"></label>'+
+   '<label class="field">Notat<input id="ed-note" value="'+esc(d.note||'')+'" placeholder="F.eks. Saus på glass"></label>'+
+   (sampleFn?'<div class="suggest"><button class="btn small" type="button" data-suggest>Foreslå varer</button><span class="note" id="sugg-st">Claude foreslår varer ut fra navnet på retten. Bruker kvoten til den som trykker.</span></div>':'')+
+   '<label class="field">Varer å kjøpe, én per linje<textarea id="ed-i" rows="8">'+esc(itemsToText(d.i))+'</textarea></label>'+
+   '<label class="field">Fra skapet, én per linje<textarea id="ed-k" rows="4" placeholder="Ris&#10;Hermetiske tomater 2 bokser&#10;Spisskummen">'+esc(itemsToText(d.k))+'</textarea></label>'+
+   '<p class="note">Skriv navn, mengde og enhet, for eksempel «Kyllingfilet 800 g» eller «Rømme 1 beger». Sett * bak ferskvarer. De får merket «sjekk dato» når retten står sent i uka, og kortholdbare urter og bladgrønt flyttes til påfyllet hvis dere har påfyllsdag. Det dere vanligvis har hjemme, som ris, krydder og hermetikk, skriver dere under «Fra skapet». Da havner det på sjekklista i stedet for handlelista.</p>'+
+   '<div class="tools"><span class="right"><button class="btn primary" type="button" data-submit>Lagre</button><button class="btn" type="button" data-close>Avbryt</button></span><span class="right">'+
+   (edited?'<button class="btn small" type="button" data-resetdish="'+UI.edit+'">Tilbake til original</button>':'')+
+   (custom?'<button class="btn small" type="button" data-delcustom="'+UI.edit+'">Slett retten</button>':'')+'</span></div>'+
+   '</form></div>';
+}
+function renderAdd(el){
+  const fast = UI.add==='fast'; const w = fast ? null : +UI.add.slice(1);
+  const title = fast ? 'Ny fast ukevare' : 'Legg til vare · Uke '+(w+1);
+  el.className='sheet top'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="'+esc(title)+'"><form class="form" data-additem>'+
+    '<div class="addhead"><h2>'+esc(title)+'</h2><button class="btn small" type="button" data-close>Ferdig</button></div>'+
+    '<input id="add-n" class="search" autocomplete="off" enterkeyhint="done" placeholder="'+(fast?'F.eks. havregryn':'F.eks. oppvaskmiddel')+'" aria-label="Vare">'+
+    '<span class="eyebrow">Avdeling</span><div class="secchips">'+[''].concat(secOrder()).map(k=>'<button type="button" class="pchip" data-asec="'+k+'" aria-pressed="'+((UI.addSec||'')===k)+'">'+(k?esc(secName(k)):'Finn selv')+'</button>').join('')+'</div>'+
+    '<button class="btn primary" type="button" data-submit>Legg til</button></form></div>';
+}
+function renderSheet(){
+  const el = document.getElementById('sheet');
+  if(UI.edit){ renderEditor(el); return; }
+  if(UI.add){ renderAdd(el); return; }
+  if(!UI.sheet){ el.hidden = true; el.innerHTML=''; return; }
+  const [w,d] = UI.sheet.split('-').map(Number);
+  const all = allDishes(); const cur = dishAt(w,d);
+  const F = {alle:'Alle',rask:'Maks 25 min',verden:'Verdens kjøkken',veg:'Vegetar',fisk:'Fisk',helg:'Helg',tex:'Tex-mex',bank:'I banken'};
+  const ids = Object.keys(all).filter(id=>{
+    const t = all[id].tags||[];
+    if(UI.filter==='alle') return true;
+    if(UI.filter==='bank') return !usage(id).length;
+    if(UI.filter==='verden') return !!(all[id].c && all[id].c!=='Norsk');
+    if(UI.filter==='rask') return isQuick(all[id]) || id==='rest';
+    return t.indexOf(UI.filter)>=0;
+  }).sort((a,b)=> (a==='rest')-(b==='rest') || all[a].n.localeCompare(all[b].n,'nb'));
+  const orig = baseAt(w,d);
+  el.className='sheet'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Velg middag"><div class="shead"><div class="row"><h2>'+DAYN[d]+' i Uke '+(w+1)+(CFG.notes&&CFG.notes[d]?' <span class="note">· '+esc(CFG.notes[d])+'</span>':'')+'</h2><button class="btn small" data-close>Lukk</button></div>'+
+    '<div class="filters">'+Object.keys(F).map(k=>'<button class="btn small" data-filter="'+k+'" aria-pressed="'+(UI.filter===k)+'" style="'+(UI.filter===k?'background:var(--accent);color:var(--accent-ink);border-color:var(--accent)':'')+'">'+F[k]+'</button>').join('')+'</div>'+
+    (cur!==orig?'<button class="btn small" data-pick="'+orig+'">Tilbake til opprinnelig: '+esc(all[orig].n)+'</button>':'')+'</div>'+
+    '<div class="list">'+ids.map(id=>{ const u=usage(id); return '<button class="opt'+(id===cur?' cur':'')+'" data-pick="'+id+'"><span class="dish"><span class="name">'+esc(all[id].n)+'</span><span class="meta">'+chips(all[id].tags)+cz(all[id])+(all[id].t?'<span>'+esc(all[id].t)+'</span>':'')+'</span></span><span class="used">'+(u.length?esc(u.join(', ')):'I banken')+'</span></button>'; }).join('')+'</div></div>';
+}
+function render(){
+  const active = document.activeElement; const aid = (active && active.id && /^(INPUT|TEXTAREA|SELECT)$/.test(active.tagName) && active.type!=='checkbox') ? active.id : null; const vals = {};
+  const sy = window.scrollY;
+  document.querySelectorAll('input[id],textarea[id],select[id]').forEach(i=>{ if(i.type!=='checkbox') vals[i.id]=i.value; else if(i.id.indexOf('ed-')===0) vals[i.id]=i.checked; });
+  const p = document.getElementById('panel');
+  if(!HID || (HAS_BACKEND && !UI.synced)){ document.getElementById('now').hidden=true; document.getElementById('tabs').hidden=true; document.getElementById('sub').hidden=true; p.innerHTML = HID ? '<section class="panel"><div class="card wizard"><h2>Kobler til husstanden …</h2><p class="note">Henter planen. Det tar vanligvis et par sekunder.'+(UI.connErr?' <b>'+esc(UI.connErr)+'</b>':'')+'</p></div></section>' : renderStart(); return; }
+  const wizMode = !CFG.done || UI.wiz;
+  document.getElementById('now').hidden = wizMode; document.getElementById('tabs').hidden = wizMode; document.getElementById('sub').hidden = wizMode;
+  if(wizMode){ p.innerHTML = renderWizard(); renderSheet(); for(const k in vals){ const i=document.getElementById(k); if(i && i.type!=='checkbox') i.value=vals[k]; } if(aid){ const a=document.getElementById(aid); if(a) a.focus({preventScroll:true}); } return; }
+  renderNow(); renderTabs();
+  if(UI.tab==='oppsett') p.innerHTML = '<section class="panel">'+renderOppsett()+'</section>';
+  else if(UI.tab==='retter') p.innerHTML = renderRetter();
+  else if(UI.tab==='skapet') p.innerHTML = renderSkapet();
+  else p.innerHTML = renderWeek(+UI.tab.slice(1));
+  renderSheet();
+  for(const k in vals){ const i=document.getElementById(k); if(!i) continue; if(i.type==='checkbox'){ if(k.indexOf('ed-')===0) i.checked=vals[k]; } else i.value=vals[k]; }
+  if(aid){ const a=document.getElementById(aid); if(a) a.focus({preventScroll:true}); }
+  if(Math.abs(window.scrollY - sy) > 2) window.scrollTo(0, sy);
+  scheduleLp3();
+}
+
+// ---------- Planlegger ----------
+function generatePlan(cfg){
+  const all = allDishes(); const has=(id,t)=>((all[id]&&all[id].tags)||[]).indexOf(t)>=0;
+  let pool = (cfg.selected||Object.keys(all)).filter(id=>all[id] && id!=='rest');
+  if(pool.length<3) pool = Object.keys(all).filter(id=>id!=='rest');
+  const used={}; pool.forEach(id=>used[id]=0);
+  const dowOf = d => (cfg.shopDow+d)%7; const wknd = d => { const x=dowOf(d); return x===0||x===6; };
+  const quick = d => !!(cfg.quick&&cfg.quick[d]);
+  const isQ = id => { const m=minutes(all[id].t); return m>0 && m<=(cfg.maxMin||25); };
+  const base=[];
+  for(let w=0; w<4; w++){
+    const row=new Array(7).fill(null); let veg=0, fish=0; const inWeek=new Set();
+    if(cfg.restDay>=0) row[cfg.restDay]='rest';
+    const order=[]; const push=d=>{ if(row[d]==null && order.indexOf(d)<0) order.push(d); };
+    if(cfg.themeDay>=0) push(cfg.themeDay);
+    for(let d=0;d<7;d++) if(quick(d)) push(d);
+    for(let d=0;d<7;d++) if(wknd(d)) push(d);
+    for(let d=0;d<7;d++) push(d);
+    order.forEach((d,idx)=>{
+      const remaining=order.length-idx; const needVeg=Math.max(0,(cfg.veg||0)-veg), needFish=Math.max(0,(cfg.fish||0)-fish);
+      let c = pool.filter(id=>!inWeek.has(id));
+      if(!c.length) c = pool.slice();
+      if(d===cfg.themeDay){ const t=c.filter(id=>has(id,cfg.themeTag)); if(t.length) c=t; }
+      if(quick(d)){ const t=c.filter(isQ); if(t.length) c=t; }
+      const score=id=>{ let sc=used[id]*10; const m=minutes(all[id].t)||40;
+        if(wknd(d)){ if(has(id,'helg')||m>45) sc-=3; } else { if(has(id,'helg')) sc+=4; if(m>45) sc+=3; }
+        if(needVeg>0 && has(id,'veg')) sc -= (needVeg>=remaining?20:4);
+        if(needFish>0 && has(id,'fisk')) sc -= (needFish>=remaining?20:4);
+        if(cfg.themeDay>=0 && d!==cfg.themeDay && has(id,cfg.themeTag) && cfg.themeTag==='tex') sc+=6;
+        return sc+Math.random(); };
+      c.sort((a,b)=>score(a)-score(b)); const pick=c[0];
+      row[d]=pick; used[pick]=(used[pick]||0)+1; inWeek.add(pick); if(has(pick,'veg')) veg++; if(has(pick,'fisk')) fish++;
+    });
+    base.push(row);
+  }
+  return base;
+}
+
+// ---------- Veiviser ----------
+function wizDraft(){ if(!UI.wd){ UI.wd = clone(Object.assign({}, CFG0, S.setup||{})); if(!UI.wd.selected){ UI.wd.selected = Object.keys(allDishes()).filter(id=>id!=='rest'); } UI.ws = 0; } return UI.wd; }
+function rel(dw, d){ return {s:DOW_S[(dw+d)%7], l:DOW_L[(dw+d)%7]}; }
+function dishGroups(){ const all=allDishes(); const G=[['norsk','Norske hverdagsretter'],['fisk','Fisk'],['veg','Vegetar'],['tex','Tex-mex'],['verden','Verdens kjøkken']]; const out={}; G.forEach(g=>out[g[0]]=[]);
+  Object.keys(all).forEach(id=>{ if(id==='rest') return; const d=all[id]; const t=d.tags||[]; const g = t.indexOf('tex')>=0?'tex': t.indexOf('veg')>=0?'veg': t.indexOf('fisk')>=0?'fisk': (d.c && d.c!=='Norsk')?'verden':'norsk'; out[g].push(id); });
+  return G.map(g=>({k:g[0], n:g[1], ids:out[g[0]].sort((a,b)=>all[a].n.localeCompare(all[b].n,'nb'))})); }
+function stepper(key,val,min,max){ return '<div class="stepper"><button class="btn small" data-wzstep="'+key+'|-1" aria-label="Færre"'+(val<=min?' disabled':'')+'>−</button><b>'+val+'</b><button class="btn small" data-wzstep="'+key+'|1" aria-label="Flere"'+(val>=max?' disabled':'')+'>+</button></div>'; }
+function chipBtn(attr, val, label, on, sub){ return '<button class="dchip" '+attr+'="'+val+'" aria-pressed="'+!!on+'">'+label+(sub?'<small>'+sub+'</small>':'')+'</button>'; }
+function renderWizard(){
+  const W = wizDraft(); const st = UI.ws||0; const all=allDishes();
+  const steps = ['Husstand','Handling','Uka','Ønsker','Retter','Klar'];
+  const head = '<div class="wizhead"><span class="eyebrow">Steg '+(st+1)+' av '+steps.length+' · '+steps[st]+'</span><div class="wizbar"><span style="width:'+Math.round((st+1)/steps.length*100)+'%"></span></div></div>';
+  let body='';
+  if(st===0){
+    body = '<h2>Sett opp husstanden</h2><p class="note">Dette tar et par minutter. Alt kan endres senere under «Oppsett».</p>'+
+      '<label class="field">Navn på husstanden (valgfritt)<input id="wz-name" value="'+esc(W.name||'')+'" placeholder="F.eks. Familien Hansen"></label>'+
+      '<div class="field">Hvor mange porsjoner lager dere til middag?'+stepper('servings',W.servings,1,12)+'<span class="note">Mengdene i alle oppskriftene regnes om til dette.</span></div>';
+  } else if(st===1){
+    const order=[1,2,3,4,5,6,0];
+    body = '<h2>Når handler dere?</h2><p class="note">Uka i planen starter på handledagen. Storhandelen dekker hele uka.</p>'+
+      '<div class="field">Storhandel<div class="daypick">'+order.map(dw=>chipBtn('data-wzshop',dw,DOW_S[dw],W.shopDow===dw)).join('')+'</div></div>'+
+      '<div class="field">Lite påfyll midt i uka? <span class="note" style="font-weight:400">For kortholdbare urter og bladgrønt.</span><div class="daypick">'+chipBtn('data-wzpad',-1,'Nei',W.padDay<0)+[1,2,3,4,5].map(d=>chipBtn('data-wzpad',d,rel(W.shopDow,d).s,W.padDay===d)).join('')+'</div></div>';
+  } else if(st===2){
+    body = '<h2>Hvordan ser uka ut?</h2><p class="note">Merk dager med dårlig tid. Da får de bare raske retter. Velg gjerne en restedag, og en dag dere lager dobbel porsjon, så blir det rester.</p>'+
+      '<div class="field">Maks tid på travle dager<div class="daypick">'+[15,20,25,30,40].map(m=>chipBtn('data-wzmax',m,m+' min',W.maxMin===m)).join('')+'</div></div>'+
+      '<div class="wzdays">'+[0,1,2,3,4,5,6].map(d=>{ const r=rel(W.shopDow,d);
+        return '<div class="wzday"><b>'+r.s+'</b><div class="daypick">'+
+          chipBtn('data-wzquick',d,'Travel',W.quick&&W.quick[d])+chipBtn('data-wzrest',d,'Restedag',W.restDay===d)+(W.restDay>=0&&W.restDay!==d?chipBtn('data-wzdouble',d,'Dobbel porsjon',W.doubleDay===d):'')+
+          '</div><input id="wz-note-'+d+'" class="search small" value="'+esc((W.notes&&W.notes[d])||'')+'" placeholder="Notat, f.eks. Fotball kl. 17.30" aria-label="Notat for '+r.l+'"></div>'; }).join('')+'</div>';
+  } else if(st===3){
+    body = '<h2>Noen ønsker?</h2>'+
+      '<div class="field">Vegetarmiddager per uke, minst'+stepper('veg',W.veg,0,4)+'</div>'+
+      '<div class="field">Fiskemiddager per uke, minst'+stepper('fish',W.fish,0,4)+'</div>'+
+      '<div class="field">Fast temadag? <span class="note" style="font-weight:400">For eksempel tacofredag.</span><div class="daypick">'+chipBtn('data-wztheme',-1,'Nei',W.themeDay<0)+[0,1,2,3,4,5,6].filter(d=>d!==W.restDay).map(d=>chipBtn('data-wztheme',d,rel(W.shopDow,d).s,W.themeDay===d)).join('')+'</div>'+
+      (W.themeDay>=0?'<div class="daypick">'+[['tex','Tex-mex'],['fisk','Fisk'],['veg','Vegetar']].map(x=>chipBtn('data-wztag',x[0],x[1],W.themeTag===x[0])).join('')+'</div>':'')+'</div>';
+  } else if(st===4){
+    const sel=new Set(W.selected||[]); const groups=dishGroups();
+    const slots = 4*(7-(W.restDay>=0?1:0));
+    body = '<h2>Hvilke retter liker dere?</h2><p class="note">Alt er valgt fra start. Fjern det dere ikke spiser, og legg til egne retter nederst. Planen bruker '+slots+' middager over fire uker, så omtrent like mange valgte retter gir mest variasjon.</p>'+
+      '<p class="counter"><b>'+sel.size+'</b> valgt</p>'+
+      groups.map(g=>'<div class="wzgroup"><div class="row"><h3>'+g.n+'</h3><button class="linkish" data-wzgroup="'+g.k+'">'+(g.ids.every(id=>sel.has(id))?'Fjern alle':'Velg alle')+'</button></div>'+
+        '<ul class="items">'+g.ids.map(id=>{ const d=all[id]; const iid='wzd-'+id; return '<li class="item"><input type="checkbox" id="'+iid+'" data-wzdish="'+id+'"'+(sel.has(id)?' checked':'')+'><label for="'+iid+'"><span class="nm">'+esc(d.n)+'<span class="for">'+[d.c,d.t].filter(Boolean).map(esc).join(' · ')+'</span></span></label></li>'; }).join('')+'</ul></div>').join('')+
+      '<div class="wzgroup"><h3>Egne retter</h3><form class="addrow wrap" data-wzown><input id="wz-own" placeholder="Navn på retten, f.eks. Mormors kjøttkaker" aria-label="Navn på egen rett"><input id="wz-own-url" type="url" inputmode="url" placeholder="Lenke til oppskrift (valgfritt)" aria-label="Lenke"><button class="btn" type="button" data-submit>Legg til</button></form><p class="note">Egne retter får varelister under «Rettene» etterpå. Trykk på retten og skriv varene inn der.</p></div>';
+  } else {
+    const q=[0,1,2,3,4,5,6].filter(d=>W.quick&&W.quick[d]).map(d=>rel(W.shopDow,d).l);
+    body = '<h2>Klar til å lage planen</h2><ul class="summary">'+
+      '<li>'+W.servings+' porsjoner per middag</li>'+
+      '<li>Storhandel '+DOW_L[W.shopDow]+(W.padDay>=0?', påfyll '+rel(W.shopDow,W.padDay).l:'')+'</li>'+
+      (q.length?'<li>Raske middager (maks '+W.maxMin+' min): '+q.join(', ')+'</li>':'')+
+      (W.restDay>=0?'<li>Restedag: '+rel(W.shopDow,W.restDay).l+(W.doubleDay>=0?', dobbel porsjon '+rel(W.shopDow,W.doubleDay).l:'')+'</li>':'')+
+      (W.themeDay>=0?'<li>Temadag: '+rel(W.shopDow,W.themeDay).l+' ('+({tex:'tex-mex',fisk:'fisk',veg:'vegetar'})[W.themeTag]+')</li>':'')+
+      '<li>Minst '+W.veg+' vegetar og '+W.fish+' fisk i uka</li><li>'+(W.selected||[]).length+' retter å velge fra</li></ul>'+
+      '<p class="note">Planen fordeles automatisk. Etterpå kan dere bytte hvilken som helst middag med «Bytt».'+(CFG.done?' Lager dere ny plan, forsvinner byttene dere har gjort.':'')+'</p>'+
+      '<div class="tools"><span class="right"><button class="btn primary" data-wzfinish="plan">'+(CFG.done?'Lag ny plan':'Lag planen')+'</button>'+(CFG.done?'<button class="btn" data-wzfinish="keep">Lagre uten ny plan</button>':'')+'</span></div>';
+  }
+  const nav = '<div class="wiznav">'+(st>0?'<button class="btn" data-wznav="-1">Tilbake</button>':(CFG.done?'<button class="btn" data-wzcancel>Avbryt</button>':'<span></span>'))+(st<5?'<button class="btn primary" data-wznav="1">Neste</button>':'')+'</div>';
+  return '<section class="panel"><div class="card wizard">'+head+body+nav+'</div></section>';
+}
+function wizReadInputs(){ const W=wizDraft(); const n=document.getElementById('wz-name'); if(n) W.name=n.value.trim(); W.notes=W.notes||{}; for(let d=0;d<7;d++){ const i=document.getElementById('wz-note-'+d); if(i) W.notes[d]=i.value.trim(); } }
+function wizFinish(mode){
+  wizReadInputs(); const W=wizDraft();
+  if(W.restDay<0) W.doubleDay=-1;
+  const keepStart = CFG.done && CFG.shopDow===W.shopDow && CFG.start;
+  const cfg = Object.assign({}, W, {done:true, start: keepStart ? CFG.start : isoDate(lastShopDay(W.shopDow))});
+  write('app/setup', cfg, true, {nolog:true});
+  if(mode==='plan'){ const sw={}; Object.keys(S.plan.swaps||{}).forEach(k=>sw[k]=null); const arr=generatePlan(cfg); const base={}; arr.forEach((row,i)=>{ base[i]=row; }); write('app/plan', {base: base, swaps: sw}, false, {nolog:true}); }
+  UI.wiz=false; UI.wd=null; UI.tab='w'+(curW<0?0:curW); render(); window.scrollTo({top:0});
+  toast(mode==='plan' ? 'Planen er laget. Bytt det dere vil.' : 'Oppsettet er lagret.');
+}
+function renderOppsett(){
+  return renderOppsettInner() + renderShare() + renderLp3();
+}
+function renderLp3(){
+  return '<div class="card"><div class="cardhead"><h2>Light Phone</h2><p class="note">Middagshjulet finnes som eget verktøy for Light Phone III. Der kan dere lese ukeplanen og handlelista. Endringer gjør dere her. Åpne verktøyet på telefonen, velg «Skann lenke» og skann QR-koden under «Del med husstanden».</p></div>'+
+    '<div class="form"><details class="leave"><summary class="note">Hent inn en plan fra fil</summary><p class="note">Erstatter oppsettet, planen, skapet og avkrysningene i denne husstanden med innholdet i fila. Det gjelder alle som bruker lenken.</p><input type="file" id="import-here" accept=".json,application/json" aria-label="Velg fil med plan"></details></div></div>';
+}
+function renderOppsettInner(){
+  const q=Object.keys(CFG.quick||{}).filter(k=>CFG.quick[k]).map(Number).sort((a,b)=>a-b).map(d=>DAYLONG[d]);
+  return '<div class="card"><div class="cardhead"><h2>Oppsett</h2></div><ul class="summary" style="padding:0 14px 0 34px">'+
+    '<li>'+CFG.servings+' porsjoner per middag</li><li>Storhandel '+DAYLONG[0]+(CFG.padDay>=0?', påfyll '+DAYLONG[CFG.padDay]:'')+'</li>'+
+    (q.length?'<li>Raske middager (maks '+CFG.maxMin+' min): '+q.join(', ')+'</li>':'')+
+    (CFG.restDay>=0?'<li>Restedag: '+DAYLONG[CFG.restDay]+(CFG.doubleDay>=0?', dobbel porsjon '+DAYLONG[CFG.doubleDay]:'')+'</li>':'')+
+    (CFG.themeDay>=0?'<li>Temadag: '+DAYLONG[CFG.themeDay]+'</li>':'')+'<li>Minst '+CFG.veg+' vegetar og '+CFG.fish+' fisk i uka</li></ul>'+
+    '<div class="form"><div><button class="btn primary" data-wzopen>Endre oppsett</button></div><p class="note">Dere kan endre alt og velge om dere vil lage en ny plan eller beholde den dere har.</p></div></div>';
+}
+
+// ---------- Start og deling ----------
+function renderStart(){
+  return '<section class="panel"><div class="card wizard"><h2>Velkommen til middagshjulet</h2><p class="note">Fire uker med middager som går i ring, og handlelister som lager seg selv. Alle i husstanden deler den samme lista, uten innlogging.</p>'+
+    '<div class="startchoice"><h3>Ny husstand</h3><p class="note">Sett opp planen deres. Etterpå får dere en lenke å sende til resten av husstanden.</p><div><button class="btn primary" data-newhouse>Start en ny husstand</button></div></div>'+
+    '<div class="startchoice"><h3>Har du fått en lenke?</h3><p class="note">Åpne lenken du fikk, eller lim den inn her.</p><form class="addrow" data-join><input id="join-code" placeholder="Lim inn lenken" aria-label="Lenke til husstanden"><button class="btn" type="button" data-submit>Bli med</button></form></div>'+
+    '<div class="startchoice"><h3>Flytte fra Claude-versjonen?</h3><p class="note">Velg flyttefila (.json). Da lages en ny husstand med planen, rettene og avkrysningene deres.</p><div><input type="file" id="import-new" accept=".json,application/json" aria-label="Velg flyttefil"></div></div>'+
+    (HAS_BACKEND?'':'<p class="note"><b>Merk:</b> Firebase er ikke satt opp, så lista lagres bare på denne enheten.</p>')+
+    '</div></section>';
+}
+function renderShare(){
+  return '<div class="card"><div class="cardhead"><h2>Del med husstanden</h2><p class="note">Send lenken til de andre i husstanden, eller la dem skanne koden. Alle som har lenken, kan se og endre lista, så del den bare med dem som skal ha den.</p></div>'+
+    '<div class="form"><input id="share-link" class="search" readonly value="'+esc(shareLink())+'" aria-label="Lenke til husstanden"><div class="tools"><span class="right"><button class="btn primary" data-copylink>Kopier lenken</button><button class="btn" data-showqr>Vis QR-kode</button></span></div><div id="qr" class="qr" hidden></div>'+
+    '<p class="note">Legg siden til på hjemskjermen etter at du har åpnet lenken, så husker telefonen husstanden.</p>'+
+    '<details class="leave"><summary class="note">Bytt husstand på denne enheten</summary><p class="note">Planen blir liggende for de andre. Du kan komme tilbake med lenken.</p><button class="btn small" data-leave>Forlat husstanden på denne enheten</button></details></div></div>';
+}
+function loadQr(cb){ if(window.QRCode) return cb(); const sc=document.createElement('script'); sc.src='https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js'; sc.onload=cb; sc.onerror=()=>toast('Fikk ikke lastet QR-koden. Bruk lenken.'); document.head.appendChild(sc); }
+
+// ---------- Foreslå varer ----------
+let sampleFn = null;
+async function suggestItems(btn){
+  const st=document.getElementById('sugg-st'); const n=((document.getElementById('ed-n')||{}).value||'').trim();
+  if(!n){ st.textContent='Skriv navnet på retten først.'; return; }
+  if(!sampleFn){ st.textContent='Forslag er ikke tilgjengelig her.'; return; }
+  const url=((document.getElementById('ed-url')||{}).value||'').trim();
+  const pantry = basisList().map(b=>b.n).join(', ');
+  const prompt = 'Du lager handleliste for en norsk familie. Rett: «'+n+'». Porsjoner: '+CFG.servings+'.'+(url?' Oppskriftslenke (du kan ikke åpne den, men den kan si noe om varianten): '+url+'.':'')+
+    ' Svar med KUN JSON på formen {"kjop":[{"navn":"Kyllingfilet","mengde":600,"enhet":"g","fersk":true}],"skap":[{"navn":"Ris","mengde":400,"enhet":"g"}]}.'+
+    ' "kjop" er varer som må kjøpes til denne retten. "skap" er basisvarer de fleste har hjemme: krydder, ris, pasta, mel, olje, buljong, hermetikk, løk og hvitløk. Bruk disse navnene på skapvarer når de passer: '+pantry+'.'+
+    ' Tillatte enheter: g, stk, pk, boks, pose, glass, beger, bunt, potte, flaske, dl, ss, ts, fedd. Sett "fersk": true for ferskt kjøtt, fersk fisk, salat og friske urter. Bruk vanlige norske varenavn. Ikke ta med vann, salt og pepper.';
+  btn.disabled=true; st.textContent='Foreslår varer … Det kan ta opptil et minutt.';
+  try{
+    const r = await sampleFn.json(prompt);
+    const line=(o,fr)=> String(o.navn||'').trim()+(o.mengde!=null&&o.mengde!==''?' '+String(o.mengde).replace('.',',')+(o.enhet?' '+o.enhet:''):'')+(fr&&o.fersk?' *':'');
+    const kj=((r&&r.kjop)||[]).filter(o=>o&&o.navn).map(o=>line(o,true)); const sk=((r&&r.skap)||[]).filter(o=>o&&o.navn).map(o=>line(o,false));
+    if(!kj.length && !sk.length){ st.textContent='Fikk ikke noe brukbart forslag. Prøv igjen.'; return; }
+    document.getElementById('ed-i').value=kj.join('\n'); document.getElementById('ed-k').value=sk.join('\n');
+    st.textContent='Forslag fra Claude. Se over mengdene før du lagrer.';
+  }catch(e){
+    const c=e&&e.code; st.textContent = (c==='not_granted'||c==='sampling_disabled') ? 'Forslag er ikke slått på for deg.' : c==='rate_limited' ? 'For mange forespørsler akkurat nå. Prøv igjen litt senere.' : 'Fikk ikke noe forslag. Prøv igjen.';
+  }finally{ btn.disabled=false; }
+}
+
+function persistLog(){ saveLocal(); if(!db) return; const full={items:clone(S.log.items)}; queues['app/log']=(queues['app/log']||Promise.resolve()).then(()=>db.doc('app/log').set(full)).catch(()=>{}); }
+function undo(id){ const items=S.log.items||[]; const e=items.find(x=>x.id===id); if(!e) return; S.log={items:items.filter(x=>x.id!==id)}; persistLog(); write(e.path, e.inv, false, {nolog:true}); toast('Angret: '+e.label); }
+function toast(msg, undoId){ if(!undoId && toast._u && Date.now()-toast._u<400) return; if(undoId) toast._u=Date.now(); const t=document.getElementById('toast'); t.innerHTML=''; const sp=document.createElement('span'); sp.textContent=msg; t.appendChild(sp); if(undoId){ const b=document.createElement('button'); b.className='toastbtn'; b.textContent='Angre'; b.dataset.undo=undoId; t.appendChild(b); } t.hidden=false; clearTimeout(toast._t); toast._t=setTimeout(()=>{t.hidden=true;}, undoId?7000:2600); }
+function whenStr(t){ const d=new Date(t); const day=atMid(d); const diff=Math.round((today-day)/DAYMS); const hm=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); return (diff===0?'i dag':diff===1?'i går':DAYLONG[(d.getDay()+1)%7]+' '+fmt(d))+' kl. '+hm; }
+function renderLog(){ const items=(S.log.items||[]).slice().reverse().slice(0,15);
+  return '<div class="card"><div class="cardhead"><h2>Siste endringer</h2><p class="note">'+(items.length?'Endringer i planen, rettene og skapet, nyeste først. Gjelder begge telefonene.':'Ingen endringer ennå.')+'</p></div>'+
+    (items.length?'<ul class="items" style="padding:0 14px 10px">'+items.map(e=>'<li class="item"><span class="nm" style="flex:1">'+esc(e.label)+'<span class="for">'+whenStr(e.t)+'</span></span><button class="btn small" data-undo="'+e.id+'">Angre</button></li>').join('')+'</ul>':'<div style="height:6px"></div>')+'</div>'; }
+function listText(w){
+  const V = viewOf(w); const L = V.cur; const wd = weekDoc(w); const ws = weekStart(w);
+  let s = (V.days ? 'Handleliste til '+daysLabel(V.days) : UI.seg==='stor' ? 'Storhandel '+DAYLONG[0]+' '+fmt(ws) : 'Påfyll '+(CFG.padDay>=0?DAYLONG[CFG.padDay]+' '+fmt(addDays(ws,CFG.padDay)):''))+' – Uke '+(w+1)+'\n';
+  secOrder().forEach(sec=>{ const ks = Object.keys(L).filter(k=>L[k].s===sec && !wd.checked[k]); if(!ks.length) return;
+    s += '\n'+secName(sec)+'\n' + ks.map(k=>'- '+L[k].n+(L[k].qs?' ('+L[k].qs+')':L[k].q!=null?' ('+qtyStr(L[k].q,L[k].u)+')':'')).join('\n')+'\n'; });
+  return s;
+}
+const GUESS = [['f',/laks|torsk|sei\b|fisk|reke|makrell|ørret/],['k',/kjøtt|kylling|bacon|pølse|skinke|pepperoni|lam\b|svin|karbonade|kalkun|deig/],['m',/ost\b|ost |rømme|fløte|melk|yoghurt|crème|creme|smør|egg\b|parmesan|mozzarella|skyr|kesam/],['b',/brød|lefse|tortilla|naan|flatbrød|rundstykk|knekke|pita/],['z',/fryst|frossen|frosne|wokgrønnsaker|erter|pommes/],['t',/boks|saus|linser|bønner|pasta|nudler|ris\b|mel\b|krydder|syltetøy|hermetisk|kokosmelk|mais|sesam|hoisin|buljong|olje|chips/]];
+function guessSec(n){ const l=n.toLowerCase(); for(const [s,re] of GUESS) if(re.test(l)) return s; return 'g'; }
+function parseItems(txt, prev){
+  const P = {}; (prev||[]).forEach(r=>{ P[r[0].toLowerCase()] = r[3]; });
+  return txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
+    let fresh = 0; if(/\*\s*$/.test(l)){ fresh = 1; l = l.replace(/\s*\*\s*$/,''); }
+    const m = l.match(/^(.*?)\s+(\d+(?:[.,]\d+)?)\s*(kg|g|stk|pk|pakke|pakker|boks|bokser|pose|poser|glass|beger|bunt|bunter|bit|biter|flaske|flasker|potte|potter|fedd|terning|terninger|l|dl|ss|ts)?$/i);
+    let name = l, q = null, u = '';
+    if(m){ name = m[1]; q = parseFloat(m[2].replace(',','.')); u = (m[3]||'stk').toLowerCase(); if(u==='kg'){ q*=1000; u='g'; } const back={bokser:'boks',poser:'pose',bunter:'bunt',biter:'bit',flasker:'flaske',potter:'potte',pakke:'pk',pakker:'pk'}; u = back[u]||u; }
+    const sec = P[name.toLowerCase()] || guessSec(name);
+    const r = [name, q, u, sec]; if(fresh) r.push(1); return r;
+  });
+}
+
+// ---------- Events ----------
+document.addEventListener('click', e=>{
+  const t = e.target.closest('button'); if(!t) return;
+  if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
+  if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
+  if(t.dataset.swap){ UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
+  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; render(); return; }
+  if(t.dataset.addopen){ UI.add=t.dataset.addopen; UI.addSec=''; UI.sheet=null; UI.edit=null; render(); const i=document.getElementById('add-n'); if(i) i.focus({preventScroll:true}); return; }
+  if(t.dataset.asec!=null){ UI.addSec=t.dataset.asec; document.querySelectorAll('[data-asec]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.asec===UI.addSec))); return; }
+  if(t.dataset.edit){ UI.sheet=null; UI.edit=t.dataset.edit; render(); const f=document.getElementById('ed-n'); if(f) f.focus({preventScroll:true}); return; }
+  if(t.dataset.resetdish){ const id=t.dataset.resetdish; UI.edit=null; write('app/plan',{edits:{[id]:null}}); toast('Retten er tilbake slik den var.'); return; }
+  if(t.dataset.filter){ UI.filter=t.dataset.filter; render(); return; }
+  if(t.dataset.pick){ const key=UI.sheet; const [w,d]=key.split('-').map(Number); const id=t.dataset.pick; UI.sheet=null; write('app/plan',{swaps:{[key]: id===baseAt(w,d) ? null : id}}); toast(DAYN[d]+' i Uke '+(w+1)+': '+allDishes()[id].n); return; }
+  if(t.dataset.low){ const id=t.dataset.low; write('app/basis',{low:{[id]:!S.basis.low[id]}}); return; }
+  if(t.dataset.lowname){ toggleLowByName(t.dataset.lowname); return; }
+  if(t.hasAttribute('data-addpantry')){ const n=UI.pq.trim(); if(!n) return; const g=(document.getElementById('pantry-g')||{}).value||guessGroup(n); const id='u'+Date.now().toString(36); UI.pq=''; const qi=document.getElementById('pantry-q'); if(qi) qi.value=''; write('app/basis',{basisAdd:{[id]:{n:n,g:g}}, low:{[id]:true}}); toast(n+' er lagt i skapet og merket som tomt.'); return; }
+  if(t.hasAttribute('data-newhouse')){ const id=newHid(); try{ localStorage.setItem('mh-hid', id); }catch(e){} location.hash='h='+id; location.reload(); return; }
+  if(t.hasAttribute('data-copylink')){ const txt=shareLink(); try{ navigator.clipboard.writeText(txt).then(()=>toast('Lenken er kopiert.'), ()=>{ const i=document.getElementById('share-link'); i.focus(); i.select(); toast('Merk lenken og kopier den.'); }); }catch(_){ const i=document.getElementById('share-link'); i.focus(); i.select(); } return; }
+  if(t.hasAttribute('data-showqr')){ const box=document.getElementById('qr'); box.hidden=false; box.innerHTML=''; loadQr(()=>{ try{ new window.QRCode(box, {text: shareLink(), width: 200, height: 200}); }catch(e){} }); return; }
+  if(t.hasAttribute('data-leave')){ try{ localStorage.removeItem('mh-hid'); }catch(e){} location.href = location.pathname; return; }
+  if(t.hasAttribute('data-suggest')){ suggestItems(t); return; }
+  if(t.hasAttribute('data-wzopen')){ UI.wiz=true; UI.wd=null; wizDraft(); render(); window.scrollTo({top:0}); return; }
+  if(t.hasAttribute('data-wzcancel')){ UI.wiz=false; UI.wd=null; render(); return; }
+  if(t.dataset.wznav){ wizReadInputs(); UI.ws=Math.max(0,Math.min(5,(UI.ws||0)+(+t.dataset.wznav))); render(); window.scrollTo({top:0}); return; }
+  if(t.dataset.wzfinish){ wizFinish(t.dataset.wzfinish); return; }
+  if(t.dataset.wzstep){ wizReadInputs(); const W=wizDraft(); const [k,dir]=t.dataset.wzstep.split('|'); const lim={servings:[1,12],veg:[0,4],fish:[0,4]}[k]; W[k]=Math.max(lim[0],Math.min(lim[1],(W[k]||0)+(+dir))); render(); return; }
+  if(t.dataset.wzshop!=null){ wizReadInputs(); const W=wizDraft(); W.shopDow=+t.dataset.wzshop; render(); return; }
+  if(t.dataset.wzpad!=null){ wizReadInputs(); wizDraft().padDay=+t.dataset.wzpad; render(); return; }
+  if(t.dataset.wzmax!=null){ wizReadInputs(); wizDraft().maxMin=+t.dataset.wzmax; render(); return; }
+  if(t.dataset.wzquick!=null){ wizReadInputs(); const W=wizDraft(); W.quick=W.quick||{}; const d=+t.dataset.wzquick; W.quick[d]=!W.quick[d]; render(); return; }
+  if(t.dataset.wzrest!=null){ wizReadInputs(); const W=wizDraft(); const d=+t.dataset.wzrest; W.restDay = W.restDay===d ? -1 : d; if(W.restDay<0||W.doubleDay===W.restDay) W.doubleDay=-1; if(W.restDay>=0 && W.doubleDay<0){ for(let k=1;k<7;k++){ const c=(W.restDay-k+7)%7; if(!(W.quick&&W.quick[c])){ W.doubleDay=c; break; } } } if(W.quick) W.quick[d]=false; render(); return; }
+  if(t.dataset.wzdouble!=null){ wizReadInputs(); const W=wizDraft(); const d=+t.dataset.wzdouble; W.doubleDay = W.doubleDay===d ? -1 : d; render(); return; }
+  if(t.dataset.wztheme!=null){ wizReadInputs(); wizDraft().themeDay=+t.dataset.wztheme; render(); return; }
+  if(t.dataset.wztag){ wizReadInputs(); wizDraft().themeTag=t.dataset.wztag; render(); return; }
+  if(t.dataset.wzgroup){ const W=wizDraft(); const g=dishGroups().find(x=>x.k===t.dataset.wzgroup); const sel=new Set(W.selected||[]); const allOn=g.ids.every(id=>sel.has(id)); g.ids.forEach(id=>{ if(allOn) sel.delete(id); else sel.add(id); }); W.selected=Array.from(sel); render(); return; }
+  if(t.dataset.undo){ document.getElementById('toast').hidden=true; undo(t.dataset.undo); return; }
+  if(t.dataset.day!=null){ if(t.dataset.day==='all') UI.days={}; else { const d=+t.dataset.day; UI.days[d]=!UI.days[d]; } render(); return; }
+  if(t.hasAttribute('data-dayextras')){ UI.dayExtras=!UI.dayExtras; render(); return; }
+  if(t.hasAttribute('data-arrange')){ UI.arrange=!UI.arrange; render(); return; }
+  if(t.dataset.secmove){ const [k,dir]=t.dataset.secmove.split('|'); const o=secOrder(); const i=o.indexOf(k); const j=i+(+dir); if(j<0||j>=o.length) return; o[i]=o[j]; o[j]=k; write('app/basis',{secOrder:o}); return; }
+  if(t.dataset.secdel){ const k=t.dataset.secdel; if(k==='a') return; const custom=!!(S.basis.secAdd||{})[k]; const ov=S.basis.itemSec||{}; const fix={}; Object.keys(ov).forEach(n=>{ if(ov[n]===k) fix[n]=null; }); const fa={}, fs={}; fasteList().forEach(x=>{ if(x.s===k){ if(x.custom) fa[x.id]={s:'a'}; else fs[x.id]=null; } }); const patch={secOrder:secOrder().filter(x=>x!==k), itemSec:fix, fasteAdd:fa, fasteSec:fs}; if(custom) patch.secAdd={[k]:null}; else patch.secOff={[k]:true}; const nm=secName(k); write('app/basis',patch); toast(nm+' er slettet. Varene havner under '+secName('a')+'.'); return; }
+  if(t.hasAttribute('data-secrestore')){ const off=S.basis.secOff||{}; const p={}; Object.keys(off).forEach(k=>{ p[k]=null; }); write('app/basis',{secOff:p}); toast('Standardavdelingene er tilbake nederst i lista.'); return; }
+  if(t.dataset.secedit!=null){ UI.secEdit=t.dataset.secedit||null; render(); if(UI.secEdit){ const i=document.getElementById('secren-'+UI.secEdit); if(i){ i.focus(); i.select(); } } return; }
+  if(t.dataset.tidy){ UI.tidy[t.dataset.tidy]=!UI.tidy[t.dataset.tidy]; render(); return; }
+  if(t.dataset.delpantry){ const id=t.dataset.delpantry; const b=basisList().find(x=>x.id===id); if(b&&b.custom) write('app/basis',{basisAdd:{[id]:null}, low:{[id]:false}}); else write('app/basis',{basisOff:{[id]:true}, low:{[id]:false}}); return; }
+  if(t.dataset.delfast){ const id=t.dataset.delfast; if(S.basis.fasteAdd[id]) write('app/basis',{fasteAdd:{[id]:null}}); else write('app/basis',{fasteOff:{[id]:true}}); return; }
+  if(t.dataset.delextra){ const [w,k]=t.dataset.delextra.split('|'); setWeek(+w,{extra:{[k]:null}}); return; }
+  if(t.dataset.delcustom){ const id=t.dataset.delcustom; if(usage(id).length){ toast('Bytt ut retten i planen før du sletter den.'); return; } UI.edit=null; write('app/plan',{custom:{[id]:null}}); toast('Retten er slettet.'); return; }
+  if(t.dataset.reset){ const w=+t.dataset.reset; const wd=weekDoc(w); const ch={}; Object.keys(viewOf(w).cur).forEach(k=>{ if(wd.checked[k]) ch[k]=false; }); setWeek(w,{checked:ch}); toast('Avkrysningene er fjernet.'); return; }
+  if(t.dataset.copy){ const txt=listText(+t.dataset.copy);
+    const fb = ()=>{ const box=document.getElementById('copyfb'); box.innerHTML='<textarea class="copyfb" readonly aria-label="Handleliste som tekst"></textarea>'; const ta=box.firstChild; ta.value=txt; ta.focus(); ta.select(); toast('Merk teksten og kopier den.'); };
+    try{ navigator.clipboard.writeText(txt).then(()=>toast('Lista er kopiert.'), fb); }catch(_){ fb(); } return; }
+});
+document.addEventListener('change', e=>{
+  const c = e.target;
+  if(c.id==='import-new'){ readFile(c, txt=>{ try{ parseImport(txt); }catch(err){ toast('Dette ser ikke ut som en flyttefil fra Middagshjulet.'); return; } try{ localStorage.setItem('mh-import', txt); }catch(err){} const id=newHid(); try{ localStorage.setItem('mh-hid', id); }catch(err){} location.hash='h='+id; location.reload(); }); return; }
+  if(c.id==='import-here'){ readFile(c, txt=>{ let docs; try{ docs=parseImport(txt); }catch(err){ toast('Dette ser ikke ut som en flyttefil fra Middagshjulet.'); return; } if(!confirm('Erstatte planen i denne husstanden med innholdet i fila?')) return; applyImport(docs); toast('Planen er hentet inn.'); }); return; }
+  if(c.dataset && c.dataset.wzdish){ const W=wizDraft(); const sel=new Set(W.selected||[]); if(c.checked) sel.add(c.dataset.wzdish); else sel.delete(c.dataset.wzdish); W.selected=Array.from(sel); const ct=document.querySelector('.counter b'); if(ct) ct.textContent=sel.size; return; }
+  if(c.dataset && c.dataset.itemsec){ write('app/basis',{itemSec:{[c.dataset.itemsec.toLowerCase()]:c.value}}); toast(c.dataset.itemsec+' ligger nå under '+secName(c.value)+'.'); return; }
+  if(c.dataset && c.dataset.fastsec){ const id=c.dataset.fastsec; const f=fasteList().find(x=>x.id===id); if(f&&f.custom) write('app/basis',{fasteAdd:{[id]:{s:c.value}}}); else write('app/basis',{fasteSec:{[id]:c.value}}); return; } if(!c.dataset || c.dataset.check==null) return;
+  const w = +c.dataset.check; const key = c.dataset.key;
+  setWeek(w,{checked:{[key]:c.checked}});
+  if(c.dataset.basis && c.checked) write('app/basis',{low:{[c.dataset.basis]:false}});
+});
+function handleForm(f){
+  if(f.hasAttribute('data-additem')){ const i=document.getElementById('add-n'); const v=i.value.trim(); if(!v){ toast('Skriv inn en vare først.'); return; } i.value=''; const sec=UI.addSec||autoSec(v); const id=Date.now().toString(36);
+    if(UI.add==='fast') write('app/basis',{fasteAdd:{['u'+id]:{n:v,s:sec}}});
+    else setWeek(+UI.add.slice(1),{extra:{['e'+id]:{n:v,t:UI.seg,s:sec}}});
+    UI.addSec=''; render(); toast(v+' ligger under '+secName(sec)+'. Skriv neste, eller trykk Ferdig.'); return; }
+  if(f.hasAttribute('data-join')){ const v=(document.getElementById('join-code').value||'').trim(); const m=v.match(/h=([A-Za-z0-9]{20,40})/) || v.match(/^([A-Za-z0-9]{20,40})$/); if(!m){ toast('Fant ingen husstand i det du limte inn. Sjekk lenken.'); return; } try{ localStorage.setItem('mh-hid', m[1]); }catch(e){} location.hash='h='+m[1]; location.reload(); return; }
+  if(f.hasAttribute('data-wzown')){ const i=document.getElementById('wz-own'); const v=i.value.trim(); if(!v) return; const u=(document.getElementById('wz-own-url').value||'').trim(); const id='c'+Date.now().toString(36); write('app/plan',{custom:{[id]:{n:v,url:u,tags:[],t:'',note:'',i:[],k:[],p:CFG.servings||wizDraft().servings}}}); const W=wizDraft(); W.selected=(W.selected||[]).concat([id]); i.value=''; document.getElementById('wz-own-url').value=''; render(); toast(v+' er lagt til.'); return; }
+  if(f.dataset.addextra!=null){ const w=+f.dataset.addextra; const i=document.getElementById('extra-'+w); const v=i.value.trim(); if(!v) return; i.value=''; const sel=document.getElementById('extra-sec-'+w); const sec=(sel&&sel.value)||autoSec(v); if(sel) sel.value=''; setWeek(w,{extra:{['e'+Date.now().toString(36)]:{n:v,t:UI.seg,s:sec}}}); toast(v+' ligger under '+secName(sec)+'.'); return; }
+  if(f.hasAttribute('data-addbasis')){ const i=document.getElementById('basis-new'); const v=i.value.trim(); if(!v) return; i.value=''; const id='u'+Date.now().toString(36); write('app/basis',{basisAdd:{[id]:{n:v}}, low:{[id]:true}}); return; }
+  if(f.dataset.secrename){ const k=f.dataset.secrename; const v=document.getElementById('secren-'+k).value.trim(); UI.secEdit=null; if(!v){ render(); return; } if((S.basis.secAdd||{})[k]) write('app/basis',{secAdd:{[k]:{n:v}}}); else write('app/basis',{secRename:{[k]:v}}); return; }
+  if(f.hasAttribute('data-addsec')){ const i=document.getElementById('sec-new'); const v=i.value.trim(); if(!v) return; i.value=''; const k='s'+Date.now().toString(36); const o=secOrder(); o.push(k); write('app/basis',{secAdd:{[k]:{n:v}}, secOrder:o}); toast(v+' er lagt til. Flytt den til riktig plass med pilene.'); return; }
+  if(f.hasAttribute('data-addfast')){ const i=document.getElementById('fast-new'); const v=i.value.trim(); if(!v) return; i.value=''; const sel=document.getElementById('fast-sec'); const sec=(sel&&sel.value)||autoSec(v); if(sel) sel.value=''; write('app/basis',{fasteAdd:{['u'+Date.now().toString(36)]:{n:v,s:sec}}}); toast(v+' ligger under '+secName(sec)+'.'); return; }
+  if(f.id==='editform'){
+    const n=document.getElementById('ed-n').value.trim(); if(!n) return;
+    const isNew = UI.edit==='new'; const id = isNew ? 'c'+Date.now().toString(36) : UI.edit;
+    const old = isNew ? {} : (allDishes()[id]||{});
+    const url = document.getElementById('ed-url').value.trim();
+    const tags = ['veg','fisk','helg','tex'].filter(t=>document.getElementById('ed-tag-'+t).checked);
+    if(id==='rest' && tags.indexOf('rest')<0) tags.push('rest');
+    const dish = {p:CFG.servings, n:n, t:document.getElementById('ed-t').value.trim(), tags:tags, url:url, rating: url && url===old.url ? (old.rating||'') : '', src: old.src||'', note:document.getElementById('ed-note').value.trim(), i:parseItems(document.getElementById('ed-i').value, old.i), k:parseItems(document.getElementById('ed-k').value).map(r=>[r[0],r[1],r[2]])};
+    UI.edit=null;
+    if(D[id]) write('app/plan',{edits:{[id]:dish}}); else write('app/plan',{custom:{[id]:dish}});
+    toast(isNew ? n+' ligger nå i banken.' : n+' er lagret.');
+  }
+
+}
+document.addEventListener('submit', e=>{ e.preventDefault(); handleForm(e.target); });
+document.addEventListener('click', e=>{ const b=e.target.closest('button[data-submit]'); if(!b) return; e.preventDefault(); const f=b.closest('form'); if(f) handleForm(f); });
+document.addEventListener('keydown', e=>{ if(e.key!=='Enter') return; const t=e.target; if(!t || t.tagName!=='INPUT' || t.type==='checkbox') return; const f=t.closest('form'); if(!f) return; e.preventDefault(); handleForm(f); });
+document.addEventListener('input', e=>{ if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
+document.addEventListener('toggle', e=>{ const d=e.target; if(d && d.dataset && d.dataset.openkey) UI.open[d.dataset.openkey]=d.open; }, true);
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit)){ UI.sheet=null; UI.edit=null; UI.add=null; render(); } });
+document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; render(); } });
+
+// ---------- Rolig oppdatering: ikke tegn siden på nytt mens noen berører eller scroller ----------
+const lastSnap = {};
+let touching = false, lastScroll = 0, lastTouchEnd = 0, pendingRender = false, renderTimer = null;
+function busy(){ const a=document.activeElement; return touching || (Date.now()-lastScroll) < 600 || (Date.now()-lastTouchEnd) < 800 || !!(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.type!=='checkbox'); }
+function scheduleRender(){ pendingRender = true; if(renderTimer) return; const tick=()=>{ if(busy()){ renderTimer=setTimeout(tick, 300); return; } renderTimer=null; if(pendingRender){ pendingRender=false; render(); } }; renderTimer=setTimeout(tick, 0); }
+document.addEventListener('touchstart', ()=>{ touching=true; }, {passive:true, capture:true});
+document.addEventListener('touchend', ()=>{ touching=false; lastScroll=Date.now(); lastTouchEnd=Date.now(); }, {passive:true, capture:true});
+document.addEventListener('touchcancel', ()=>{ touching=false; lastScroll=Date.now(); }, {passive:true, capture:true});
+window.addEventListener('scroll', ()=>{ lastScroll=Date.now(); }, {passive:true});
+
+// ---------- Light Phone: ferdig utregnet ukeplan og handleliste ----------
+// LP3-appen regner ikke selv. Den leser dokumentet «lp3», som siden skriver når noe endres.
+function lp3Items(L, segs, wd){
+  const groups = [];
+  secOrder().forEach(s=>{
+    const its = [];
+    segs.forEach(sg=>Object.keys(L[sg]).forEach(k=>{ const it=L[sg][k]; if(it.s!==s) return;
+      its.push({n:it.n, q:(it.qs!=null?it.qs:qtyStr(it.q,it.u)), done:!!wd.checked[sg+'|'+k], tag:it.tag||'', for:(it.for||[]).join(', '), seg:sg}); }));
+    its.sort((a,b)=>a.n.localeCompare(b.n,'nb'));
+    if(its.length) groups.push({s:secName(s), it:its});
+  });
+  return groups;
+}
+function lp3Snapshot(){
+  const all = allDishes(); const weeks = [];
+  for(let w=0; w<4; w++){
+    const ws = weekStart(w); const wd = weekDoc(w); const days = [];
+    for(let d=0; d<7; d++){
+      const id = dishAt(w,d); const dish = all[id] || {n:''};
+      days.push({date:isoDate(addDays(ws,d)), s:DAYN[d], l:DAYLONG[d], n:dish.n||'', t:dish.t||'', note:dayNote(w,d), rest:id==='rest',
+        shop: id==='rest' ? [] : lp3Items(buildList(w,[d],false), ['stor','paafyll'], wd)});
+    }
+    const L = buildList(w, null, false);
+    weeks.push({w:w, start:isoDate(ws), days:days, stor:lp3Items(L,['stor'],wd), paafyll:lp3Items(L,['paafyll'],wd)});
+  }
+  return {v:1, name:CFG.name||'', shop:DAYLONG[0], pad:CFG.padDay>=0?DAYLONG[CFG.padDay]:'', weeks:weeks};
+}
+let lp3Last = null, lp3Timer = null;
+function scheduleLp3(){
+  if(!db || !HID || !CFG.done) return;
+  clearTimeout(lp3Timer);
+  lp3Timer = setTimeout(()=>{
+    let js; try{ js = JSON.stringify(lp3Snapshot()); }catch(e){ return; }
+    if(js===lp3Last) return; lp3Last = js;
+    try{ db.doc('app/lp3').set({v:1, json:js, at:Date.now()}).catch(()=>{ lp3Last=null; }); }catch(e){ lp3Last=null; }
+  }, 2500);
+}
+
+// ---------- Flytte inn en plan fra fil (f.eks. fra Claude-versjonen) ----------
+const IMPORT_DOCS = ['setup','plan','basis','log','w0','w1','w2','w3'];
+function parseImport(txt){ const o = JSON.parse(txt); if(!o || o.format!=='middagshjulet-1' || !isObj(o.docs) || !isObj(o.docs.setup)) throw new Error('format'); return o.docs; }
+function applyImport(docs){ IMPORT_DOCS.forEach(k=>{ if(isObj(docs[k])) write('app/'+k, docs[k], true, {nolog:true}); }); UI.wiz=false; UI.tab='w'+(curW<0?0:curW); render(); }
+function runPendingImport(){ let txt=null; try{ txt=localStorage.getItem('mh-import'); localStorage.removeItem('mh-import'); }catch(e){} if(!txt) return; try{ applyImport(parseImport(txt)); toast('Planen er flyttet inn.'); }catch(e){ toast('Fila kunne ikke leses. Ingenting er endret.'); } }
+function readFile(input, cb){ const f = input.files && input.files[0]; if(!f) return; const r = new FileReader(); r.onload = ()=>cb(String(r.result||'')); r.onerror = ()=>toast('Fikk ikke lest fila.'); r.readAsText(f); }
+
+// ---------- Felles lagring (Firebase) ----------
+const foot = document.getElementById('foot');
+foot.textContent = !HID ? '' : HAS_BACKEND ? 'Kobler til …' : 'Endringer lagres bare på denne enheten.';
+const DOCS = ['app/setup','app/log','app/plan','app/basis','app/w0','app/w1','app/w2','app/w3'];
+function connect(adapter){
+  db = adapter;
+  foot.textContent = 'Lista deles live med alle i husstanden.';
+  DOCS.forEach(path=>{
+    try{ db.doc(path).onSnapshot(s=>{
+      if(path==='app/setup' && !UI.synced){ UI.synced=true; setTimeout(runPendingImport, 800); scheduleRender(); }
+      if(!s.exists) return; const js=JSON.stringify(s.data()); if(lastSnap[path]===js) return; lastSnap[path]=js; setDoc(path, JSON.parse(js)); saveLocal(); scheduleRender();
+    }, e=>{ UI.connErr='Fikk ikke kontakt med lagringen. Sjekk nettet og prøv igjen.'; foot.textContent='Fikk ikke kontakt med lagringen.'; render(); }); }catch(_){}
+  });
+}
+window.mhConnect = connect;
+window.mhFail = msg => { UI.connErr = msg; foot.textContent = msg; render(); };
+render();
+if(HID && HAS_BACKEND){ if(window.mhStart) window.mhStart(HID); else window.addEventListener('mh-module-ready', ()=>window.mhStart && window.mhStart(HID), {once:true}); }
+})();
+</script>
+<script type="module">
+// Firebase: anonym innlogging + Firestore. Lenken (husstands-ID) bestemmer hvilken plan du ser.
+const V = '10.12.2';
+const cfg = window.FIREBASE_CONFIG;
+async function start(hid){
+  try{
+    const { initializeApp } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+    const { getAuth, signInAnonymously, onAuthStateChanged } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-auth.js`);
+    const { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, doc, setDoc, onSnapshot } = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`);
+    const app = initializeApp(cfg);
+    const auth = getAuth(app);
+    await new Promise((res, rej)=>{ const off = onAuthStateChanged(auth, u=>{ if(u){ off(); res(u); } }); signInAnonymously(auth).catch(rej); });
+    let fs;
+    try{ fs = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) }); }
+    catch(e){ fs = initializeFirestore(app, {}); }
+    const ref = path => doc(fs, 'households', hid, 'docs', path.split('/')[1]);
+    window.mhConnect({ doc: path => { const r = ref(path); return {
+      set: d => setDoc(r, d),
+      update: d => setDoc(r, d, { merge: true }),
+      onSnapshot: (next, err) => onSnapshot(r, s => next({ exists: s.exists(), data: () => s.data(), metadata: s.metadata }), err)
+    }; } });
+  }catch(e){
+    window.mhFail && window.mhFail('Fikk ikke koblet til Firebase. Sjekk at oppsettet i firebase-config.js er riktig.');
+    console.error(e);
+  }
+}
+window.mhStart = start;
+window.dispatchEvent(new Event('mh-module-ready'));
+if('serviceWorker' in navigator){ window.addEventListener('load', ()=>{ navigator.serviceWorker.register('sw.js').catch(()=>{}); }); }
+</script>
+
+</body>
+</html>
