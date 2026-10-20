@@ -206,6 +206,12 @@ button,label,summary,select,input,a,.item{touch-action:manipulation}
 .startchoice h3{font-size:15px;color:var(--ink);text-transform:none;letter-spacing:0}
 .qr{display:flex;justify-content:center;padding:10px;background:#fff;border-radius:12px;width:max-content;margin:0 auto}
 details.leave summary{cursor:pointer}
+.pplrow{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.pplrow .stepper{margin-top:0}
+.pplweek{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+.pplgrid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px}
+.pplgrid label{display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted)}
+.pplgrid select{width:100%;padding:4px 2px;text-align:center}
 .foot{font-size:13px;color:var(--muted);text-align:center}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;z-index:30;max-width:calc(100% - 32px)}
 textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13px;border:1px solid var(--line);border-radius:10px;background:var(--surface2);color:var(--ink);padding:8px}
@@ -248,7 +254,7 @@ const HAS_BACKEND = !!(window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey &
 // ---------- Data ----------
 const DOW_S = ['Søn','Man','Tir','Ons','Tor','Fre','Lør'];
 const DOW_L = ['søndag','mandag','tirsdag','onsdag','torsdag','fredag','lørdag'];
-const CFG0 = {done:false, name:'', servings:4, shopDow:6, padDay:-1, restDay:-1, doubleDay:-1, quick:{}, maxMin:25, themeDay:-1, themeTag:'tex', notes:{}, veg:1, fish:1, start:'', selected:null};
+const CFG0 = {done:false, name:'', servings:4, shopDow:6, padDay:-1, restDay:-1, doubleDay:-1, quick:{}, maxMin:25, themeDay:-1, themeTag:'tex', notes:{}, veg:1, fish:1, start:'', selected:null, ppl:{}, pplDay:{}};
 let CFG = Object.assign({}, CFG0), START = new Date(), DAYN = DOW_S.slice(), DAYLONG = DOW_L.slice();
 const SEC = {g:'Frukt og grønt',b:'Brød og bakevarer',k:'Kjøtt og kylling',f:'Fisk',m:'Meieri og egg',t:'Tørrvarer og hermetikk',z:'Frysedisk',a:'Annet'};
 const SECORDER0 = ['g','b','k','f','m','t','z','a'];
@@ -314,7 +320,7 @@ const D = {
 };
 function baseAt(w,d){ const b=S.plan.base; return (b&&b[w]&&b[w][d])||'rest'; }
 function isQuickDay(d){ return !!(CFG.quick&&CFG.quick[d]); }
-function dayNote(w,d){ let n=(CFG.notes&&CFG.notes[d])||''; if(d===CFG.doubleDay && doubleOn(w)) n = n ? 'Lag dobbel porsjon · '+n : 'Lag dobbel porsjon'; return n; }
+function dayNote(w,d){ const parts=[]; const pp=servingsAt(w,d); if(pp!==CFG.servings) parts.push('Til '+pp); if(d===CFG.doubleDay && doubleOn(w)) parts.push('Lag dobbel porsjon'); if(CFG.notes&&CFG.notes[d]) parts.push(CFG.notes[d]); return parts.join(' · '); }
 const SHORT_RE = /koriander|spinat|salat|basilikum|bønnespirer|vårløk|persille|ruccola/i;
 function minutes(t){ if(!t) return 0; const h=(t.match(/(\d+)\s*t\b/)||[])[1]; const m=(t.match(/(\d+)\s*min/)||[])[1]; return (h?+h*60:0)+(m?+m:0); }
 function isQuick(d){ const m=minutes(d.t); return d.tags && d.tags.indexOf('rest')<0 && m>0 && m<=(CFG.maxMin||25); }
@@ -416,8 +422,13 @@ UI.tab = 'w' + (curW<0 ? 0 : curW);
 
 // ---------- Helpers ----------
 function scaleQ(q,u,f){ const x=q*f; if(u==='g') return x>=100 ? Math.round(x/50)*50 : Math.max(10, Math.round(x/10)*10); if(['dl','ss','ts','l'].indexOf(u)>=0) return Math.max(0.5, Math.round(x*2)/2); return Math.max(1, Math.round(x)); }
-function scaleDish(d){ const f=(CFG.servings||4)/(d.p||5); if(Math.abs(f-1)<0.01) return d; const sc=r=>{ const x=r.slice(); if(r[1]!=null) x[1]=scaleQ(r[1],r[2],f); return x; }; return Object.assign({}, d, {i:(d.i||[]).map(sc), k:(d.k||[]).map(sc), p:CFG.servings}); }
-function allDishes(){ const o = {}; const E = S.plan.edits||{}; for(const k in D){ o[k] = scaleDish(E[k] ? Object.assign({}, D[k], {k:[]}, E[k]) : D[k]); } for(const k in S.plan.custom){ const c=S.plan.custom[k]; if(c) o[k]=scaleDish(c); } return o; }
+function scaleDish(d, n){ n = n || CFG.servings || 4; const f=n/(d.p||5); if(Math.abs(f-1)<0.01) return d; const sc=r=>{ const x=r.slice(); if(r[1]!=null) x[1]=scaleQ(r[1],r[2],f); return x; }; return Object.assign({}, d, {i:(d.i||[]).map(sc), k:(d.k||[]).map(sc), p:n}); }
+function allDishes(n){ const o = {}; const E = S.plan.edits||{}; for(const k in D){ o[k] = scaleDish(E[k] ? Object.assign({}, D[k], {k:[]}, E[k]) : D[k], n); } for(const k in S.plan.custom){ const c=S.plan.custom[k]; if(c) o[k]=scaleDish(c, n); } return o; }
+// Antall personer: unntak for en dag, ellers ukas antall, ellers det vanlige.
+function servingsWeek(w){ const v = CFG.ppl && CFG.ppl[w]; return v>0 ? v : CFG.servings; }
+function servingsAt(w,d){ const v = CFG.pplDay && CFG.pplDay[w+'-'+d]; return v>0 ? v : servingsWeek(w); }
+// Retten slik den skal lages den dagen, regnet om til antall personer da.
+function dishScaler(){ const cache={}; return (w,d)=>{ const n=servingsAt(w,d); const all=cache[n]||(cache[n]=allDishes(n)); return all[dishAt(w,d)]; }; }
 function dishAt(w,d){ const k = S.plan.swaps[w+'-'+d]; const all = allDishes(); return (k && all[k]) ? k : baseAt(w,d); }
 function usage(id){ const u=[]; for(let w=0;w<4;w++) for(let d=0;d<7;d++) if(dishAt(w,d)===id) u.push('Uke '+(w+1)+' '+DAYN[d].toLowerCase()); return u; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -441,19 +452,19 @@ function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
 function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
 function pantryNames(){ const m={}; basisList().forEach(b=>{ m[b.n.toLowerCase()]=b; }); return m; }
-function skapNeeds(w, days){ const all=allDishes(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=all[dishAt(w,d)]; if(!dish) continue; const mult=(d===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
+function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const mult=(d===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
 function needQty(o){ return Object.keys(o.parts).map(u=>qtyStr(o.parts[u],u)).join(' + '); }
 function toggleLowByName(n){ const b=pantryByName(n); if(b){ write('app/basis',{low:{[b.id]:!S.basis.low[b.id]}}); } else { const id='u'+Date.now().toString(36); write('app/basis',{basisAdd:{[id]:{n:n,g:guessGroup(n)}}, low:{[id]:true}}); } }
 
 function buildList(w, days, incl){
-  const all = allDishes(); const wd = weekDoc(w);
+  const dishOn = dishScaler(); const wd = weekDoc(w);
   const out = {stor:{}, paafyll:{}};
   const OV = S.basis.itemSec||{};
   function add(target, key, item){ if(item.n && OV[item.n.toLowerCase()]) item.s=OV[item.n.toLowerCase()]; item.s=resolveSec(item.s); const b=out[target]; if(b[key]){ if(item.tag && !b[key].tag) b[key].tag=item.tag; if(item.q!=null) b[key].q=(b[key].q||0)+item.q; item.for.forEach(f=>{ if(b[key].for.indexOf(f)<0) b[key].for.push(f); }); } else b[key]=item; }
   const PN = pantryNames();
   for(let d=0; d<7; d++){
     if(days && days.indexOf(d)<0) continue;
-    const dish = all[dishAt(w,d)]; if(!dish) continue;
+    const dish = dishOn(w,d); if(!dish) continue;
     (dish.i||[]).forEach(r=>{
       if(PN[r[0].toLowerCase()]) return; // står i skapet: havner på sjekklista
       const late = r[4] && d>=3;
@@ -487,7 +498,11 @@ function renderNow(){
   else if(isPad && curW>=0){ title='Lite påfyll i dag, om dere trenger det'; text='Bare kortholdbare ting som koriander, spinat og salat til resten av uka. Se «Påfyll» under handlelista.'; }
   else { title='Neste storhandel: '+DAYLONG[0]+' '+fmt(nextShop); text= curW>=0 ? 'Nå går Uke '+(curW+1)+'. Da handles det inn til Uke '+(nextShopW+1)+'.' : ''; }
   el.innerHTML = '<div><b>'+esc(title)+'</b>'+(text?'<span>'+esc(text)+'</span>':'')+'</div>';
-  const parts = ['Fire uker med middager for '+CFG.servings+'.'];
+  const other = [0,1,2,3].filter(w=>servingsWeek(w)!==CFG.servings);
+  const byN = {}; other.forEach(w=>{ (byN[servingsWeek(w)]=byN[servingsWeek(w)]||[]).push(w+1); });
+  const og = a => a.join(', ').replace(/, ([^,]*)$/,' og $1');
+  const otherTxt = other.length ? ' ('+og(Object.keys(byN).map(n=>n+' i uke '+og(byN[n])))+')' : '';
+  const parts = ['Fire uker med middager for '+CFG.servings+otherTxt+'.'];
   const q = Object.keys(CFG.quick||{}).filter(k=>CFG.quick[k]).map(Number).sort((a,b)=>a-b);
   if(CFG.restDay>=0) parts.push('Rester '+DAYLONG[CFG.restDay]+'.');
   if(q.length) parts.push('Raske middager '+q.map(d=>DAYLONG[d]).join(', ').replace(/, ([^,]*)$/,' og $1')+'.');
@@ -749,7 +764,7 @@ function renderWizard(){
   if(st===0){
     body = '<h2>Sett opp husstanden</h2><p class="note">Dette tar et par minutter. Alt kan endres senere under «Oppsett».</p>'+
       '<label class="field">Navn på husstanden (valgfritt)<input id="wz-name" value="'+esc(W.name||'')+'" placeholder="F.eks. Familien Hansen"></label>'+
-      '<div class="field">Hvor mange porsjoner lager dere til middag?'+stepper('servings',W.servings,1,12)+'<span class="note">Mengdene i alle oppskriftene regnes om til dette.</span></div>';
+      '<div class="field">Hvor mange porsjoner lager dere til middag?'+stepper('servings',W.servings,1,12)+'<span class="note">Mengdene i alle oppskriftene regnes om til dette. Varierer det fra uke til uke, for eksempel annenhver uke med barna, kan dere sette det under Oppsett etterpå.</span></div>';
   } else if(st===1){
     const order=[1,2,3,4,5,6,0];
     body = '<h2>Når handler dere?</h2><p class="note">Uka i planen starter på handledagen. Storhandelen dekker hele uka.</p>'+
@@ -803,7 +818,18 @@ function wizFinish(mode){
   toast(mode==='plan' ? 'Planen er laget. Bytt det dere vil.' : 'Oppsettet er lagret.');
 }
 function renderOppsett(){
-  return renderOppsettInner() + renderShare() + renderLp3();
+  return renderOppsettInner() + renderPeople() + renderShare() + renderLp3();
+}
+function renderPeople(){
+  const weeks = [0,1,2,3].map(w=>{ const n=servingsWeek(w); const ws=weekStart(w);
+    return '<div class="pplrow"><span><b>Uke '+(w+1)+'</b> <span class="note">'+DAYN[0].toLowerCase()+' '+fmt(ws)+' – '+DAYN[6].toLowerCase()+' '+fmt(addDays(ws,6))+'</span></span>'+
+      '<span class="stepper"><button class="btn small" data-ppl="'+w+'|-1" aria-label="Færre i uke '+(w+1)+'"'+(n<=1?' disabled':'')+'>−</button><b>'+n+'</b><button class="btn small" data-ppl="'+w+'|1" aria-label="Flere i uke '+(w+1)+'"'+(n>=12?' disabled':'')+'>+</button></span></div>'; }).join('');
+  const nDays = Object.keys(CFG.pplDay||{}).filter(k=>CFG.pplDay[k]>0).length;
+  const grid = [0,1,2,3].map(w=>'<div class="pplweek"><span class="note">Uke '+(w+1)+'</span><div class="pplgrid">'+DAYN.map((dn,d)=>{ const v=CFG.pplDay&&CFG.pplDay[w+'-'+d];
+      return '<label><span>'+dn+'</span><select class="secsel" data-ppld="'+w+'-'+d+'" aria-label="Uke '+(w+1)+' '+DAYLONG[d]+'"><option value="">'+servingsWeek(w)+'</option>'+Array.from({length:12},(_,i)=>i+1).map(i=>'<option value="'+i+'"'+(v===i?' selected':'')+'>'+i+'</option>').join('')+'</select></label>'; }).join('')+'</div></div>').join('');
+  return '<div class="card"><div class="cardhead"><h2>Antall personer</h2><p class="note">Mengdene og handlelista regnes om for hver uke. Er dere for eksempel fem annenhver uke og to de andre, setter dere det her. Planen går i ring på fire uker, så det holder å gjøre det én gang.</p></div>'+
+    '<div class="form">'+weeks+
+    '<details class="leave"'+(UI.open['ppl']?' open':'')+' data-openkey="ppl"><summary class="note">Juster enkeltdager'+(nDays?' ('+nDays+' justert)':'')+'</summary><p class="note">Bytter dere midt i uka, kan dere sette antallet for hver dag. Tallet som står fra før, er ukas antall.</p>'+grid+'</details></div></div>';
 }
 function renderLp3(){
   return '<div class="card"><div class="cardhead"><h2>Light Phone</h2><p class="note">Middagshjulet finnes som eget verktøy for Light Phone III. Der kan dere lese ukeplanen og handlelista. Endringer gjør dere her. Åpne verktøyet på telefonen, velg «Skann lenke» og skann QR-koden under «Del med husstanden».</p></div>'+
@@ -908,6 +934,7 @@ document.addEventListener('click', e=>{
   if(t.hasAttribute('data-newhouse')){ const id=newHid(); try{ localStorage.setItem('mh-hid', id); }catch(e){} location.hash='h='+id; location.reload(); return; }
   if(t.hasAttribute('data-copylink')){ const txt=shareLink(); try{ navigator.clipboard.writeText(txt).then(()=>toast('Lenken er kopiert.'), ()=>{ const i=document.getElementById('share-link'); i.focus(); i.select(); toast('Merk lenken og kopier den.'); }); }catch(_){ const i=document.getElementById('share-link'); i.focus(); i.select(); } return; }
   if(t.hasAttribute('data-showqr')){ const box=document.getElementById('qr'); box.hidden=false; box.innerHTML=''; loadQr(()=>{ try{ new window.QRCode(box, {text: shareLink(), width: 200, height: 200}); }catch(e){} }); return; }
+  if(t.dataset.ppl){ const [w,dir]=t.dataset.ppl.split('|').map(Number); const n=Math.max(1,Math.min(12,servingsWeek(w)+dir)); write('app/setup',{ppl:{[w]: n===CFG.servings ? null : n}}, false, {nolog:true}); applyConfig(); render(); return; }
   if(t.hasAttribute('data-leave')){ try{ localStorage.removeItem('mh-hid'); }catch(e){} location.href = location.pathname; return; }
   if(t.hasAttribute('data-suggest')){ suggestItems(t); return; }
   if(t.hasAttribute('data-wzopen')){ UI.wiz=true; UI.wd=null; wizDraft(); render(); window.scrollTo({top:0}); return; }
@@ -944,6 +971,7 @@ document.addEventListener('click', e=>{
 });
 document.addEventListener('change', e=>{
   const c = e.target;
+  if(c.dataset && c.dataset.ppld){ const k=c.dataset.ppld; const w=+k.split('-')[0]; const v=c.value===''?null:+c.value; write('app/setup',{pplDay:{[k]: (v===null||v===servingsWeek(w)) ? null : v}}, false, {nolog:true}); applyConfig(); render(); return; }
   if(c.id==='import-new'){ readFile(c, txt=>{ try{ parseImport(txt); }catch(err){ toast('Dette ser ikke ut som en flyttefil fra Middagshjulet.'); return; } try{ localStorage.setItem('mh-import', txt); }catch(err){} const id=newHid(); try{ localStorage.setItem('mh-hid', id); }catch(err){} location.hash='h='+id; location.reload(); }); return; }
   if(c.id==='import-here'){ readFile(c, txt=>{ let docs; try{ docs=parseImport(txt); }catch(err){ toast('Dette ser ikke ut som en flyttefil fra Middagshjulet.'); return; } if(!confirm('Erstatte planen i denne husstanden med innholdet i fila?')) return; applyImport(docs); toast('Planen er hentet inn.'); }); return; }
   if(c.dataset && c.dataset.wzdish){ const W=wizDraft(); const sel=new Set(W.selected||[]); if(c.checked) sel.add(c.dataset.wzdish); else sel.delete(c.dataset.wzdish); W.selected=Array.from(sel); const ct=document.querySelector('.counter b'); if(ct) ct.textContent=sel.size; return; }
