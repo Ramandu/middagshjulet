@@ -1131,7 +1131,9 @@ async function start(hid){
     window.mhConnect({ doc: path => { const r = ref(path); return {
       set: d => setDoc(r, enc(d)),
       update: d => setDoc(r, enc(d), { merge: true }),
-      onSnapshot: (next, err) => onSnapshot(r, s => next({ exists: s.exists(), data: () => dec(s.data()), metadata: s.metadata }), err)
+      // includeMetadataChanges: ellers kommer det ikke noe nytt varsel når data fra lageret på telefonen blir bekreftet
+      // av serveren (bare metadata endres), og da vet ikke siden at den har ferske data å lagre LP3-planen fra.
+      onSnapshot: (next, err) => onSnapshot(r, { includeMetadataChanges: true }, s => next({ exists: s.exists(), data: () => dec(s.data()), metadata: s.metadata }), err)
     }; } });
   }catch(e){
     window.mhFail && window.mhFail('Fikk ikke koblet til Firebase. Sjekk at oppsettet i firebase-config.js er riktig.');
