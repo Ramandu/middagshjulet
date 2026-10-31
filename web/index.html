@@ -222,6 +222,14 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .secchips{display:flex;flex-wrap:wrap;gap:6px}
 .btn.addopen{display:block;width:calc(100% - 28px);margin:10px 14px 14px;padding:11px 12px;font-size:15px}
 @media (pointer:coarse){input:not([type=checkbox]):not([type=radio]),select,textarea{font-size:16px!important}}
+.mvbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:999px;padding:4px 10px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.sheet .list.news{padding:6px 16px 4px}
+.news section{padding:8px 0}
+.news h3{margin-bottom:6px}
+.newsitem{padding:6px 0 10px;border-bottom:1px solid var(--line)}
+.newsitem:last-child{border-bottom:0}
+.newsitem .note{margin-top:2px}
+.newsfoot{padding:10px 16px 14px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
 </style>
 </head>
 <body>
@@ -460,7 +468,7 @@ function buildList(w, days, incl){
   const dishOn = dishScaler(); const wd = weekDoc(w);
   const out = {stor:{}, paafyll:{}};
   const OV = S.basis.itemSec||{};
-  function add(target, key, item){ if(item.n && OV[item.n.toLowerCase()]) item.s=OV[item.n.toLowerCase()]; item.s=resolveSec(item.s); const b=out[target]; if(b[key]){ if(item.tag && !b[key].tag) b[key].tag=item.tag; if(item.q!=null) b[key].q=(b[key].q||0)+item.q; item.for.forEach(f=>{ if(b[key].for.indexOf(f)<0) b[key].for.push(f); }); } else b[key]=item; }
+  function add(target, key, item){ if(item.n && OV[item.n.toLowerCase()]) item.s=OV[item.n.toLowerCase()]; item.s=resolveSec(item.s); const b=out[target]; if(b[key]){ if(item.tag && !b[key].tag) b[key].tag=item.tag; if(item.fresh) b[key].fresh=1; if(item.q!=null) b[key].q=(b[key].q||0)+item.q; item.for.forEach(f=>{ if(b[key].for.indexOf(f)<0) b[key].for.push(f); }); } else b[key]=item; }
   const PN = pantryNames();
   for(let d=0; d<7; d++){
     if(days && days.indexOf(d)<0) continue;
@@ -470,11 +478,11 @@ function buildList(w, days, incl){
       const late = r[4] && d>=3;
       const target = (CFG.padDay>=0 && r[4] && d>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
       const mult = (d===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
-      add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:r[3]||'a', for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined});
+      add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:r[3]||'a', for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
     });
   }
   for(const k in (wd.extra||{})){ const e=wd.extra[k]; if(e) add(e.t||'stor','x|'+k,{n:e.n,s:e.s||'a',for:[],tag:'ekstra',extra:k}); }
-  if(days && !incl) return out;
+  if(days && !incl) return applyMoves(out, wd);
   fasteList().forEach(f=>add('stor','f|'+f.id,{n:f.n,s:f.s,for:[],tag:'fast'}));
   // Det som er tomt i skapet, kommer på neste handletur: storhandelen, eller påfyllet hvis storhandelen
   // denne uka allerede er gjort (fra dagen etter handledagen til og med påfyllsdagen).
@@ -486,6 +494,18 @@ function buildList(w, days, incl){
     if(S.basis.low[b.id] && !(lowTarget==='stor' ? inStor : inPad)) targets.add(lowTarget);
     if(!targets.size) return; const nd=needs[b.n.toLowerCase()];
     targets.forEach(t=>add(t,k,{n:b.n,s:b.g==='annet'?'a':'t',for:nd?nd.for.slice():[],tag:'tomt',basis:b.id,qs:nd?needQty(nd):''})); });
+  return applyMoves(out, wd);
+}
+// Varer dere har flyttet mellom storhandel og påfyll for én bestemt uke (ukedokumentets «move»).
+function applyMoves(out, wd){
+  if(CFG.padDay<0) return out;
+  const M = wd.move||{};
+  for(const k in M){ const to=M[k]; if(to!=='paafyll' && to!=='stor') continue;
+    const from = to==='paafyll' ? 'stor' : 'paafyll'; const it = out[from][k]; if(!it) continue;
+    delete out[from][k]; it.moved = to; if(to==='paafyll' && it.tag==='sjekk dato') it.tag = undefined;
+    const b = out[to][k];
+    if(b){ if(it.q!=null) b.q=(b.q||0)+it.q; (it.for||[]).forEach(f=>{ if(b.for.indexOf(f)<0) b.for.push(f); }); b.moved=to; }
+    else out[to][k] = it; }
   return out;
 }
 
@@ -551,7 +571,11 @@ function renderWeek(w){
       const tag = it.tag ? '<span class="tagmini">'+it.tag+'</span>' : '';
       const forTxt = it.for && it.for.length ? '<span class="for">'+it.for.join(', ')+'</span>' : '';
       const del = it.extra ? '<button class="x" data-delextra="'+w+'|'+it.extra+'" aria-label="Fjern '+esc(it.n)+'">×</button>' : '';
-      return '<li class="item'+(done?' done':'')+'"><input type="checkbox" id="'+iid+'" data-check="'+w+'" data-key="'+esc(ck)+'"'+(it.basis?' data-basis="'+it.basis+'"':'')+(done?' checked':'')+'><label for="'+iid+'"><span class="nm">'+esc(it.n)+tag+forTxt+'</span><span class="q">'+(it.qs!=null?esc(it.qs):qtyStr(it.q,it.u))+'</span></label>'+(UI.arrange?secSelect('isec-'+iid,it.s,'data-itemsec="'+esc(it.n)+'"'):'')+del+'</li>';
+      const sg = ck.slice(0, ck.indexOf('|')); const bk = ck.slice(sg.length+1);
+      const mv = (CFG.padDay<0 || done) ? '' :
+        (sg==='stor' && (it.fresh || it.moved || UI.arrange)) ? '<button class="mvbtn" data-move="paafyll" data-mw="'+w+'" data-mk="'+esc(bk)+'" aria-label="Flytt '+esc(it.n)+' til påfyllet">→ Påfyll</button>' :
+        (sg==='paafyll' && (it.moved || UI.arrange)) ? '<button class="mvbtn" data-move="stor" data-mw="'+w+'" data-mk="'+esc(bk)+'" aria-label="Flytt '+esc(it.n)+' til storhandelen">← Storhandel</button>' : '';
+      return '<li class="item'+(done?' done':'')+'"><input type="checkbox" id="'+iid+'" data-check="'+w+'" data-key="'+esc(ck)+'"'+(it.basis?' data-basis="'+it.basis+'"':'')+(done?' checked':'')+'><label for="'+iid+'"><span class="nm">'+esc(it.n)+tag+forTxt+'</span><span class="q">'+(it.qs!=null?esc(it.qs):qtyStr(it.q,it.u))+'</span></label>'+(UI.arrange?secSelect('isec-'+iid,it.s,'data-itemsec="'+esc(it.n)+'"'):'')+mv+del+'</li>';
     }).join('')+'</ul></div>';
   });
   let sjekk = '';
@@ -666,8 +690,37 @@ function renderAdd(el){
     '<span class="eyebrow">Avdeling</span><div class="secchips">'+[''].concat(secOrder()).map(k=>'<button type="button" class="pchip" data-asec="'+k+'" aria-pressed="'+((UI.addSec||'')===k)+'">'+(k?esc(secName(k)):'Finn selv')+'</button>').join('')+'</div>'+
     '<button class="btn primary" type="button" data-submit>Legg til</button></form></div>';
 }
+// ---------- Nytt i Middagshjulet ----------
+// Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
+const NEWS = [
+  {id:'2026-10-31', title:'31. oktober', items:[
+    ['Flytt ferskvarer til påfyllet', 'Holder ikke en ferskvare til slutten av uka? Trykk «→ Påfyll» på varen i storhandelslista, så havner den på påfyllet den uka. Ombestemmer du deg, trykker du «← Storhandel». Under «Flytt varer» kan du flytte alle varer, ikke bare ferskvarene.'],
+    ['Nyheter vises her', 'Når noe nytt kommer, får dere en slik melding én gang. Alle nyhetene finner du igjen under Oppsett.']]},
+  {id:'2026-10-19', title:'Tidligere i oktober', items:[
+    ['Antall personer per uke og dag', 'Under Oppsett kan dere si hvor mange dere er hver uke, eller enkeltdager. Mengdene og handlelista regnes om.'],
+    ['Tomt i skapet etter storhandelen', 'Merker dere noe som tomt etter storhandelen, kommer det på påfyllet i stedet for neste ukes storhandel.'],
+    ['Legg til vare i eget vindu', '«＋ Legg til vare» nederst på lista åpner et vindu øverst på skjermen. Det virker bedre på mobil.'],
+    ['Light Phone III', 'Middagshjulet finnes som eget verktøy for Light Phone, der dere kan lese planen og krysse av i handlelista.']]}
+];
+function newsSeen(){ try{ return localStorage.getItem('mh-news')||''; }catch(e){ return ''; } }
+function markNewsSeen(){ try{ localStorage.setItem('mh-news', NEWS[0].id); }catch(e){} }
+function checkNews(){
+  if(UI.newsChecked) return; UI.newsChecked = true;
+  if(UI.newHouse){ markNewsSeen(); return; }
+  const seen = newsSeen(); if(seen >= NEWS[0].id) return;
+  UI.newsSince = seen; UI.news = true; markNewsSeen();
+}
+function renderNews(el){
+  const since = UI.newsSince || '';
+  let list = NEWS.filter(n=>n.id>since); if(!list.length) list = NEWS;
+  el.className='sheet'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Nytt i Middagshjulet"><div class="shead"><div class="row"><h2>Nytt i Middagshjulet</h2><button class="btn small" data-close>Lukk</button></div></div>'+
+    '<div class="list news">'+list.map(n=>'<section><h3>'+esc(n.title)+'</h3>'+n.items.map(i=>'<div class="newsitem"><b>'+esc(i[0])+'</b><p class="note">'+esc(i[1])+'</p></div>').join('')+'</section>').join('')+'</div>'+
+    '<div class="newsfoot"><button class="btn primary" data-close>Skjønner</button></div></div>';
+}
 function renderSheet(){
   const el = document.getElementById('sheet');
+  if(UI.news){ renderNews(el); return; }
   if(UI.edit){ renderEditor(el); return; }
   if(UI.add){ renderAdd(el); return; }
   if(!UI.sheet){ el.hidden = true; el.innerHTML=''; return; }
@@ -696,6 +749,8 @@ function render(){
   const p = document.getElementById('panel');
   if(!HID || (HAS_BACKEND && !UI.synced)){ document.getElementById('now').hidden=true; document.getElementById('tabs').hidden=true; document.getElementById('sub').hidden=true; p.innerHTML = HID ? '<section class="panel"><div class="card wizard"><h2>Kobler til husstanden …</h2><p class="note">Henter planen. Det tar vanligvis et par sekunder.'+(UI.connErr?' <b>'+esc(UI.connErr)+'</b>':'')+'</p></div></section>' : renderStart(); return; }
   const wizMode = !CFG.done || UI.wiz;
+  if(!CFG.done) UI.newHouse = true;
+  if(!wizMode) checkNews();
   document.getElementById('now').hidden = wizMode; document.getElementById('tabs').hidden = wizMode; document.getElementById('sub').hidden = wizMode;
   if(wizMode){ p.innerHTML = renderWizard(); renderSheet(); for(const k in vals){ const i=document.getElementById(k); if(i && i.type!=='checkbox') i.value=vals[k]; } if(aid){ const a=document.getElementById(aid); if(a) a.focus({preventScroll:true}); } return; }
   renderNow(); renderTabs();
@@ -818,7 +873,8 @@ function wizFinish(mode){
   toast(mode==='plan' ? 'Planen er laget. Bytt det dere vil.' : 'Oppsettet er lagret.');
 }
 function renderOppsett(){
-  return renderOppsettInner() + renderPeople() + renderShare() + renderLp3();
+  return renderOppsettInner() + renderPeople() + renderShare() + renderLp3() +
+    '<div class="card"><div class="cardhead"><h2>Nytt i Middagshjulet</h2><p class="note">Det som er nytt i de siste oppdateringene.</p></div><div class="form"><div><button class="btn" data-news>Vis nyhetene</button></div></div></div>';
 }
 function renderPeople(){
   const weeks = [0,1,2,3].map(w=>{ const n=servingsWeek(w); const ws=weekStart(w);
@@ -921,7 +977,7 @@ document.addEventListener('click', e=>{
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
   if(t.dataset.swap){ UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
-  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; render(); return; }
+  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; render(); return; }
   if(t.dataset.addopen){ UI.add=t.dataset.addopen; UI.addSec=''; UI.sheet=null; UI.edit=null; render(); const i=document.getElementById('add-n'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.asec!=null){ UI.addSec=t.dataset.asec; document.querySelectorAll('[data-asec]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.asec===UI.addSec))); return; }
   if(t.dataset.edit){ UI.sheet=null; UI.edit=t.dataset.edit; render(); const f=document.getElementById('ed-n'); if(f) f.focus({preventScroll:true}); return; }
@@ -962,6 +1018,11 @@ document.addEventListener('click', e=>{
   if(t.dataset.tidy){ UI.tidy[t.dataset.tidy]=!UI.tidy[t.dataset.tidy]; render(); return; }
   if(t.dataset.delpantry){ const id=t.dataset.delpantry; const b=basisList().find(x=>x.id===id); if(b&&b.custom) write('app/basis',{basisAdd:{[id]:null}, low:{[id]:false}}); else write('app/basis',{basisOff:{[id]:true}, low:{[id]:false}}); return; }
   if(t.dataset.delfast){ const id=t.dataset.delfast; if(S.basis.fasteAdd[id]) write('app/basis',{fasteAdd:{[id]:null}}); else write('app/basis',{fasteOff:{[id]:true}}); return; }
+  if(t.dataset.move){ const w=+t.dataset.mw, k=t.dataset.mk, to=t.dataset.move; const cur=(weekDoc(w).move||{})[k];
+    const li=t.closest('li'); const nm=li && li.querySelector('.nm'); const name=((nm && nm.firstChild && nm.firstChild.textContent)||'Varen').trim();
+    setWeek(w,{move:{[k]: (cur && cur!==to) ? null : to}});
+    toast(to==='paafyll' ? name+' er flyttet til påfyllet '+DAYLONG[CFG.padDay]+'.' : name+' er tilbake på storhandelen.'); return; }
+  if(t.hasAttribute('data-news')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=true; render(); return; }
   if(t.dataset.delextra){ const [w,k]=t.dataset.delextra.split('|'); setWeek(+w,{extra:{[k]:null}}); return; }
   if(t.dataset.delcustom){ const id=t.dataset.delcustom; if(usage(id).length){ toast('Bytt ut retten i planen før du sletter den.'); return; } UI.edit=null; write('app/plan',{custom:{[id]:null}}); toast('Retten er slettet.'); return; }
   if(t.dataset.reset){ const w=+t.dataset.reset; const wd=weekDoc(w); const ch={}; Object.keys(viewOf(w).cur).forEach(k=>{ if(wd.checked[k]) ch[k]=false; }); setWeek(w,{checked:ch}); toast('Avkrysningene er fjernet.'); return; }
@@ -1012,8 +1073,8 @@ document.addEventListener('click', e=>{ const b=e.target.closest('button[data-su
 document.addEventListener('keydown', e=>{ if(e.key!=='Enter') return; const t=e.target; if(!t || t.tagName!=='INPUT' || t.type==='checkbox') return; const f=t.closest('form'); if(!f) return; e.preventDefault(); handleForm(f); });
 document.addEventListener('input', e=>{ if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
 document.addEventListener('toggle', e=>{ const d=e.target; if(d && d.dataset && d.dataset.openkey) UI.open[d.dataset.openkey]=d.open; }, true);
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit)){ UI.sheet=null; UI.edit=null; UI.add=null; render(); } });
-document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; render(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; render(); } });
+document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; render(); } });
 
 // ---------- Rolig oppdatering: ikke tegn siden på nytt mens noen berører eller scroller ----------
 const lastSnap = {};
