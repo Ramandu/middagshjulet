@@ -456,6 +456,9 @@ function setWeek(w, patch){
   else write('app/w'+w, patch, false);
 }
 function fasteList(){ const ov=S.basis.fasteSec||{}; const l = FASTE.filter(f=>!S.basis.fasteOff[f[0]]).map(f=>({id:f[0],n:f[1],s:ov[f[0]]||f[2]})); for(const k in S.basis.fasteAdd){ const v=S.basis.fasteAdd[k]; if(v) l.push({id:k,n:v.n,s:v.s||'a',custom:1}); } return l; }
+// Avdelingen i butikken når noe fra skapet er tomt. Hyllene i skapet sier hvor ting står hjemme, ikke i butikken:
+// «Kjøleskap og bod» har løk og hvitløk (frukt og grønt), men også f.eks. smør, så der avgjør navnet.
+function pantrySec(b){ if(b.g==='annet') return 'a'; if(b.g==='kjol'){ const s=autoSec(b.n); return s==='a' ? 't' : s; } return 't'; }
 function autoSec(n){ const l=n.toLowerCase(); if(/banan|eple|appelsin|klementin|frukt|drue|pære|agurk|tomat|salat|paprika|løk|potet|gulr|brokkoli|kål|avokado|sitron|lime|bær|squash|sopp|urter|koriander|spinat|mango|kiwi|melon/.test(l)) return 'g'; if(/gryn|müsli|musli|kornblanding|cornflakes/.test(l)) return 't'; for(const [s,re] of GUESS) if(re.test(l)) return s; return 'a'; }
 function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '+(attrs||'')+' aria-label="Avdeling">'+(val==null?'<option value="">Finn avdeling selv</option>':'')+secOrder().map(k=>'<option value="'+k+'"'+(k===val?' selected':'')+'>'+secName(k)+'</option>').join('')+'</select>'; }
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
@@ -494,7 +497,7 @@ function buildList(w, days, incl){
     const targets = new Set(); if(inStor) targets.add('stor'); if(inPad) targets.add('paafyll');
     if(S.basis.low[b.id] && !(lowTarget==='stor' ? inStor : inPad)) targets.add(lowTarget);
     if(!targets.size) return; const nd=needs[b.n.toLowerCase()];
-    targets.forEach(t=>add(t,k,{n:b.n,s:b.g==='annet'?'a':'t',for:nd?nd.for.slice():[],tag:'tomt',basis:b.id,qs:nd?needQty(nd):''})); });
+    targets.forEach(t=>add(t,k,{n:b.n,s:pantrySec(b),for:nd?nd.for.slice():[],tag:'tomt',basis:b.id,qs:nd?needQty(nd):''})); });
   return applyMoves(out, wd);
 }
 // Varer dere har flyttet mellom storhandel og påfyll for én bestemt uke (ukedokumentets «move»).
