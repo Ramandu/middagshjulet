@@ -229,6 +229,7 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .newsitem{padding:6px 0 10px;border-bottom:1px solid var(--line)}
 .newsitem:last-child{border-bottom:0}
 .newsitem .note{margin-top:2px}
+.sheet.still .inner{animation:none}
 .newsfoot{padding:10px 16px 14px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
 </style>
 </head>
@@ -718,8 +719,19 @@ function renderNews(el){
     '<div class="list news">'+list.map(n=>'<section><h3>'+esc(n.title)+'</h3>'+n.items.map(i=>'<div class="newsitem"><b>'+esc(i[0])+'</b><p class="note">'+esc(i[1])+'</p></div>').join('')+'</section>').join('')+'</div>'+
     '<div class="newsfoot"><button class="btn primary" data-close>Skjønner</button></div></div>';
 }
+// Vinduet som ligger over siden. Når siden tegnes på nytt (f.eks. når et dokument kommer fra Firebase),
+// skal et vindu som allerede er åpent ikke spille av inn-animasjonen igjen. Nyhetene endrer seg ikke,
+// så de tegnes ikke på nytt i det hele tatt.
 function renderSheet(){
   const el = document.getElementById('sheet');
+  const kind = UI.news ? 'news' : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.sheet ? 'pick:'+UI.sheet : '';
+  const same = !el.hidden && !!kind && el.dataset.kind===kind;
+  if(same && kind==='news') return;
+  renderSheetBody(el);
+  el.dataset.kind = kind;
+  el.classList.toggle('still', same);
+}
+function renderSheetBody(el){
   if(UI.news){ renderNews(el); return; }
   if(UI.edit){ renderEditor(el); return; }
   if(UI.add){ renderAdd(el); return; }
