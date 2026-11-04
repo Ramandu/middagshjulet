@@ -230,6 +230,13 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .newsitem:last-child{border-bottom:0}
 .newsitem .note{margin-top:2px}
 .sheet.still .inner{animation:none}
+.husline{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.hchip{border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:999px;padding:2px 9px;font-size:12.5px;line-height:1.4;text-align:left}
+.hchip b{color:var(--ink);font-weight:700}
+.hchip[aria-pressed="true"]{text-decoration:line-through;opacity:.55}
+.husday{padding:4px 0}
+.husday.today h3{color:var(--accent)}
+.husday .item .secsel{flex:0 1 9em;width:9em}
 .newsfoot{padding:10px 16px 14px;border-top:1px solid var(--line);display:flex;justify-content:flex-end}
 </style>
 </head>
@@ -534,7 +541,7 @@ function renderNow(){
   document.getElementById('sub').textContent = (CFG.name ? CFG.name+' · ' : '') + parts.join(' ');
 }
 function renderTabs(){
-  const t = [['w0','Uke 1'],['w1','Uke 2'],['w2','Uke 3'],['w3','Uke 4'],['retter','Rettene'],['skapet','Skapet'],['oppsett','Oppsett']];
+  const t = [['w0','Uke 1'],['w1','Uke 2'],['w2','Uke 3'],['w3','Uke 4'],['retter','Rettene'],['skapet','Skapet']].concat(husOn()?[['hus','Husarbeid']]:[], [['oppsett','Oppsett']]);
   document.getElementById('tabs').innerHTML = t.map(([id,l])=>{
     const dot = (id==='w'+curW) ? '<span class="dot" title="Denne uka"></span>' : '';
     return '<button class="tab" role="tab" id="tab-'+id+'" data-tab="'+id+'" aria-selected="'+(UI.tab===id)+'">'+l+dot+'</button>';
@@ -558,7 +565,7 @@ function renderWeek(w){
     const swapped = S.plan.swaps[w+'-'+d] && S.plan.swaps[w+'-'+d]!==baseAt(w,d);
     const isToday = +date===+today;
     rows += '<li class="day'+(isToday?' today':'')+'"><div class="dn"><b>'+DAYN[d]+'</b><small>'+fmt(date)+'</small></div>'+
-      '<div class="dish">'+(dayNote(w,d)?'<span class="eyebrow">'+esc(dayNote(w,d))+'</span>':'')+'<button class="name linkish" data-edit="'+id+'" aria-label="Rediger '+esc(dish.n)+'">'+esc(dish.n)+'</button><span class="meta">'+chips(dish.tags)+cz(dish)+(swapped?'<span class="chip c-bytta">Byttet</span>':'')+(isQuickDay(d) && id!=='rest' && !isQuick(dish)?'<span class="chip c-tex">Tar lengre tid</span>':'')+(dish.t?'<span>'+esc(dish.t)+'</span>':'')+(dish.url?'<a class="rlink" href="'+esc(dish.url)+'" target="_blank" rel="noopener">Oppskrift ↗</a>':'')+'</span>'+(dish.note && id==='rest'?'<span class="note">'+esc(dish.note)+'</span>':'')+'</div>'+
+      '<div class="dish">'+(dayNote(w,d)?'<span class="eyebrow">'+esc(dayNote(w,d))+'</span>':'')+'<button class="name linkish" data-edit="'+id+'" aria-label="Rediger '+esc(dish.n)+'">'+esc(dish.n)+'</button><span class="meta">'+chips(dish.tags)+cz(dish)+(swapped?'<span class="chip c-bytta">Byttet</span>':'')+(isQuickDay(d) && id!=='rest' && !isQuick(dish)?'<span class="chip c-tex">Tar lengre tid</span>':'')+(dish.t?'<span>'+esc(dish.t)+'</span>':'')+(dish.url?'<a class="rlink" href="'+esc(dish.url)+'" target="_blank" rel="noopener">Oppskrift ↗</a>':'')+'</span>'+(dish.note && id==='rest'?'<span class="note">'+esc(dish.note)+'</span>':'')+(husOn()?husLine(w,d):'')+'</div>'+
       '<button class="btn small" data-swap="'+w+'-'+d+'" aria-label="Bytt middag '+DAYLONG[d]+'">Bytt</button></li>';
   }
   if(CFG.padDay<0) UI.seg='stor';
@@ -697,6 +704,9 @@ function renderAdd(el){
 // ---------- Nytt i Middagshjulet ----------
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
+  {id:'2026-11-04', title:'4. november', items:[
+    ['Husarbeid', 'Fordel oppvask, klesvask og annet husarbeid, fast eller på omgang. Slå det på under Oppsett → Husarbeid. Oppgavene vises under middagen i ukeplanen, og dere krysser av når de er gjort. En oppgave kan også følge en annen, f.eks. at den som ikke kjører på dans, tar oppvasken.'],
+    ['Hvitløk og løk under Frukt og grønt', 'Når hvitløk eller løk er tomt i skapet, havner det nå under Frukt og grønt på handlelista, ikke under Tørrvarer.']]},
   {id:'2026-10-31', title:'31. oktober', items:[
     ['Flytt ferskvarer til påfyllet', 'Holder ikke en ferskvare til slutten av uka? Trykk «→ Påfyll» på varen i storhandelslista, så havner den på påfyllet den uka. Ombestemmer du deg, trykker du «← Storhandel». Under «Flytt varer» kan du flytte alle varer, ikke bare ferskvarene.'],
     ['Nyheter vises her', 'Når noe nytt kommer, får dere en slik melding én gang. Alle nyhetene finner du igjen under Oppsett.']]},
@@ -768,8 +778,10 @@ function render(){
   if(!wizMode) checkNews();
   document.getElementById('now').hidden = wizMode; document.getElementById('tabs').hidden = wizMode; document.getElementById('sub').hidden = wizMode;
   if(wizMode){ p.innerHTML = renderWizard(); renderSheet(); for(const k in vals){ const i=document.getElementById(k); if(i && i.type!=='checkbox') i.value=vals[k]; } if(aid){ const a=document.getElementById(aid); if(a) a.focus({preventScroll:true}); } return; }
+  if(UI.tab==='hus' && !husOn()) UI.tab = 'w'+(curW<0?0:curW);
   renderNow(); renderTabs();
-  if(UI.tab==='oppsett') p.innerHTML = '<section class="panel">'+renderOppsett()+'</section>';
+  if(UI.tab==='hus') p.innerHTML = renderHus();
+  else if(UI.tab==='oppsett') p.innerHTML = '<section class="panel">'+renderOppsett()+'</section>';
   else if(UI.tab==='retter') p.innerHTML = renderRetter();
   else if(UI.tab==='skapet') p.innerHTML = renderSkapet();
   else p.innerHTML = renderWeek(+UI.tab.slice(1));
@@ -882,13 +894,152 @@ function wizFinish(mode){
   if(W.restDay<0) W.doubleDay=-1;
   const keepStart = CFG.done && CFG.shopDow===W.shopDow && CFG.start;
   const cfg = Object.assign({}, W, {done:true, start: keepStart ? CFG.start : isoDate(lastShopDay(W.shopDow))});
+  if(S.setup.hus) cfg.hus = clone(S.setup.hus); else delete cfg.hus;
   write('app/setup', cfg, true, {nolog:true});
   if(mode==='plan'){ const sw={}; Object.keys(S.plan.swaps||{}).forEach(k=>sw[k]=null); const arr=generatePlan(cfg); const base={}; arr.forEach((row,i)=>{ base[i]=row; }); write('app/plan', {base: base, swaps: sw}, false, {nolog:true}); }
   UI.wiz=false; UI.wd=null; UI.tab='w'+(curW<0?0:curW); render(); window.scrollTo({top:0});
   toast(mode==='plan' ? 'Planen er laget. Bytt det dere vil.' : 'Oppsettet er lagret.');
 }
+// ---------- Husarbeid (valgfri modul, slås på under Oppsett) ----------
+// Personer og oppgaver ligger i oppsettdokumentet (setup.hus), så det trengs ingen nye Firebase-regler.
+// Avkrysninger (hus) og bytter for én dag (husWho) ligger i ukedokumentet og nullstilles når uka starter på nytt.
+// En oppgave: {n navn, o rekkefølge, who 'rot' (på omgang) eller person-ID, rot {person-ID:true} (hvem som er med
+// på omgangen, tom = alle), every 'dag'|'uke', days {ukedag 0–6 (søndag=0):true} (mangler = hver dag),
+// not oppgave-ID (ikke samme person som har den oppgaven samme dag), note fritekst}.
+const HUS_FORSLAG = ['Oppvask','Rydde kjøkkenet','Klesvask','Brette klær','Støvsuge','Vaske badet','Ta ut søppel','Skifte sengetøy'];
+const HUS_UKE = [1,2,3,4,5,6,0];
+function husCfg(){ return S.setup.hus || {}; }
+function husOn(){ return !!husCfg().on; }
+function husWrite(patch){ write('app/setup', {hus:patch}, false, {nolog:true}); }
+function husPeople(){ const P=husCfg().people||{}; return Object.keys(P).filter(k=>P[k]&&P[k].n).map(k=>({id:k,n:P[k].n,o:P[k].o||0})).sort((a,b)=>a.o-b.o); }
+function husTasks(){ const T=husCfg().tasks||{}; return Object.keys(T).filter(k=>T[k]&&T[k].n).map(k=>Object.assign({}, T[k], {id:k})).sort((a,b)=>(a.o||0)-(b.o||0)); }
+function husTask(id){ const t=(husCfg().tasks||{})[id]; return t&&t.n ? Object.assign({}, t, {id:id}) : null; }
+function husPerson(id){ const p=(husCfg().people||{})[id]; return p&&p.n ? p : null; }
+function husDow(w,d){ return addDays(weekStart(w),d).getDay(); }
+function husOnDay(t, dow){ return !isObj(t.days) || !!t.days[dow]; }
+function husRotList(t){ const ps=husPeople(); const R=t.rot; const l = isObj(R) ? ps.filter(p=>R[p.id]) : ps; return l.length ? l : ps; }
+function husFixed(t){ return !!(t.who && t.who!=='rot'); }
+// Hvem som har oppgaven etter planen: fast person, eller neste på omgangen (dag for dag eller uke for uke).
+function husBase(t,w,d){
+  if(husFixed(t)) return husPerson(t.who) ? t.who : null;
+  const L = husRotList(t); if(!L.length) return null;
+  let n;
+  if(t.every==='uke') n = absFor(w);
+  else { const on=[0,1,2,3,4,5,6].filter(x=>husOnDay(t, husDow(w,x))); n = absFor(w)*on.length + on.indexOf(d); }
+  return L[((n%L.length)+L.length)%L.length].id;
+}
+// Med bytter for dagen og regelen «ikke samme person som har oppgave X» (f.eks. den som ikke kjører på dans, tar oppvasken).
+function husWho(t,w,d,seen,noOv){
+  const ov = (weekDoc(w).husWho||{})[t.id+'-'+d];
+  if(!noOv && ov && husPerson(ov)) return ov;
+  let p = husBase(t,w,d);
+  const x = t.not && husTask(t.not);
+  seen = seen || {};
+  if(p && x && !seen[t.id] && husOnDay(x, husDow(w,d))){
+    seen[t.id] = 1;
+    const xp = husWho(x,w,d,seen);
+    if(xp===p){ const L = husFixed(t) ? husPeople() : husRotList(t); const i = Math.max(0, L.findIndex(q=>q.id===p));
+      for(let j=1; j<L.length; j++){ const c=L[(i+j)%L.length]; if(c.id!==xp){ p=c.id; break; } } }
+  }
+  return p;
+}
+function husDay(w,d){ const dow=husDow(w,d); const H=weekDoc(w).hus||{};
+  return husTasks().filter(t=>husOnDay(t,dow)).map(t=>({t:t, k:t.id+'-'+d, p:husWho(t,w,d), done:!!H[t.id+'-'+d]})); }
+function husDesc(t){
+  const D=t.days; const all = !isObj(D) || [0,1,2,3,4,5,6].every(x=>D[x]);
+  const dl = all ? 'Hver dag' : (HUS_UKE.filter(x=>D[x]).map(x=>DOW_S[x].toLowerCase()).join(', ') || 'Ingen dager');
+  const who = husFixed(t) ? ((husPerson(t.who)||{}).n || 'Ingen') : 'På omgang'+(t.every==='uke'?', uke for uke':'');
+  const x = t.not && husTask(t.not);
+  return dl+' · '+who+(x?' · ikke den som har '+x.n.toLowerCase():'');
+}
+// Kort linje under middagen i ukeplanen. Trykk for å krysse av.
+function husLine(w,d){
+  const l = husDay(w,d); if(!l.length) return '';
+  return '<span class="husline">'+l.map(x=>{ const p=husPerson(x.p);
+    return '<button class="hchip" data-husdone="'+w+'|'+x.k+'" aria-pressed="'+x.done+'" aria-label="'+esc(x.t.n)+(p?': '+esc(p.n):'')+(x.done?', gjort':'')+'">'+esc(x.t.n)+(p?' <b>'+esc(p.n)+'</b>':'')+'</button>'; }).join('')+'</span>';
+}
+function renderHusSetup(){
+  const on = husOn();
+  return '<div class="card"><div class="cardhead"><h2>Husarbeid</h2><p class="note">Fordel oppvask, klesvask og annet husarbeid, fast eller på omgang. Oppgavene vises under middagen i ukeplanen og i en egen fane. '+
+    (on ? 'Slår dere det av, blir oppgavene liggende til dere slår det på igjen.' : 'Det er av til dere slår det på.')+'</p></div>'+
+    '<div class="form"><div><button class="btn'+(on?'':' primary')+'" data-huson="'+(on?0:1)+'">'+(on?'Slå av husarbeid':'Slå på husarbeid')+'</button></div></div></div>';
+}
+function renderHus(){
+  const ps = husPeople(), ts = husTasks();
+  const w = UI.husW!=null ? UI.husW : (curW<0 ? 0 : curW);
+  let plan = '';
+  if(!ps.length || !ts.length){
+    plan = '<div class="card"><div class="cardhead"><h2>Kom i gang</h2><p class="note">'+(!ps.length ? 'Legg først inn hvem som bor i huset, under «Personer». Så legger dere inn oppgavene.' : 'Legg inn oppgavene under «Oppgaver». Det finnes forslag å trykke på.')+'</p></div><div style="height:8px"></div></div>';
+  } else {
+    const ws = weekStart(w); const cnt = {}; ps.forEach(p=>{ cnt[p.id]={n:0,done:0}; });
+    let days = '';
+    for(let d=0; d<7; d++){
+      const l = husDay(w,d); const date = addDays(ws,d); const isT = +date===+today; const ov = weekDoc(w).husWho||{};
+      l.forEach(x=>{ if(cnt[x.p]){ cnt[x.p].n++; if(x.done) cnt[x.p].done++; } });
+      days += '<div class="group husday'+(isT?' today':'')+'"><h3>'+DAYN[d]+' '+fmt(date)+(isT?' · i dag':'')+'</h3>'+(l.length ? '<ul class="items">'+l.map(x=>{ const iid='h'+w+'-'+x.k;
+        return '<li class="item'+(x.done?' done':'')+'"><input type="checkbox" id="'+iid+'" data-husw="'+w+'" data-husk="'+x.k+'"'+(x.done?' checked':'')+'><label for="'+iid+'"><span class="nm">'+esc(x.t.n)+(ov[x.k]&&husPerson(ov[x.k])?'<span class="tagmini">byttet</span>':'')+(x.t.note?'<span class="for">'+esc(x.t.note)+'</span>':'')+'</span></label>'+
+          '<select class="secsel" data-huswho="'+w+'|'+x.k+'" aria-label="Hvem tar '+esc(x.t.n)+' '+DAYLONG[d]+'">'+(x.p?'':'<option value="">Ingen</option>')+ps.map(p=>'<option value="'+p.id+'"'+(p.id===x.p?' selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></li>'; }).join('')+'</ul>' : '<p class="empty">Ingen oppgaver.</p>')+'</div>';
+    }
+    const wk = '<div class="daypick" role="group" aria-label="Velg uke">'+[0,1,2,3].map(x=>'<button class="dchip'+(x===curW?' istoday':'')+'" data-huswsel="'+x+'" aria-pressed="'+(x===w)+'">Uke '+(x+1)+'<small>'+(x===curW?'nå':fmt(weekStart(x)))+'</small></button>').join('')+'</div>';
+    plan = '<div class="card shop"><div class="weekhead"><h2>Uke '+(w+1)+'</h2><span class="dates">'+DAYN[0].toLowerCase()+' '+fmt(ws)+' – '+DAYN[6].toLowerCase()+' '+fmt(addDays(ws,6))+'</span></div>'+wk+
+      '<p class="note">'+ps.map(p=>esc(p.n)+' '+cnt[p.id].done+' av '+cnt[p.id].n).join(' · ')+' gjort. Velg et annet navn for å bytte én dag.</p>'+days+'</div>';
+  }
+  const opts = (sel, list, first) => first + list.map(o=>'<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+esc(o[1])+'</option>').join('');
+  const tasks = ts.map(t=>{ const rot = !husFixed(t);
+    return '<details class="dishrow" data-openkey="ht-'+t.id+'"'+(UI.open['ht-'+t.id]?' open':'')+'><summary><span class="dish"><span class="name">'+esc(t.n)+'</span><span class="note">'+esc(husDesc(t))+'</span></span><span class="used">Endre</span></summary><div class="dishbody">'+
+      '<form class="addrow" data-husren="'+t.id+'"><input id="hren-'+t.id+'" value="'+esc(t.n)+'" aria-label="Navn på oppgaven"><button class="btn small" type="button" data-submit>Lagre navn</button></form>'+
+      '<label class="field">Hvem<select class="secsel" data-huswhoset="'+t.id+'">'+opts(rot?'rot':t.who, ps.map(p=>[p.id,p.n]), '<option value="rot"'+(rot?' selected':'')+'>På omgang</option>')+'</select></label>'+
+      (rot ? '<div class="field">Med på omgangen<div class="pantry" style="padding:4px 0 0">'+ps.map(p=>'<button class="pchip small" type="button" data-husrot="'+t.id+'|'+p.id+'" aria-pressed="'+(!isObj(t.rot)||!!t.rot[p.id])+'">'+esc(p.n)+'</button>').join('')+'</div></div>'+
+        '<div class="field">Bytter<div class="pantry" style="padding:4px 0 0"><button class="pchip small" type="button" data-husevery="'+t.id+'|dag" aria-pressed="'+(t.every!=='uke')+'">Hver gang</button><button class="pchip small" type="button" data-husevery="'+t.id+'|uke" aria-pressed="'+(t.every==='uke')+'">Uke for uke</button></div></div>' : '')+
+      '<div class="field">Dager<div class="daypick">'+HUS_UKE.map(x=>'<button class="dchip" type="button" data-husdays="'+t.id+'|'+x+'" aria-pressed="'+husOnDay(t,x)+'">'+DOW_S[x]+'</button>').join('')+'</div></div>'+
+      (ts.length>1 ? '<label class="field">Ikke samme person som har<select class="secsel" data-husnot="'+t.id+'">'+opts(t.not&&husTask(t.not)?t.not:'', ts.filter(o=>o.id!==t.id).map(o=>[o.id,o.n]), '<option value="">Ingen regel</option>')+'</select><span class="note" style="font-weight:400">Den dagen den andre oppgaven står på planen, tar en annen enn den som har den, denne oppgaven. F.eks. tar den som ikke kjører på dans, oppvasken.</span></label>' : '')+
+      '<form class="field" data-husnote="'+t.id+'">Merknad<span class="addrow"><input id="hnote-'+t.id+'" value="'+esc(t.note||'')+'" placeholder="F.eks. tørk av benken også" aria-label="Merknad til '+esc(t.n)+'"><button class="btn small" type="button" data-submit>Lagre</button></span></form>'+
+      '<div><button class="btn small" type="button" data-husdel="'+t.id+'">Slett oppgaven</button></div></div></details>'; }).join('');
+  const have = {}; ts.forEach(t=>{ have[t.n.toLowerCase()]=1; });
+  const forslag = HUS_FORSLAG.filter(n=>!have[n.toLowerCase()]);
+  return '<section class="panel">'+plan+
+    '<div class="card"><div class="cardhead"><h2>Oppgaver</h2><p class="note">Trykk på en oppgave for å velge hvem, hvilke dager og regler.</p></div>'+tasks+
+      '<div class="form"><form class="addrow" data-husaddt><input id="hust-new" placeholder="Ny oppgave" aria-label="Ny oppgave"><button class="btn primary" type="button" data-submit>Legg til</button></form>'+
+      (forslag.length ? '<div class="pantry" style="padding:0">'+forslag.map(n=>'<button class="pchip small" type="button" data-husquick="'+esc(n)+'">＋ '+esc(n)+'</button>').join('')+'</div>' : '')+'</div></div>'+
+    '<div class="card"><div class="cardhead"><h2>Personer</h2><p class="note">De som skal få oppgaver. Rekkefølgen her er rekkefølgen på omgangen.</p></div>'+
+      '<ul class="items" style="padding:0 14px">'+ps.map(p=>'<li class="item"><span class="nm" style="flex:1">'+esc(p.n)+'</span><button class="x" data-husdelp="'+p.id+'" aria-label="Fjern '+esc(p.n)+'">×</button></li>').join('')+'</ul>'+
+      '<div class="form"><form class="addrow" data-husaddp><input id="husp-new" placeholder="Navn" aria-label="Navn på person"><button class="btn primary" type="button" data-submit>Legg til</button></form></div></div>'+
+    '</section>';
+}
+function husAddTask(n){ const id='t'+Date.now().toString(36); UI.open['ht-'+id]=true; husWrite({tasks:{[id]:{n:n, o:Date.now(), who:'rot', every:'dag'}}}); toast(n+' er lagt til, på omgang hver dag. Trykk på den for å endre.'); }
+function husClick(t){
+  const D = t.dataset;
+  if(D.huson!=null){ const on = D.huson==='1'; husWrite({on:on}); if(on){ UI.tab='hus'; render(); window.scrollTo({top:0}); } toast(on?'Husarbeid er slått på.':'Husarbeid er slått av. Oppgavene er tatt vare på.'); return true; }
+  if(D.huswsel!=null){ UI.husW=+D.huswsel; render(); return true; }
+  if(D.husdone){ const [w,k]=D.husdone.split('|'); const H=weekDoc(+w).hus||{}; setWeek(+w,{hus:{[k]: H[k] ? null : true}}); return true; }
+  if(D.husquick){ husAddTask(D.husquick); return true; }
+  if(D.husdelp){ const p=husPerson(D.husdelp); husWrite({people:{[D.husdelp]:null}}); toast((p?p.n:'Personen')+' er fjernet.'); return true; }
+  if(D.husdel){ const x=husTask(D.husdel); if(!x || !confirm('Slette «'+x.n+'»?')) return true; const patch={[D.husdel]:null}; husTasks().forEach(o=>{ if(o.not===D.husdel) patch[o.id]={not:null}; }); husWrite({tasks:patch}); return true; }
+  if(D.husrot){ const [id,pid]=D.husrot.split('|'); const x=husTask(id); if(!x) return true; const cur={}; husPeople().forEach(p=>{ cur[p.id] = !isObj(x.rot) || !!x.rot[p.id]; }); cur[pid]=!cur[pid];
+    if(!Object.keys(cur).some(k=>cur[k])){ toast('Minst én må være med.'); return true; } husWrite({tasks:{[id]:{rot:cur}}}); return true; }
+  if(D.husevery){ const [id,ev]=D.husevery.split('|'); husWrite({tasks:{[id]:{every:ev}}}); return true; }
+  if(D.husdays){ const [id,dow]=D.husdays.split('|'); const x=husTask(id); if(!x) return true; const cur={}; for(let i=0;i<7;i++) cur[i]=husOnDay(x,i); cur[dow]=!cur[dow];
+    if(!Object.keys(cur).some(k=>cur[k])){ toast('Velg minst én dag.'); return true; } husWrite({tasks:{[id]:{days:cur}}}); return true; }
+  return false;
+}
+function husChange(c){
+  const D = c.dataset; if(!D) return false;
+  if(D.husk!=null){ setWeek(+D.husw,{hus:{[D.husk]: c.checked ? true : null}}); return true; }
+  if(D.huswho){ const [w,k]=D.huswho.split('|'); const tid=k.slice(0,k.lastIndexOf('-')); const d=+k.slice(k.lastIndexOf('-')+1); const x=husTask(tid); if(!x) return true;
+    const v = c.value || null; const base = husWho(x,+w,d,null,true); setWeek(+w,{husWho:{[k]: (!v || v===base) ? null : v}}); return true; }
+  if(D.huswhoset){ husWrite({tasks:{[D.huswhoset]:{who:c.value}}}); return true; }
+  if(D.husnot!=null){ husWrite({tasks:{[D.husnot]:{not:c.value||null}}}); return true; }
+  return false;
+}
+function husForm(f){
+  if(f.hasAttribute('data-husaddp')){ const i=document.getElementById('husp-new'); const v=i.value.trim(); if(!v) return true; i.value=''; husWrite({people:{['p'+Date.now().toString(36)]:{n:v, o:Date.now()}}}); return true; }
+  if(f.hasAttribute('data-husaddt')){ const i=document.getElementById('hust-new'); const v=i.value.trim(); if(!v) return true; i.value=''; husAddTask(v); return true; }
+  if(f.dataset.husren){ const id=f.dataset.husren; const v=document.getElementById('hren-'+id).value.trim(); if(!v) return true; husWrite({tasks:{[id]:{n:v}}}); toast('Navnet er lagret.'); return true; }
+  if(f.dataset.husnote){ const id=f.dataset.husnote; const v=document.getElementById('hnote-'+id).value.trim(); husWrite({tasks:{[id]:{note:v}}}); toast(v?'Merknaden er lagret.':'Merknaden er fjernet.'); return true; }
+  return false;
+}
 function renderOppsett(){
-  return renderOppsettInner() + renderPeople() + renderShare() + renderLp3() +
+  return renderOppsettInner() + renderPeople() + renderHusSetup() + renderShare() + renderLp3() +
     '<div class="card"><div class="cardhead"><h2>Nytt i Middagshjulet</h2><p class="note">Det som er nytt i de siste oppdateringene.</p></div><div class="form"><div><button class="btn" data-news>Vis nyhetene</button></div></div></div>';
 }
 function renderPeople(){
@@ -989,6 +1140,7 @@ function parseItems(txt, prev){
 // ---------- Events ----------
 document.addEventListener('click', e=>{
   const t = e.target.closest('button'); if(!t) return;
+  if(husClick(t)) return;
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
   if(t.dataset.swap){ UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
@@ -1047,6 +1199,7 @@ document.addEventListener('click', e=>{
 });
 document.addEventListener('change', e=>{
   const c = e.target;
+  if(husChange(c)) return;
   if(c.dataset && c.dataset.ppld){ const k=c.dataset.ppld; const w=+k.split('-')[0]; const v=c.value===''?null:+c.value; write('app/setup',{pplDay:{[k]: (v===null||v===servingsWeek(w)) ? null : v}}, false, {nolog:true}); applyConfig(); render(); return; }
   if(c.id==='import-new'){ readFile(c, txt=>{ try{ parseImport(txt); }catch(err){ toast('Dette ser ikke ut som en flyttefil fra Middagshjulet.'); return; } try{ localStorage.setItem('mh-import', txt); }catch(err){} const id=newHid(); try{ localStorage.setItem('mh-hid', id); }catch(err){} location.hash='h='+id; location.reload(); }); return; }
   if(c.id==='import-here'){ readFile(c, txt=>{ let docs; try{ docs=parseImport(txt); }catch(err){ toast('Dette ser ikke ut som en flyttefil fra Middagshjulet.'); return; } if(!confirm('Erstatte planen i denne husstanden med innholdet i fila?')) return; applyImport(docs); toast('Planen er hentet inn.'); }); return; }
@@ -1058,6 +1211,7 @@ document.addEventListener('change', e=>{
   if(c.dataset.basis && c.checked) write('app/basis',{low:{[c.dataset.basis]:false}});
 });
 function handleForm(f){
+  if(husForm(f)) return;
   if(f.hasAttribute('data-additem')){ const i=document.getElementById('add-n'); const v=i.value.trim(); if(!v){ toast('Skriv inn en vare først.'); return; } i.value=''; const sec=UI.addSec||autoSec(v); const id=Date.now().toString(36);
     if(UI.add==='fast') write('app/basis',{fasteAdd:{['u'+id]:{n:v,s:sec}}});
     else setWeek(+UI.add.slice(1),{extra:{['e'+id]:{n:v,t:UI.seg,s:sec}}});
