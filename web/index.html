@@ -245,6 +245,7 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .htop b{overflow-wrap:anywhere}
 .hwho{flex:0 1 auto;font-size:13px;font-weight:700;color:var(--accent);text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60%}
 .hwhen{font-size:13px;color:var(--muted)}
+.hgrp{font-size:13px;font-weight:700;color:var(--muted);text-align:right;max-width:45%;overflow-wrap:anywhere}
 .hnote{font-size:12.5px;color:var(--muted);font-style:italic}
 .husweek{display:flex;flex-direction:column;gap:4px;padding:10px 14px;border-bottom:1px solid var(--line)}
 .husday.today h3{color:var(--accent)}
@@ -716,6 +717,9 @@ function renderAdd(el){
 // ---------- Nytt i Middagshjulet ----------
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
+  {id:'2026-11-04.2', title:'Mer husarbeid', items:[
+    ['Oppgavene som kort', 'Oppgavene i fanen Husarbeid vises som kompakte kort, gruppert etter hvor ofte de gjøres. Trykk på et kort for å endre oppgaven.'],
+    ['«Sammen» og «Den som kan»', 'Under «Hvem» kan en oppgave nå gjøres sammen, f.eks. av barna som deler rom, eller være ledig for den som kan, f.eks. tømme oppvaskmaskinen. I fanen kan dere velge hvem som tok den.']]},
   {id:'2026-11-04', title:'4. november', items:[
     ['Husarbeid', 'Fordel oppvask, klesvask og annet husarbeid, fast eller på omgang, hver dag, hver uke eller hver måned. Slå det på under Oppsett → Husarbeid. Oppgavene vises under middagen i ukeplanen, og dere krysser av når de er gjort. En oppgave kan også følge en annen, f.eks. at den som ikke kjører på dans, tar oppvasken.'],
     ['Hvitløk og løk under Frukt og grønt', 'Når hvitløk eller løk er tomt i skapet, havner det nå under Frukt og grønt på handlelista, ikke under Tørrvarer.']]},
@@ -957,7 +961,18 @@ function husOnDate(t,w,d){
 // Står oppgaven på uka, «når det passer»? Månedlige havner i uka der den 1. i måneden er (den sjuende dagen i uka er da 1.–7.).
 function husInWeek(t,w){ return husFlex(t) && husWeekHit(t,w); }
 function husRotList(t){ const ps=husPeople(); const R=t.rot; const l = isObj(R) ? ps.filter(p=>R[p.id]) : ps; return l.length ? l : ps; }
-function husFixed(t){ return !!(t.who && t.who!=='rot'); }
+function husFixed(t){ return !!(t.who && ['rot','alle','ledig'].indexOf(t.who)<0); }
+// «Sammen»: alle som er valgt, gjør oppgaven sammen. «Den som kan»: ledig blant dem som er valgt, den som tar den, krysser av.
+function husGroup(t){ return t.who==='alle' || t.who==='ledig'; }
+function husNames(L, sep){ return L.map(p=>p.n).join(sep); }
+// Hvem, kort fortalt (kortene i oppgavelista og vinduet).
+function husWhoText(t){
+  if(husFixed(t)) return (husPerson(t.who)||{}).n || 'Ingen';
+  const L = husRotList(t); const all = L.length===husPeople().length && L.length>2;
+  if(t.who==='alle') return all ? 'Alle sammen' : husNames(L,' + ');
+  if(t.who==='ledig') return all ? 'Den som kan' : husNames(L,' eller ');
+  return '↻ '+(all ? 'Alle' : husNames(L,' · ')) + (husDaily(t)&&t.every==='uke'?' (uke for uke)':'');
+}
 // Hvilken gang i rekken dette er, så omgangen går videre for hver gang oppgaven står på planen.
 function husOcc(t,w,d){
   const f=husFreq(t); const A=absFor(w);
@@ -980,7 +995,8 @@ function husKey(t,d){ return t.id+'-'+(d<0?'u':d); }
 function husWho(t,w,d,seen,noOv){
   const OV = weekDoc(w).husWho||{};
   const ov = OV[husKey(t,d)];
-  if(!noOv && ov && husPerson(ov)) return ov;
+  if(!noOv && ov && husPerson(ov) && t.who!=='alle') return ov;
+  if(husGroup(t)) return null;
   const x = d>=0 && t.not && husTask(t.not);
   seen = seen || {};
   if(!x || seen[t.id]) return husBase(t,w,d);
@@ -1006,7 +1022,7 @@ function husWho(t,w,d,seen,noOv){
   return res;
 }
 function husItems(w,d){ const H=weekDoc(w).hus||{};
-  return husTasks().filter(t=> d<0 ? husInWeek(t,w) : husOnDate(t,w,d)).map(t=>({t:t, d:d, k:husKey(t,d), p:husWho(t,w,d), done:!!H[husKey(t,d)]})); }
+  return husTasks().filter(t=> d<0 ? husInWeek(t,w) : husOnDate(t,w,d)).map(t=>({t:t, d:d, k:husKey(t,d), p:husWho(t,w,d), g:husGroup(t)?husRotList(t):null, done:!!H[husKey(t,d)]})); }
 function husWhen(t){
   const f=husFreq(t); const wd = t.wd>=0 ? DOW_L[t.wd] : '';
   if(f==='dag') return 'Hver dag';
@@ -1018,20 +1034,23 @@ function husWhen(t){
 }
 function husRule(t){ const x = !husFlex(t) && t.not && husTask(t.not); return x ? 'ikke den som har '+x.n.toLowerCase() : ''; }
 function husDesc(t){
-  const who = husFixed(t) ? ((husPerson(t.who)||{}).n || 'Ingen') : 'på omgang'+(husDaily(t)&&t.every==='uke'?', uke for uke':'');
+  const who = husFixed(t) ? ((husPerson(t.who)||{}).n || 'Ingen') : t.who==='alle' ? 'sammen: '+husNames(husRotList(t),' + ') : t.who==='ledig' ? 'den som kan: '+husNames(husRotList(t),' eller ') : 'på omgang'+(husDaily(t)&&t.every==='uke'?', uke for uke':'');
   return husWhen(t)+' · '+who+(husRule(t)?' · '+husRule(t):'');
 }
 // Kompakt kort i oppgavelista. Trykk for å endre i et eget vindu.
 function husCard(t){
-  let who;
-  if(husFixed(t)) who = (husPerson(t.who)||{}).n || 'Ingen';
-  else { const L=husRotList(t); const all = L.length===husPeople().length; who = '↻ '+(all && L.length>2 ? 'Alle' : L.map(p=>p.n).join(' · ')) + (husDaily(t)&&t.every==='uke'?' (uke for uke)':''); }
+  const who = husWhoText(t);
   const rule = husRule(t);
   return '<button class="htask" type="button" data-husedit="'+t.id+'" aria-label="Endre '+esc(t.n)+'"><span class="htop"><b>'+esc(t.n)+'</b><span class="hwho">'+esc(who)+'</span></span>'+
     '<span class="hwhen">'+esc(husWhen(t))+(rule?' · '+esc(rule):'')+'</span>'+(t.note?'<span class="hnote">'+esc(t.note)+'</span>':'')+'</button>';
 }
-function husChip(w,x){ const p=husPerson(x.p);
-  return '<button class="hchip" data-husdone="'+w+'|'+x.k+'" aria-pressed="'+x.done+'" aria-label="'+esc(x.t.n)+(p?': '+esc(p.n):'')+(x.done?', gjort':'')+'">'+esc(x.t.n)+(p?' <b>'+esc(p.n)+'</b>':'')+'</button>'; }
+function husChipWho(x){ const p=husPerson(x.p);
+  if(x.g && x.t.who==='alle') return husNames(x.g,' + ');
+  if(p) return p.n;
+  if(x.g) return x.g.length<=2 ? husNames(x.g,'/') : 'den som kan';
+  return ''; }
+function husChip(w,x){ const who=husChipWho(x);
+  return '<button class="hchip" data-husdone="'+w+'|'+x.k+'" aria-pressed="'+x.done+'" aria-label="'+esc(x.t.n)+(who?': '+esc(who):'')+(x.done?', gjort':'')+'">'+esc(x.t.n)+(who?' <b>'+esc(who)+'</b>':'')+'</button>'; }
 // Kort linje under middagen i ukeplanen. Trykk for å krysse av.
 function husLine(w,d){ const l=husItems(w,d); return l.length ? '<span class="husline">'+l.map(x=>husChip(w,x)).join('')+'</span>' : ''; }
 // Oppgaver som gjøres når det passer i uka, øverst i ukeplanen.
@@ -1045,11 +1064,12 @@ function renderHusSetup(){
 function husRows(w,l,ps,dayName){
   const ov = weekDoc(w).husWho||{};
   return '<ul class="items">'+l.map(x=>{ const iid='h'+w+'-'+x.k;
-    return '<li class="item'+(x.done?' done':'')+'"><input type="checkbox" id="'+iid+'" data-husw="'+w+'" data-husk="'+x.k+'"'+(x.done?' checked':'')+'><label for="'+iid+'"><span class="nm">'+esc(x.t.n)+(ov[x.k]&&husPerson(ov[x.k])?'<span class="tagmini">byttet</span>':'')+(x.t.note?'<span class="for">'+esc(x.t.note)+'</span>':'')+'</span></label>'+
-      '<select class="secsel" data-huswho="'+w+'|'+x.k+'" aria-label="Hvem tar '+esc(x.t.n)+' '+dayName+'">'+(x.p?'':'<option value="">Ingen</option>')+ps.map(p=>'<option value="'+p.id+'"'+(p.id===x.p?' selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select></li>'; }).join('')+'</ul>';
+    return '<li class="item'+(x.done?' done':'')+'"><input type="checkbox" id="'+iid+'" data-husw="'+w+'" data-husk="'+x.k+'"'+(x.done?' checked':'')+'><label for="'+iid+'"><span class="nm">'+esc(x.t.n)+(!x.g&&ov[x.k]&&husPerson(ov[x.k])?'<span class="tagmini">byttet</span>':'')+(x.t.note?'<span class="for">'+esc(x.t.note)+'</span>':'')+'</span></label>'+
+      (x.g && x.t.who==='alle' ? '<span class="hgrp">'+esc(husNames(x.g,' + '))+'</span>' :
+      '<select class="secsel" data-huswho="'+w+'|'+x.k+'" aria-label="'+(x.g?'Hvem tok ':'Hvem tar ')+esc(x.t.n)+' '+dayName+'">'+(x.g ? '<option value="">Den som kan</option>' : x.p ? '' : '<option value="">Ingen</option>')+(x.g||ps).map(p=>'<option value="'+p.id+'"'+(p.id===x.p?' selected':'')+'>'+esc(p.n)+'</option>').join('')+'</select>')+'</li>'; }).join('')+'</ul>';
 }
 function husEditBody(t, ts, ps){
-  const rot = !husFixed(t); const f = husFreq(t); const N = husNW(f);
+  const rot = !husFixed(t) && !husGroup(t); const f = husFreq(t); const N = husNW(f);
   const opts = (sel, list) => list.map(o=>'<option value="'+o[0]+'"'+(String(o[0])===String(sel)?' selected':'')+'>'+esc(o[1])+'</option>').join('');
   const chips = (attr, list, cur) => '<div class="pantry" style="padding:4px 0 0">'+list.map(o=>'<button class="pchip small" type="button" '+attr+'="'+t.id+'|'+o[0]+'" aria-pressed="'+(String(o[0])===String(cur))+'">'+esc(o[1])+'</button>').join('')+'</div>';
   let when = '<label class="field">Hvor ofte<select class="secsel" data-husfreq="'+t.id+'">'+opts(f, HUS_FREQ)+'</select></label>';
@@ -1059,10 +1079,11 @@ function husEditBody(t, ts, ps){
   if(N>1) when += '<div class="field">Hvilke uker'+chips('data-huswph', N===2 ? [[0,'Uke 1 og 3'],[1,'Uke 2 og 4']] : [[0,'Uke 1'],[1,'Uke 2'],[2,'Uke 3'],[3,'Uke 4']], (t.wph||0)%N)+'</div>';
   return     '<form class="addrow" data-husren="'+t.id+'"><input id="hren-'+t.id+'" value="'+esc(t.n)+'" aria-label="Navn på oppgaven"><button class="btn small" type="button" data-submit>Lagre navn</button></form>'+
     when+
-    '<label class="field">Hvem<select class="secsel" data-huswhoset="'+t.id+'">'+opts(rot?'rot':t.who, [['rot','På omgang']].concat(ps.map(p=>[p.id,p.n])))+'</select></label>'+
-    (rot ? '<div class="field">Med på omgangen<div class="pantry" style="padding:4px 0 0">'+ps.map(p=>'<button class="pchip small" type="button" data-husrot="'+t.id+'|'+p.id+'" aria-pressed="'+(!isObj(t.rot)||!!t.rot[p.id])+'">'+esc(p.n)+'</button>').join('')+'</div></div>' : '')+
+    '<label class="field">Hvem<select class="secsel" data-huswhoset="'+t.id+'">'+opts(t.who||'rot', [['rot','På omgang'],['alle','Sammen'],['ledig','Den som kan']])+'<optgroup label="Fast person">'+opts(t.who, ps.map(p=>[p.id,p.n]))+'</optgroup></select>'+
+      (t.who==='alle' ? '<span class="note" style="font-weight:400">Alle som er valgt under, gjør oppgaven sammen, f.eks. barna som rydder rommet de deler. Den krysses av én gang.</span>' : t.who==='ledig' ? '<span class="note" style="font-weight:400">Ingen har oppgaven fast. Den som kan, tar den og krysser av. I fanen kan dere velge hvem som tok den, så det telles med.</span>' : '')+'</label>'+
+    (!husFixed(t) ? '<div class="field">'+(t.who==='alle' ? 'Hvem gjør den sammen' : t.who==='ledig' ? 'Hvem kan ta den' : 'Med på omgangen')+'<div class="pantry" style="padding:4px 0 0">'+ps.map(p=>'<button class="pchip small" type="button" data-husrot="'+t.id+'|'+p.id+'" aria-pressed="'+(!isObj(t.rot)||!!t.rot[p.id])+'">'+esc(p.n)+'</button>').join('')+'</div></div>' : '')+
     (rot && husDaily(t) ? '<div class="field">Bytter'+chips('data-husevery', [['dag','Hver gang'],['uke','Uke for uke']], t.every==='uke'?'uke':'dag')+'</div>' : '')+
-    (ts.length>1 && !husFlex(t) ? '<label class="field">Ikke samme person som har<select class="secsel" data-husnot="'+t.id+'">'+opts(t.not&&husTask(t.not)?t.not:'', [['','Ingen regel']].concat(ts.filter(o=>o.id!==t.id).map(o=>[o.id,o.n])))+'</select><span class="note" style="font-weight:400">Den dagen den andre oppgaven står på planen, tar en annen enn den som har den, denne oppgaven. F.eks. tar den som ikke kjører på dans, oppvasken.</span></label>' : '')+
+    (ts.length>1 && !husFlex(t) && !husGroup(t) ? '<label class="field">Ikke samme person som har<select class="secsel" data-husnot="'+t.id+'">'+opts(t.not&&husTask(t.not)?t.not:'', [['','Ingen regel']].concat(ts.filter(o=>o.id!==t.id).map(o=>[o.id,o.n])))+'</select><span class="note" style="font-weight:400">Den dagen den andre oppgaven står på planen, tar en annen enn den som har den, denne oppgaven. F.eks. tar den som ikke kjører på dans, oppvasken.</span></label>' : '')+
     '<form class="field" data-husnote="'+t.id+'">Merknad<span class="addrow"><input id="hnote-'+t.id+'" value="'+esc(t.note||'')+'" placeholder="F.eks. tørk av benken også" aria-label="Merknad til '+esc(t.n)+'"><button class="btn small" type="button" data-submit>Lagre</button></span></form>'+
     '<div class="tools"><span class="right"><button class="btn primary" type="button" data-close>Ferdig</button></span><span class="right"><button class="btn small" type="button" data-husdel="'+t.id+'">Slett oppgaven</button></span></div>';
 }
@@ -1081,7 +1102,9 @@ function renderHus(){
     plan = '<div class="card"><div class="cardhead"><h2>Kom i gang</h2><p class="note">'+(!ps.length ? 'Legg først inn hvem som bor i huset, under «Personer». Så legger dere inn oppgavene.' : 'Legg inn oppgavene under «Oppgaver». Det finnes forslag å trykke på.')+'</p></div><div style="height:8px"></div></div>';
   } else {
     const ws = weekStart(w); const cnt = {}; ps.forEach(p=>{ cnt[p.id]={n:0,done:0}; });
-    const tally = l => l.forEach(x=>{ if(cnt[x.p]){ cnt[x.p].n++; if(x.done) cnt[x.p].done++; } });
+    let open = 0;
+    const add1 = (id,done) => { if(cnt[id]){ cnt[id].n++; if(done) cnt[id].done++; } };
+    const tally = l => l.forEach(x=>{ if(x.g && x.t.who==='alle') x.g.forEach(p=>add1(p.id,x.done)); else if(x.p) add1(x.p,x.done); else if(x.g && !x.done) open++; });
     const wl = husItems(w,-1); tally(wl);
     let days = wl.length ? '<div class="group husday"><h3>Når det passer denne uka</h3>'+husRows(w,wl,ps,'denne uka')+'</div>' : '';
     for(let d=0; d<7; d++){
@@ -1090,7 +1113,7 @@ function renderHus(){
     }
     const wk = '<div class="daypick" role="group" aria-label="Velg uke">'+[0,1,2,3].map(x=>'<button class="dchip'+(x===curW?' istoday':'')+'" data-huswsel="'+x+'" aria-pressed="'+(x===w)+'">Uke '+(x+1)+'<small>'+(x===curW?'nå':fmt(weekStart(x)))+'</small></button>').join('')+'</div>';
     plan = '<div class="card shop"><div class="weekhead"><h2>Uke '+(w+1)+'</h2><span class="dates">'+DAYN[0].toLowerCase()+' '+fmt(ws)+' – '+DAYN[6].toLowerCase()+' '+fmt(addDays(ws,6))+'</span></div>'+wk+
-      '<p class="note">'+ps.map(p=>esc(p.n)+' '+cnt[p.id].done+' av '+cnt[p.id].n).join(' · ')+' gjort. Velg et annet navn for å bytte én gang.</p>'+days+'</div>';
+      '<p class="note">'+ps.map(p=>esc(p.n)+' '+cnt[p.id].done+' av '+cnt[p.id].n).join(' · ')+' gjort'+(open?', og '+open+' ledige oppgaver':'')+'. Velg et annet navn for å bytte én gang.</p>'+days+'</div>';
   }
   const have = {}; ts.forEach(t=>{ have[t.n.toLowerCase()]=1; });
   const forslag = HUS_FORSLAG.filter(n=>!have[n.toLowerCase()]);
