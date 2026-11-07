@@ -488,7 +488,6 @@ function fasteList(){ const ov=S.basis.fasteSec||{}; const l = FASTE.filter(f=>!
 // Avdelingen i butikken når noe fra skapet er tomt. Hyllene i skapet sier hvor ting står hjemme, ikke i butikken:
 // «Kjøleskap og bod» har løk og hvitløk (frukt og grønt), men også f.eks. smør, så der avgjør navnet.
 function pantrySec(b){ if(b.g==='annet') return 'a'; if(b.g==='kjol'){ const s=autoSec(b.n); return s==='a' ? 't' : s; } return 't'; }
-function autoSec(n){ const l=n.toLowerCase(); if(/banan|eple|appelsin|klementin|frukt|drue|pære|agurk|tomat|salat|paprika|løk|potet|gulr|brokkoli|kål|avokado|sitron|lime|bær|squash|sopp|urter|koriander|spinat|mango|kiwi|melon/.test(l)) return 'g'; if(/gryn|müsli|musli|kornblanding|cornflakes/.test(l)) return 't'; for(const [s,re] of GUESS) if(re.test(l)) return s; return 'a'; }
 function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '+(attrs||'')+' aria-label="Avdeling">'+(val==null?'<option value="">Finn avdeling selv</option>':'')+secOrder().map(k=>'<option value="'+k+'"'+(k===val?' selected':'')+'>'+secName(k)+'</option>').join('')+'</select>'; }
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
 function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
@@ -511,7 +510,7 @@ function buildList(w, days, incl){
       const late = r[4] && d>=3;
       const target = (CFG.padDay>=0 && r[4] && d>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
       const mult = (d===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
-      add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:r[3]||'a', for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
+      add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:dishSec(r), for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
     });
   }
   for(const k in (wd.extra||{})){ const e=wd.extra[k]; if(e) add(e.t||'stor','x|'+k,{n:e.n,s:e.s||'a',for:[],tag:'ekstra',extra:k}); }
@@ -599,7 +598,7 @@ function renderWeek(w){
   secOrder().forEach(s=>{
     const ks = keys.filter(k=>cur[k].s===s).sort((a,b)=>cur[a].n.localeCompare(cur[b].n,'nb'));
     if(!ks.length) return;
-    groups += '<div class="group"><h3>'+secName(s)+'</h3><ul class="items">'+ks.map(k=>{
+    groups += '<div class="group"><h3>'+secName(s)+'</h3>'+(s==='a' && !UI.arrange ? '<p class="note">Varer appen ikke vet hvor hører hjemme. Trykk «Flytt varer» og velg avdeling, så husker den det for alle retter.</p>' : '')+'<ul class="items">'+ks.map(k=>{
       const it = cur[k]; const ck = k; const done = !!wd.checked[ck]; const iid = 'c'+w+'-'+btoa(unescape(encodeURIComponent(ck))).replace(/[^a-z0-9]/gi,'');
       const tag = it.tag ? '<span class="tagmini">'+it.tag+'</span>' : '';
       const forTxt = it.for && it.for.length ? '<span class="for">'+it.for.join(', ')+'</span>' : '';
@@ -727,7 +726,8 @@ function renderAdd(el){
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
   {id:'2026-11-07', title:'7. november', items:[
-    ['Medlemskort under handlelista', 'Legg inn Coop, Trumf eller andre medlemskort nederst under handlelista. Trykk på kortet i kassen, så vises strekkoden stort på skjermen. Står det bare tall under strekkoden, skriver du dem inn. Nyere kort med mer sammensatte koder (f.eks. PDF417 eller QR) skanner du med en skanner-app og limer inn innholdet.']]},
+    ['Medlemskort under handlelista', 'Legg inn Coop, Trumf eller andre medlemskort nederst under handlelista. Trykk på kortet i kassen, så vises strekkoden stort på skjermen. Står det bare tall under strekkoden, skriver du dem inn. Nyere kort med mer sammensatte koder (f.eks. PDF417 eller QR) skanner du med en skanner-app og limer inn innholdet.'],
+    ['Riktigere avdelinger for varer i egne retter', 'Varer appen ikke kjente, havnet før under Frukt og grønt, f.eks. salami og pesto. Nå blir salami Kjøtt, pesto, oliven og andre ting på glass Tørrvarer og hermetikk, og det appen ikke kjenner, havner under Annet. Der kan dere velge avdeling med «Flytt varer», så huskes det i alle retter.']]},
   {id:'2026-11-04.2', title:'Mer husarbeid', items:[
     ['Oppgavene som kort', 'Oppgavene i fanen Husarbeid vises som kompakte kort, gruppert etter hvor ofte de gjøres. Trykk på et kort for å endre oppgaven.'],
     ['«Sammen» og «Den som kan»', 'Under «Hvem» kan en oppgave nå gjøres sammen, f.eks. av barna som deler rom, eller være ledig for den som kan, f.eks. tømme oppvaskmaskinen. I fanen kan dere velge hvem som tok den.']]},
@@ -1371,8 +1371,28 @@ function listText(w){
     s += '\n'+secName(sec)+'\n' + ks.map(k=>'- '+L[k].n+(L[k].qs?' ('+L[k].qs+')':L[k].q!=null?' ('+qtyStr(L[k].q,L[k].u)+')':'')).join('\n')+'\n'; });
   return s;
 }
-const GUESS = [['f',/laks|torsk|sei\b|fisk|reke|makrell|ørret/],['k',/kjøtt|kylling|bacon|pølse|skinke|pepperoni|lam\b|svin|karbonade|kalkun|deig/],['m',/ost\b|ost |rømme|fløte|melk|yoghurt|crème|creme|smør|egg\b|parmesan|mozzarella|skyr|kesam/],['b',/brød|lefse|tortilla|naan|flatbrød|rundstykk|knekke|pita/],['z',/fryst|frossen|frosne|wokgrønnsaker|erter|pommes/],['t',/boks|saus|linser|bønner|pasta|nudler|ris\b|mel\b|krydder|syltetøy|hermetisk|kokosmelk|mais|sesam|hoisin|buljong|olje|chips/]];
-function guessSec(n){ const l=n.toLowerCase(); for(const [s,re] of GUESS) if(re.test(l)) return s; return 'g'; }
+// Gjetting av avdeling ut fra navnet på en vare (egne retter, varer dere legger til, skapet).
+// Rekkefølgen betyr noe: først frossent og ting på glass/boks/pulver (tomatpuré, paprikapulver, pesto),
+// så kjøtt, fisk, meieri og brød, så frukt og grønt, så resten. Ukjent havner under «Annet», ikke under frukt og grønt.
+const GUESS = [['f',/laks|torsk|sei\b|fisk|reke|makrell|ørret|kveite|kolje|sild|scampi|blåskjell|kamskjell|krabbe|hummer|ansjos|sardin|kaviar|lyr\b|steinbit|breiflabb|pangasius/],['k',/kjøtt|kylling|bacon|pølse|skinke|pepperoni|salami|chorizo|prosciutto|serrano|lam\b|lamme|svin|karbonade|kalkun|deig|biff|entrecote|filet\b|kotelett|ribbe|nakke|kebab|andebryst|hamburger(?!brød)|medister|leverpostei/],['m',/ost\b|ost |rømme|fløte|melk|yoghurt|crème|creme|smør|egg\b|parmesan|mozzarella|skyr|kesam|feta|halloumi|ricotta|mascarpone|burrata|brie|cheddar|jarlsberg|norvegia|cottage|kefir|tzatziki/],['b',/brød|lefse|tortilla|naan|flatbrød|rundstykk|knekke|pita|baguette|ciabatta|focaccia|bagel|loff|wraps?\b|pizzabunn|lompe|tacoskjell/],['z',/fryst|frossen|frosne|wokgrønnsaker|erter|pommes/],['t',/boks|saus|linser|bønner|pasta|nudler|ris\b|mel\b|krydder|syltetøy|hermetisk|kokosmelk|mais|sesam|hoisin|buljong|olje|chips|pulver|tørket|malt\b|flak|frø\b|glass|pesto|oliven|kapers|puré|chutney|salsa|tahini|peanøttsmør|nøttesmør|pepper\b/]];
+const FROZEN_RE = /fryst|frossen|frosne|wokgrønnsaker|pommes/;
+const NOT_PRODUCE_RE = /pulver|tørke|tørket|hermetisk|boks|glass|puré|pure\b|saus|ketchup|pesto|chips|krydder|buljong|sylte|flak\b|chiliflak|knust|malt\b|juice|oliven|kapers|chutney|pickles|salsa|kokosmelk|kokosfløte|peanøttsmør|nøttesmør|tahini|kraft\b|fond\b|fiskeboller|lasagneplater|panko|nøtter|mandler|cashew|dadler|gnocchi|bambus|artisjokk/;
+const PRODUCE_RE = /banan|eple|appelsin|klementin|frukt|drue|pære|agurk|tomat|salat|paprika|løk|potet|gulr|brokkoli|kål|avokado|sitron|lime|bær|squash|sopp|urter|koriander|spinat|mango|kiwi|melon|ruccola|rucola|purre|selleri|fennikel|rødbet|aubergine|ingefær|chili|persille|basilikum|dill|mynte|timian|rosmarin|pak ?choi|bønnespirer|asparges|reddik|kålrot|sukkererter|ananas|granateple|plomme|fersken|nektarin|aprikos|fiken|grapefrukt|bladgrønt|sjalott|pastinakk|edamame|galanga|tofu/;
+function autoSec(n){ const l=n.toLowerCase();
+  if(/gryn|müsli|musli|kornblanding|cornflakes/.test(l)) return 't';
+  if(FROZEN_RE.test(l)) return 'z';
+  if(NOT_PRODUCE_RE.test(l)) return 't';
+  for(const [s,re] of GUESS){ if('fkmb'.indexOf(s)>=0 && re.test(l)) return s; }
+  if(PRODUCE_RE.test(l)) return 'g';
+  for(const [s,re] of GUESS){ if(re.test(l)) return s; }
+  return 'a'; }
+function guessSec(n){ return autoSec(n); }
+// Varer i egne retter fikk tidligere «Frukt og grønt» når appen ikke kjente navnet (f.eks. salami og pesto), og det ble lagret.
+// Står en vare under frukt og grønt uten at navnet ser ut som frukt eller grønt, gjettes den på nytt når lista lages.
+// Varer som står under frukt og grønt i de innebygde rettene, er satt for hånd og røres ikke.
+let BUILTIN_G = null;
+function builtinG(){ if(!BUILTIN_G){ BUILTIN_G = {}; Object.keys(D).forEach(id=>(D[id].i||[]).forEach(r=>{ if(r[3]==='g') BUILTIN_G[String(r[0]).toLowerCase()] = 1; })); } return BUILTIN_G; }
+function dishSec(r){ const s = r[3]||'a'; if(s!=='g' || builtinG()[String(r[0]).toLowerCase()]) return s; return autoSec(String(r[0])); }
 function parseItems(txt, prev){
   const P = {}; (prev||[]).forEach(r=>{ P[r[0].toLowerCase()] = r[3]; });
   return txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
