@@ -235,6 +235,15 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .hchip b{color:var(--ink);font-weight:700}
 .hchip[aria-pressed="true"]{text-decoration:line-through;opacity:.55}
 .husday{padding:4px 0}
+.kortcard .pantry{padding:4px 14px 14px}
+.kortbtn{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:12px;padding:8px 14px;min-width:96px;text-align:left;font:inherit}
+.kortbtn small{color:var(--muted);font-size:12px}
+.kortbtn:hover{border-color:var(--accent)}
+.kortbox{background:#fff;color:#2b3a35;border-radius:12px;padding:14px;display:flex;justify-content:center;align-items:center;min-height:120px}
+.kortbox svg{display:block;width:100%;height:auto;max-height:46vh}
+.kortbox.two svg{max-width:340px}
+.kortbox .note{color:#4a5a55}
+.kortv{font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
 .hgroup{padding:6px 14px 4px}
 .hgroup h3{margin:6px 0}
 .htasks{display:grid;gap:8px}
@@ -479,7 +488,6 @@ function fasteList(){ const ov=S.basis.fasteSec||{}; const l = FASTE.filter(f=>!
 // Avdelingen i butikken når noe fra skapet er tomt. Hyllene i skapet sier hvor ting står hjemme, ikke i butikken:
 // «Kjøleskap og bod» har løk og hvitløk (frukt og grønt), men også f.eks. smør, så der avgjør navnet.
 function pantrySec(b){ if(b.g==='annet') return 'a'; if(b.g==='kjol'){ const s=autoSec(b.n); return s==='a' ? 't' : s; } return 't'; }
-function autoSec(n){ const l=n.toLowerCase(); if(/banan|eple|appelsin|klementin|frukt|drue|pære|agurk|tomat|salat|paprika|løk|potet|gulr|brokkoli|kål|avokado|sitron|lime|bær|squash|sopp|urter|koriander|spinat|mango|kiwi|melon/.test(l)) return 'g'; if(/gryn|müsli|musli|kornblanding|cornflakes/.test(l)) return 't'; for(const [s,re] of GUESS) if(re.test(l)) return s; return 'a'; }
 function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '+(attrs||'')+' aria-label="Avdeling">'+(val==null?'<option value="">Finn avdeling selv</option>':'')+secOrder().map(k=>'<option value="'+k+'"'+(k===val?' selected':'')+'>'+secName(k)+'</option>').join('')+'</select>'; }
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
 function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
@@ -502,7 +510,7 @@ function buildList(w, days, incl){
       const late = r[4] && d>=3;
       const target = (CFG.padDay>=0 && r[4] && d>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
       const mult = (d===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
-      add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:r[3]||'a', for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
+      add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:dishSec(r), for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
     });
   }
   for(const k in (wd.extra||{})){ const e=wd.extra[k]; if(e) add(e.t||'stor','x|'+k,{n:e.n,s:e.s||'a',for:[],tag:'ekstra',extra:k}); }
@@ -590,7 +598,7 @@ function renderWeek(w){
   secOrder().forEach(s=>{
     const ks = keys.filter(k=>cur[k].s===s).sort((a,b)=>cur[a].n.localeCompare(cur[b].n,'nb'));
     if(!ks.length) return;
-    groups += '<div class="group"><h3>'+secName(s)+'</h3><ul class="items">'+ks.map(k=>{
+    groups += '<div class="group"><h3>'+secName(s)+'</h3>'+(s==='a' && !UI.arrange ? '<p class="note">Varer appen ikke vet hvor hører hjemme. Trykk «Flytt varer» og velg avdeling, så husker den det for alle retter.</p>' : '')+'<ul class="items">'+ks.map(k=>{
       const it = cur[k]; const ck = k; const done = !!wd.checked[ck]; const iid = 'c'+w+'-'+btoa(unescape(encodeURIComponent(ck))).replace(/[^a-z0-9]/gi,'');
       const tag = it.tag ? '<span class="tagmini">'+it.tag+'</span>' : '';
       const forTxt = it.for && it.for.length ? '<span class="for">'+it.for.join(', ')+'</span>' : '';
@@ -624,7 +632,7 @@ function renderWeek(w){
       '<div id="copyfb"></div>'+
       sjekk+groups+
       '<button class="btn primary addopen" type="button" data-addopen="x'+w+'">＋ Legg til vare</button>'+
-    '</div></section>';
+    '</div>'+renderKort()+'</section>';
 }
 function renderRetter(){
   const all = allDishes();
@@ -717,6 +725,9 @@ function renderAdd(el){
 // ---------- Nytt i Middagshjulet ----------
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
+  {id:'2026-11-07', title:'7. november', items:[
+    ['Medlemskort under handlelista', 'Legg inn Coop, Trumf eller andre medlemskort nederst under handlelista. Trykk på kortet i kassen, så vises strekkoden stort på skjermen. Står det bare tall under strekkoden, skriver du dem inn. Nyere kort med mer sammensatte koder (f.eks. PDF417 eller QR) skanner du med en skanner-app og limer inn innholdet.'],
+    ['Riktigere avdelinger for varer i egne retter', 'Varer appen ikke kjente, havnet før under Frukt og grønt, f.eks. salami og pesto. Nå blir salami Kjøtt, pesto, oliven og andre ting på glass Tørrvarer og hermetikk, og det appen ikke kjenner, havner under Annet. Der kan dere velge avdeling med «Flytt varer», så huskes det i alle retter.']]},
   {id:'2026-11-04.2', title:'Mer husarbeid', items:[
     ['Oppgavene som kort', 'Oppgavene i fanen Husarbeid vises som kompakte kort, gruppert etter hvor ofte de gjøres. Trykk på et kort for å endre oppgaven.'],
     ['«Sammen» og «Den som kan»', 'Under «Hvem» kan en oppgave nå gjøres sammen, f.eks. av barna som deler rom, eller være ledig for den som kan, f.eks. tømme oppvaskmaskinen. I fanen kan dere velge hvem som tok den.']]},
@@ -753,7 +764,7 @@ function renderNews(el){
 // så de tegnes ikke på nytt i det hele tatt.
 function renderSheet(){
   const el = document.getElementById('sheet');
-  const kind = UI.news ? 'news' : UI.husEdit ? 'hus:'+UI.husEdit : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.sheet ? 'pick:'+UI.sheet : '';
+  const kind = UI.news ? 'news' : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.sheet ? 'pick:'+UI.sheet : '';
   const same = !el.hidden && !!kind && el.dataset.kind===kind;
   if(same && kind==='news') return;
   const sc = same && el.querySelector('[data-keepscroll]'); const top = sc ? sc.scrollTop : 0;
@@ -765,6 +776,8 @@ function renderSheet(){
 function renderSheetBody(el){
   if(UI.news){ renderNews(el); return; }
   if(UI.husEdit){ renderHusEdit(el); return; }
+  if(UI.kortEdit){ renderKortEdit(el); return; }
+  if(UI.kort){ renderKortShow(el); return; }
   if(UI.edit){ renderEditor(el); return; }
   if(UI.add){ renderAdd(el); return; }
   if(!UI.sheet){ el.hidden = true; el.innerHTML=''; return; }
@@ -919,6 +932,110 @@ function wizFinish(mode){
   if(mode==='plan'){ const sw={}; Object.keys(S.plan.swaps||{}).forEach(k=>sw[k]=null); const arr=generatePlan(cfg); const base={}; arr.forEach((row,i)=>{ base[i]=row; }); write('app/plan', {base: base, swaps: sw}, false, {nolog:true}); }
   UI.wiz=false; UI.wd=null; UI.tab='w'+(curW<0?0:curW); render(); window.scrollTo({top:0});
   toast(mode==='plan' ? 'Planen er laget. Bytt det dere vil.' : 'Oppsettet er lagret.');
+}
+// ---------- Medlemskort (Coop, Trumf, Rema …) under handlelista ----------
+// Kortene lagres i oppsettdokumentet (setup.kort), så alle i husstanden har dem, og det trengs ingen nye Firebase-regler.
+// Et kort: {n butikk, who hvem, f format (bwip-js-navn), v innholdet i strekkoden, o rekkefølge}.
+// Strekkoden tegnes på telefonen med bwip-js (MIT, web/vendor). Biblioteket er stort, så det lastes først når det trengs,
+// og hentes i bakgrunnen når det finnes kort, så det ligger klart uten nett i butikken.
+const KORT_LIB = 'vendor/bwip-js-4.11.4.min.js';
+const KORT_F = [['ean13','EAN-13'],['ean8','EAN-8'],['upca','UPC-A'],['code128','Code 128'],['code39','Code 39'],['interleaved2of5','ITF (Interleaved 2 of 5)'],['pdf417','PDF417'],['qrcode','QR-kode'],['azteccode','Aztec'],['datamatrix','Data Matrix']];
+const KORT_2D = {pdf417:1, qrcode:1, azteccode:1, datamatrix:1};
+const KORT_FORSLAG = ['Coop','Trumf','Rema 1000','Kiwi','Meny','Extra','Obs'];
+function kortList(){ const K=S.setup.kort||{}; return Object.keys(K).filter(k=>K[k]&&K[k].v).map(k=>Object.assign({}, K[k], {id:k})).sort((a,b)=>(a.o||0)-(b.o||0)); }
+function kortGet(id){ const k=(S.setup.kort||{})[id]; return k&&k.v ? Object.assign({}, k, {id:id}) : null; }
+function kortWrite(patch){ write('app/setup', {kort:patch}, false, {nolog:true}); }
+function kortFName(f){ const x=KORT_F.find(o=>o[0]===f); return x ? x[1] : f; }
+// Gjett format ut fra innholdet. Skanner-apper sier som regel hvilket format det er, så det kan overstyres.
+function eanOk(s){ const d=s.split('').map(Number); const c=d.pop(); let sum=0; d.reverse().forEach((x,i)=>{ sum += x*(i%2===0?3:1); }); return (10-sum%10)%10===c; }
+function kortGuess(v){ v=String(v||'').trim();
+  if(/^\d{13}$/.test(v) && eanOk(v)) return 'ean13';
+  if(/^\d{8}$/.test(v) && eanOk(v)) return 'ean8';
+  if(/^\d{12}$/.test(v) && eanOk(v)) return 'upca';
+  if(v.length<=40 && /^[\x20-\x7e]+$/.test(v)) return 'code128';
+  return 'qrcode'; }
+let kortLoading = null;
+function kortLib(){
+  if(window.bwipjs) return Promise.resolve(window.bwipjs);
+  if(!kortLoading) kortLoading = new Promise((res, rej)=>{ const sc=document.createElement('script'); sc.src=KORT_LIB; sc.onload=()=>res(window.bwipjs); sc.onerror=()=>{ kortLoading=null; rej(new Error('lib')); }; document.head.appendChild(sc); });
+  return kortLoading;
+}
+function kortSvg(f, v){
+  const o = {bcid:f, text:String(v), scale:3, paddingwidth:8, paddingheight:8, backgroundcolor:'FFFFFF'};
+  if(!KORT_2D[f]){ o.height = 18; o.includetext = true; o.textxalign = 'center'; }
+  return window.bwipjs.toSVG(o);
+}
+// Tegn strekkoden i boksen. Gir en forklaring hvis innholdet ikke passer til formatet.
+function kortDraw(box, f, v){
+  if(!box) return;
+  if(!String(v||'').trim()){ box.innerHTML = '<p class="note">Strekkoden vises her.</p>'; return; }
+  const go = ()=>{ try{ box.innerHTML = kortSvg(f, v); box.classList.toggle('two', !!KORT_2D[f]); }
+    catch(e){ const m = String(e && e.message || e); box.innerHTML = '<p class="note"><b>Passer ikke til '+esc(kortFName(f))+'.</b> '+esc(/check ?digit/i.test(m) ? 'Kontrollsifferet stemmer ikke. Sjekk tallene, eller velg et annet format.' : m.replace(/^bwipp\.\w+#\d+: /,''))+'</p>'; } };
+  if(window.bwipjs) go();
+  else { box.innerHTML = '<p class="note">Lager strekkoden …</p>'; kortLib().then(go, ()=>{ box.innerHTML = '<p class="note">Fikk ikke lastet strekkode-tegneren. Åpne kortet én gang med nett, så virker det uten nett etterpå.</p>'; }); }
+}
+function kortLabel(k){ return k.n+(k.who?' · '+k.who:''); }
+// Under handlelista i ukeplanen.
+function renderKort(){
+  const L = kortList();
+  if(L.length && !window.bwipjs && !kortLoading) setTimeout(()=>{ kortLib().catch(()=>{}); }, 1500);
+  return '<div class="card kortcard"><div class="cardhead"><h2>Medlemskort</h2>'+(L.length?'':'<p class="note">Legg inn Coop, Trumf eller andre kort, så kan dere vise strekkoden i kassen rett fra handlelista.</p>')+'</div>'+
+    '<div class="pantry">'+L.map(k=>'<button class="kortbtn" type="button" data-kort="'+k.id+'"><b>'+esc(k.n)+'</b>'+(k.who?'<small>'+esc(k.who)+'</small>':'')+'</button>').join('')+
+    '<button class="pchip" type="button" data-kortedit="new">＋ Legg til kort</button></div></div>';
+}
+function renderKortShow(el){
+  const k = kortGet(UI.kort); if(!k){ UI.kort=null; el.hidden=true; el.innerHTML=''; return; }
+  el.className='sheet'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="'+esc(kortLabel(k))+'"><div class="shead"><div class="row"><h2>'+esc(kortLabel(k))+'</h2><button class="btn small" data-close>Lukk</button></div></div>'+
+    '<div class="form edlist"><div class="kortbox" id="kort-show"></div>'+
+    '<p class="note kortv">'+esc(k.v)+' <span class="tagmini">'+esc(kortFName(k.f))+'</span></p>'+
+    '<p class="note">Skru opp lysstyrken på skjermen hvis kassen ikke leser koden.</p>'+
+    '<div class="tools"><span class="right"><button class="btn primary" type="button" data-close>Ferdig</button></span><span class="right"><button class="btn small" type="button" data-kortedit="'+k.id+'">Endre kortet</button></span></div></div></div>';
+  kortDraw(document.getElementById('kort-show'), k.f, k.v);
+}
+function renderKortEdit(el){
+  const isNew = UI.kortEdit==='new'; const k = isNew ? {n:'',who:'',f:'',v:''} : kortGet(UI.kortEdit);
+  if(!k){ UI.kortEdit=null; el.hidden=true; el.innerHTML=''; return; }
+  if(UI.kortF==null) UI.kortF = k.f || '';
+  const f = UI.kortF || kortGuess(k.v);
+  el.className='sheet'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="'+(isNew?'Nytt medlemskort':'Endre medlemskort')+'"><div class="shead"><div class="row"><h2>'+(isNew?'Nytt medlemskort':'Endre medlemskort')+'</h2><button class="btn small" data-close>Avbryt</button></div></div>'+
+    '<form class="form edlist" data-kortform>'+
+    '<label class="field">Butikk eller kjede<input id="kort-n" value="'+esc(k.n)+'" placeholder="F.eks. Coop" autocomplete="off"></label>'+
+    (isNew ? '<div class="secchips">'+KORT_FORSLAG.map(n=>'<button type="button" class="pchip small" data-kortn="'+esc(n)+'">'+esc(n)+'</button>').join('')+'</div>' : '')+
+    '<label class="field">Hvem kortet tilhører (valgfritt)<input id="kort-who" value="'+esc(k.who||'')+'" placeholder="F.eks. Kari" autocomplete="off"></label>'+
+    '<label class="field">Innholdet i strekkoden<textarea id="kort-v" rows="3" autocomplete="off" spellcheck="false" placeholder="Tallene under strekkoden, eller teksten en skanner-app viser">'+esc(k.v)+'</textarea></label>'+
+    '<label class="field">Format<select class="secsel" id="kort-f"><option value=""'+(UI.kortF?'':' selected')+'>Finn ut selv ('+esc(kortFName(kortGuess(k.v)))+')</option>'+KORT_F.map(o=>'<option value="'+o[0]+'"'+(UI.kortF===o[0]?' selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select></label>'+
+    '<div class="kortbox" id="kort-prev"></div>'+
+    '<p class="note">Står det bare tall under strekkoden, skriver du dem inn, så finner appen formatet. Nyere kort har ofte en mer sammensatt kode, f.eks. PDF417 eller QR. Skann da kortet med en skanner-app som viser innholdet og formatet, lim inn innholdet her og velg samme format. Strekkoder som skifter hele tiden i butikkens egen app, kan ikke kopieres.</p>'+
+    '<div class="tools"><span class="right"><button class="btn primary" type="button" data-submit>Lagre</button></span>'+(isNew?'':'<span class="right"><button class="btn small" type="button" data-kortdel="'+k.id+'">Slett kortet</button></span>')+'</div>'+
+    '</form></div>';
+  setTimeout(kortPreview, 0);
+}
+function kortPreview(){
+  const v = (document.getElementById('kort-v')||{}).value || ''; const sel = document.getElementById('kort-f');
+  UI.kortF = sel ? sel.value : ''; const f = UI.kortF || kortGuess(v);
+  if(sel && sel.options[0]) sel.options[0].textContent = 'Finn ut selv ('+kortFName(kortGuess(v))+')';
+  kortDraw(document.getElementById('kort-prev'), f, v);
+}
+function kortClick(t){
+  const D = t.dataset;
+  if(D.kort){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kortEdit=null; UI.kort=D.kort; render(); return true; }
+  if(D.kortedit){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortF=null; UI.kortEdit=D.kortedit; render(); const i=document.getElementById(D.kortedit==='new'?'kort-n':'kort-v'); if(i) i.focus({preventScroll:true}); return true; }
+  if(D.kortn){ const i=document.getElementById('kort-n'); if(i){ i.value=D.kortn; const w=document.getElementById('kort-who'); if(w) w.focus({preventScroll:true}); } return true; }
+  if(D.kortdel){ const k=kortGet(D.kortdel); if(!k || !confirm('Slette kortet «'+kortLabel(k)+'»?')) return true; UI.kortEdit=null; kortWrite({[k.id]:null}); toast('Kortet er slettet.'); return true; }
+  return false;
+}
+function kortForm(f){
+  if(!f.hasAttribute('data-kortform')) return false;
+  const n = document.getElementById('kort-n').value.trim(); const who = document.getElementById('kort-who').value.trim();
+  const v = document.getElementById('kort-v').value.trim(); const fm = document.getElementById('kort-f').value || kortGuess(v);
+  if(!n){ toast('Skriv hvilken butikk kortet er til.'); return true; }
+  if(!v){ toast('Skriv inn innholdet i strekkoden.'); return true; }
+  const ok = ()=>{ const id = UI.kortEdit==='new' ? 'k'+Date.now().toString(36) : UI.kortEdit; const old = kortGet(id);
+    kortWrite({[id]:{n:n, who:who, f:fm, v:v, o: old ? (old.o||0) : Date.now()}}); UI.kortEdit=null; UI.kortF=null; UI.kort=id; render(); toast('Kortet er lagret.'); };
+  kortLib().then(()=>{ try{ kortSvg(fm, v); ok(); }catch(e){ toast('Innholdet passer ikke til '+kortFName(fm)+'. Sjekk tallene, eller velg et annet format.'); } }, ()=>{ ok(); });
+  return true;
 }
 // ---------- Husarbeid (valgfri modul, slås på under Oppsett) ----------
 // Personer og oppgaver ligger i oppsettdokumentet (setup.hus), så det trengs ingen nye Firebase-regler.
@@ -1254,8 +1371,28 @@ function listText(w){
     s += '\n'+secName(sec)+'\n' + ks.map(k=>'- '+L[k].n+(L[k].qs?' ('+L[k].qs+')':L[k].q!=null?' ('+qtyStr(L[k].q,L[k].u)+')':'')).join('\n')+'\n'; });
   return s;
 }
-const GUESS = [['f',/laks|torsk|sei\b|fisk|reke|makrell|ørret/],['k',/kjøtt|kylling|bacon|pølse|skinke|pepperoni|lam\b|svin|karbonade|kalkun|deig/],['m',/ost\b|ost |rømme|fløte|melk|yoghurt|crème|creme|smør|egg\b|parmesan|mozzarella|skyr|kesam/],['b',/brød|lefse|tortilla|naan|flatbrød|rundstykk|knekke|pita/],['z',/fryst|frossen|frosne|wokgrønnsaker|erter|pommes/],['t',/boks|saus|linser|bønner|pasta|nudler|ris\b|mel\b|krydder|syltetøy|hermetisk|kokosmelk|mais|sesam|hoisin|buljong|olje|chips/]];
-function guessSec(n){ const l=n.toLowerCase(); for(const [s,re] of GUESS) if(re.test(l)) return s; return 'g'; }
+// Gjetting av avdeling ut fra navnet på en vare (egne retter, varer dere legger til, skapet).
+// Rekkefølgen betyr noe: først frossent og ting på glass/boks/pulver (tomatpuré, paprikapulver, pesto),
+// så kjøtt, fisk, meieri og brød, så frukt og grønt, så resten. Ukjent havner under «Annet», ikke under frukt og grønt.
+const GUESS = [['f',/laks|torsk|sei\b|fisk|reke|makrell|ørret|kveite|kolje|sild|scampi|blåskjell|kamskjell|krabbe|hummer|ansjos|sardin|kaviar|lyr\b|steinbit|breiflabb|pangasius/],['k',/kjøtt|kylling|bacon|pølse|skinke|pepperoni|salami|chorizo|prosciutto|serrano|lam\b|lamme|svin|karbonade|kalkun|deig|biff|entrecote|filet\b|kotelett|ribbe|nakke|kebab|andebryst|hamburger(?!brød)|medister|leverpostei/],['m',/ost\b|ost |rømme|fløte|melk|yoghurt|crème|creme|smør|egg\b|parmesan|mozzarella|skyr|kesam|feta|halloumi|ricotta|mascarpone|burrata|brie|cheddar|jarlsberg|norvegia|cottage|kefir|tzatziki/],['b',/brød|lefse|tortilla|naan|flatbrød|rundstykk|knekke|pita|baguette|ciabatta|focaccia|bagel|loff|wraps?\b|pizzabunn|lompe|tacoskjell/],['z',/fryst|frossen|frosne|wokgrønnsaker|erter|pommes/],['t',/boks|saus|linser|bønner|pasta|nudler|ris\b|mel\b|krydder|syltetøy|hermetisk|kokosmelk|mais|sesam|hoisin|buljong|olje|chips|pulver|tørket|malt\b|flak|frø\b|glass|pesto|oliven|kapers|puré|chutney|salsa|tahini|peanøttsmør|nøttesmør|pepper\b/]];
+const FROZEN_RE = /fryst|frossen|frosne|wokgrønnsaker|pommes/;
+const NOT_PRODUCE_RE = /pulver|tørke|tørket|hermetisk|boks|glass|puré|pure\b|saus|ketchup|pesto|chips|krydder|buljong|sylte|flak\b|chiliflak|knust|malt\b|juice|oliven|kapers|chutney|pickles|salsa|kokosmelk|kokosfløte|peanøttsmør|nøttesmør|tahini|kraft\b|fond\b|fiskeboller|lasagneplater|panko|nøtter|mandler|cashew|dadler|gnocchi|bambus|artisjokk/;
+const PRODUCE_RE = /banan|eple|appelsin|klementin|frukt|drue|pære|agurk|tomat|salat|paprika|løk|potet|gulr|brokkoli|kål|avokado|sitron|lime|bær|squash|sopp|urter|koriander|spinat|mango|kiwi|melon|ruccola|rucola|purre|selleri|fennikel|rødbet|aubergine|ingefær|chili|persille|basilikum|dill|mynte|timian|rosmarin|pak ?choi|bønnespirer|asparges|reddik|kålrot|sukkererter|ananas|granateple|plomme|fersken|nektarin|aprikos|fiken|grapefrukt|bladgrønt|sjalott|pastinakk|edamame|galanga|tofu/;
+function autoSec(n){ const l=n.toLowerCase();
+  if(/gryn|müsli|musli|kornblanding|cornflakes/.test(l)) return 't';
+  if(FROZEN_RE.test(l)) return 'z';
+  if(NOT_PRODUCE_RE.test(l)) return 't';
+  for(const [s,re] of GUESS){ if('fkmb'.indexOf(s)>=0 && re.test(l)) return s; }
+  if(PRODUCE_RE.test(l)) return 'g';
+  for(const [s,re] of GUESS){ if(re.test(l)) return s; }
+  return 'a'; }
+function guessSec(n){ return autoSec(n); }
+// Varer i egne retter fikk tidligere «Frukt og grønt» når appen ikke kjente navnet (f.eks. salami og pesto), og det ble lagret.
+// Står en vare under frukt og grønt uten at navnet ser ut som frukt eller grønt, gjettes den på nytt når lista lages.
+// Varer som står under frukt og grønt i de innebygde rettene, er satt for hånd og røres ikke.
+let BUILTIN_G = null;
+function builtinG(){ if(!BUILTIN_G){ BUILTIN_G = {}; Object.keys(D).forEach(id=>(D[id].i||[]).forEach(r=>{ if(r[3]==='g') BUILTIN_G[String(r[0]).toLowerCase()] = 1; })); } return BUILTIN_G; }
+function dishSec(r){ const s = r[3]||'a'; if(s!=='g' || builtinG()[String(r[0]).toLowerCase()]) return s; return autoSec(String(r[0])); }
 function parseItems(txt, prev){
   const P = {}; (prev||[]).forEach(r=>{ P[r[0].toLowerCase()] = r[3]; });
   return txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
@@ -1272,10 +1409,11 @@ function parseItems(txt, prev){
 document.addEventListener('click', e=>{
   const t = e.target.closest('button'); if(!t) return;
   if(husClick(t)) return;
+  if(kortClick(t)) return;
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
   if(t.dataset.swap){ UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
-  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; render(); return; }
+  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; render(); return; }
   if(t.dataset.addopen){ UI.add=t.dataset.addopen; UI.addSec=''; UI.sheet=null; UI.edit=null; render(); const i=document.getElementById('add-n'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.asec!=null){ UI.addSec=t.dataset.asec; document.querySelectorAll('[data-asec]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.asec===UI.addSec))); return; }
   if(t.dataset.edit){ UI.sheet=null; UI.edit=t.dataset.edit; render(); const f=document.getElementById('ed-n'); if(f) f.focus({preventScroll:true}); return; }
@@ -1330,6 +1468,7 @@ document.addEventListener('click', e=>{
 });
 document.addEventListener('change', e=>{
   const c = e.target;
+  if(c.id==='kort-f'){ kortPreview(); return; }
   if(husChange(c)) return;
   if(c.dataset && c.dataset.ppld){ const k=c.dataset.ppld; const w=+k.split('-')[0]; const v=c.value===''?null:+c.value; write('app/setup',{pplDay:{[k]: (v===null||v===servingsWeek(w)) ? null : v}}, false, {nolog:true}); applyConfig(); render(); return; }
   if(c.id==='import-new'){ readFile(c, txt=>{ try{ parseImport(txt); }catch(err){ toast('Dette ser ikke ut som en flyttefil fra Middagshjulet.'); return; } try{ localStorage.setItem('mh-import', txt); }catch(err){} const id=newHid(); try{ localStorage.setItem('mh-hid', id); }catch(err){} location.hash='h='+id; location.reload(); }); return; }
@@ -1343,6 +1482,7 @@ document.addEventListener('change', e=>{
 });
 function handleForm(f){
   if(husForm(f)) return;
+  if(kortForm(f)) return;
   if(f.hasAttribute('data-additem')){ const i=document.getElementById('add-n'); const v=i.value.trim(); if(!v){ toast('Skriv inn en vare først.'); return; } i.value=''; const sec=UI.addSec||autoSec(v); const id=Date.now().toString(36);
     if(UI.add==='fast') write('app/basis',{fasteAdd:{['u'+id]:{n:v,s:sec}}});
     else setWeek(+UI.add.slice(1),{extra:{['e'+id]:{n:v,t:UI.seg,s:sec}}});
@@ -1371,10 +1511,10 @@ function handleForm(f){
 document.addEventListener('submit', e=>{ e.preventDefault(); handleForm(e.target); });
 document.addEventListener('click', e=>{ const b=e.target.closest('button[data-submit]'); if(!b) return; e.preventDefault(); const f=b.closest('form'); if(f) handleForm(f); });
 document.addEventListener('keydown', e=>{ if(e.key!=='Enter') return; const t=e.target; if(!t || t.tagName!=='INPUT' || t.type==='checkbox') return; const f=t.closest('form'); if(!f) return; e.preventDefault(); handleForm(f); });
-document.addEventListener('input', e=>{ if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
+document.addEventListener('input', e=>{ if(e.target.id==='kort-v'){ kortPreview(); return; } if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
 document.addEventListener('toggle', e=>{ const d=e.target; if(d && d.dataset && d.dataset.openkey) UI.open[d.dataset.openkey]=d.open; }, true);
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; render(); } });
-document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; render(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; render(); } });
+document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; render(); } });
 
 // ---------- Rolig oppdatering: ikke tegn siden på nytt mens noen berører eller scroller ----------
 const lastSnap = {};
