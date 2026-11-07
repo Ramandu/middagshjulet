@@ -34,4 +34,6 @@ Planen går i ring på fire uker. Har ingen åpnet nettsiden på lenge, flytter 
 
 ## Nettsiden
 
+Endringer samles i grenen `neste` og slippes samlet til `main`, som er det som ligger ute. Arbeidsflyten står i `CLAUDE.md`, og planene i `ROADMAP.md`.
+
 Se `web/LESMEG.md`. Firestore-reglene ligger i `web/firestore.rules` og må limes inn i Firebase-konsollen når de endres.
