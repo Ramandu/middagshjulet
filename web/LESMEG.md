@@ -42,7 +42,7 @@ Navnene på knappene i Firebase-konsollen kan avvike litt fra det som står her.
 ## Steg 2: Legg siden ut på Netlify
 
 1. Legg alle filene i denne mappa i én mappe på maskinen (`index.html`, `firebase-config.js`, `sw.js`,
-   `manifest.webmanifest`, ikonene og `_headers`). `LESMEG.md` og `firestore.rules` kan være med, de skader ikke.
+   `manifest.webmanifest`, ikonene, `_headers` og mappa `vendor`). `LESMEG.md` og `firestore.rules` kan være med, de skader ikke.
 2. Dra mappa inn på <https://app.netlify.com/drop>, eller inn i et eksisterende Netlify-prosjekt under «Deploys».
 3. Åpne adressen du får, for eksempel `https://middagshjulet.netlify.app`.
 
@@ -79,3 +79,7 @@ Da publiseres nettsiden på nytt hver gang noe endres i `web/` på GitHub.
 ## Light Phone
 
 Nettsiden skriver ukeplanen og handlelista ferdig utregnet til dokumentet `lp3`, som Light Phone-verktøyet leser. Det krever at `firestore.rules` tillater `lp3`. Lim inn reglene på nytt i Firebase-konsollen (Firestore Database → Rules → Publish) etter at de er endret.
+
+## Medlemskort
+
+Strekkodene til medlemskortene tegnes på telefonen med [bwip-js](https://github.com/metafloor/bwip-js) (MIT-lisens, se `vendor/bwip-js-LICENSE.txt`). Fila ligger i `vendor/` og lastes først når noen åpner et kort. Versjonsnummeret står i filnavnet, så den kan lagres lenge i nettleseren. Bytter du til en ny versjon, gir du fila et nytt navn og retter `KORT_LIB` i `index.html`.
