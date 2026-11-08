@@ -4,7 +4,11 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
-Ingenting valgt ennå.
+- **Nye retter fra `RETTER.md`:** foreløpig larb. Flere samles før de sendes inn.
+
+## Vurderes for neste versjon
+
+- **Service workeren skal ikke lagre feilsider.** Hvis Netlify svarer med en feil (f.eks. hvis prosjektet settes på pause fordi gratiskredittene er brukt opp), skal appen bruke den lagrede versjonen i stedet for å lagre og vise feilsiden.
 
 ## Senere
 

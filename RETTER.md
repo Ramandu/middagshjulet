@@ -4,7 +4,7 @@ Retter som foreslås til de innebygde rettene i appen (`D` i `web/index.html`), 
 
 ## Slik gjør vi det
 
-1. **Forslag:** send lenken til oppskriften, så føres den opp under «Forslag» med dato.
+1. **Forslag:** send lenken til oppskriften, så føres den opp under «Forslag» med dato. Kan ikke siden leses fra skymiljøet, sender du et skjermbilde eller limer inn ingredienslisten.
 2. **Inn i appen:** retten bygges inn i grenen `neste` og slippes med neste versjon (se `CLAUDE.md`).
    - Navnet er norsk og beskrivende, slik som de andre rettene.
    - Mengdene regnes om til 5 porsjoner. Rettene er lagret for 5, og appen skalerer til husstanden. Står det ikke antall porsjoner i oppskriften, skrives det i merknaden hvordan det er regnet.
@@ -13,11 +13,18 @@ Retter som foreslås til de innebygde rettene i appen (`D` i `web/index.html`), 
    - Bare navn, mengder og varer tas med, ikke fremgangsmåten. Lenken viser til oppskriften.
 3. **Sluppet:** retten flyttes ned til «I appen» med versjonsdato.
 
+Flere retter samles før de sendes inn til `neste` i én pull request.
+
 ## Forslag
 
 | Dato | Rett | Lenke | Merknad |
 |---|---|---|---|
-| 2026-11-08 | Thai larb | https://detgladekjokken.no/oppskrift/thai-larb/ | Ingrediensene er ikke lest ennå. Siden kan ikke nås fra skymiljøet. |
+
+## Bygget inn, kommer med neste versjon
+
+| Dato | Rett i appen | Lenke | Merknad |
+|---|---|---|---|
+| 2026-11-08 | Larb (laotisk kjøttsalat med svin), `larb` | https://detgladekjokken.no/oppskrift/thai-larb/ | Regnet om fra 4 til 5 porsjoner. Ingrediensene er hentet fra et skjermbilde av oppskriften. |
 
 ## I appen
 
