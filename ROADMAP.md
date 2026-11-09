@@ -4,7 +4,9 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
-- **Nye retter fra `RETTER.md`:** foreløpig larb. Flere samles før de sendes inn.
+- **Nye retter fra `RETTER.md`:** larb og lammetagine med rosiner og mandler. Flere samles før de sendes inn.
+- **Oppskriften i appen:** knappen «Oppskrift» i ukeplanen og «Vis oppskrift» under Rettene viser varene regnet om til porsjonene den dagen, og fremgangsmåten. Skjermen holdes på mens vinduet er åpent. Fremgangsmåten kan redigeres, både for egne og innebygde retter.
+- **Endringer i innebygde retter lagrer bare det som er endret,** så husstanden fortsatt får med seg forbedringer i resten av retten.
 
 ## Vurderes for neste versjon
 
