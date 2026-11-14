@@ -10,6 +10,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Vurderes for neste versjon
 
+- **Pakkestørrelser og hele pakker i handlelista.** Rettene oppgir det de faktisk trenger (f.eks. 65 g spinat, ikke «1 pose»). Husstanden sier én gang hvor mye som er i en pakke («1 pose = 200 g»), og det lagres for hele husstanden. Handlelista legger sammen hele ukas behov og runder opp til hele pakker til slutt, f.eks. «Spinat: 1 pose (130 av 200 g)». Uten pakkestørrelse vises gram. Da blir dobbel porsjon og flere retter med samme vare ikke til for mange pakker.
 - **Service workeren skal ikke lagre feilsider.** Hvis Netlify svarer med en feil (f.eks. hvis prosjektet settes på pause fordi gratiskredittene er brukt opp), skal appen bruke den lagrede versjonen i stedet for å lagre og vise feilsiden.
 
 ## Senere
@@ -28,6 +29,9 @@ Utvide fanen «Rettene» med en sammenfoldet seksjon, «Fra andre husstander», 
 
 ### Husarbeid på Light Phone
 Vise dagens oppgaver fra husarbeid i Light Phone-verktøyet. Det krever endringer både i `lp3`-dokumentet og i `tool/`.
+
+### Faktiske mengder i de innebygde rettene
+Rundt 100 varer i de innebygde rettene står i pakninger (pose, pakke, potte, beger, glass, bunt). Der oppskriften bruker mindre enn en pakning, skal de få den faktiske mengden, slik at dobling og flere retter gir riktige mengder. Begynn med det som oftest gir rare mengder: spinat, urter i potte, revet ost, rømme og crème fraîche. Butter chicken er rettet (spinat 65 g for 4).
 
 ### Skanner for medlemskort
 En skanneknapp der telefonen støtter det (`BarcodeDetector`, bl.a. Chrome på Android), så man slipper å skrive inn eller lime inn innholdet. Safari på iPhone støtter det ikke, så inntasting må finnes uansett.
