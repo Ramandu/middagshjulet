@@ -7,10 +7,11 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 - **Nye retter fra `RETTER.md`:** larb og lammetagine med rosiner og mandler. Flere samles før de sendes inn.
 - **Oppskriften i appen:** knappen «Oppskrift» i ukeplanen og «Vis oppskrift» under Rettene viser varene regnet om til porsjonene den dagen, og fremgangsmåten. Skjermen holdes på mens vinduet er åpent. Fremgangsmåten kan redigeres, både for egne og innebygde retter.
 - **Endringer i innebygde retter lagrer bare det som er endret,** så husstanden fortsatt får med seg forbedringer i resten av retten.
+- **Hele pakker i handlelista:** husstanden sier hvor mye som er i én pakke av en vare («Flytt varer» → «Pakke», oversikt under Skapet). Lista legger sammen hele ukas behov og runder opp til hele pakker, f.eks. «2 poser (360 g av 2 × 200 g)».
+- **Butter chicken:** spinaten står i gram (65 g for 4), ikke som en hel pose.
 
 ## Vurderes for neste versjon
 
-- **Pakkestørrelser og hele pakker i handlelista.** Rettene oppgir det de faktisk trenger (f.eks. 65 g spinat, ikke «1 pose»). Husstanden sier én gang hvor mye som er i en pakke («1 pose = 200 g»), og det lagres for hele husstanden. Handlelista legger sammen hele ukas behov og runder opp til hele pakker til slutt, f.eks. «Spinat: 1 pose (130 av 200 g)». Uten pakkestørrelse vises gram. Da blir dobbel porsjon og flere retter med samme vare ikke til for mange pakker.
 - **Service workeren skal ikke lagre feilsider.** Hvis Netlify svarer med en feil (f.eks. hvis prosjektet settes på pause fordi gratiskredittene er brukt opp), skal appen bruke den lagrede versjonen i stedet for å lagre og vise feilsiden.
 
 ## Senere
