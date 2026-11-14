@@ -33,6 +33,9 @@ Vise dagens oppgaver fra husarbeid i Light Phone-verktøyet. Det krever endringe
 ### Faktiske mengder i de innebygde rettene
 Rundt 100 varer i de innebygde rettene står i pakninger (pose, pakke, potte, beger, glass, bunt). Der oppskriften bruker mindre enn en pakning, skal de få den faktiske mengden, slik at dobling og flere retter gir riktige mengder. Begynn med det som oftest gir rare mengder: spinat, urter i potte, revet ost, rømme og crème fraîche. Butter chicken er rettet (spinat 65 g for 4).
 
+- 32 av 52 innebygde retter har lenke til oppskriften. For å lese dem må skymiljøet ha tilgang til disse nettstedene: `www.matprat.no` (21 retter), `vegetarentusiast.no`, `www.tine.no`, `www.saritas.no`, `www.etkjokken.com`, `gladkokken.no`, `detgladekjokken.no` og `aichasmat.no`. Eieren må godkjenne det fra en PC (det gikk ikke fra telefonen 2026-11-14). Spør igjen når eieren sitter ved PC.
+- De 20 rettene uten lenke trenger skjermbilde eller innlimt ingrediensliste.
+
 ### Skanner for medlemskort
 En skanneknapp der telefonen støtter det (`BarcodeDetector`, bl.a. Chrome på Android), så man slipper å skrive inn eller lime inn innholdet. Safari på iPhone støtter det ikke, så inntasting må finnes uansett.
 
