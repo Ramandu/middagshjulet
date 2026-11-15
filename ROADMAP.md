@@ -9,6 +9,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 - **Endringer i innebygde retter lagrer bare det som er endret,** så husstanden fortsatt får med seg forbedringer i resten av retten.
 - **Hele pakker i handlelista:** husstanden sier hvor mye som er i én pakke av en vare («Flytt varer» → «Pakke», oversikt under Skapet). Lista legger sammen hele ukas behov og runder opp til hele pakker, f.eks. «2 poser (360 g av 2 × 200 g)».
 - **Butter chicken:** spinaten står i gram (65 g for 4), ikke som en hel pose.
+- **Endre planene i siste liten (bare denne uka):** «Flytt» på hver dag bytter plass med en annen dag den uka (raske retter først, handlelista blir den samme) eller utsetter retten til neste uke (varer som er kjøpt, kommer ikke på neste ukes liste). Varsel om ferskvarer. «Bytt» gjelder bare denne uka som standard, med valget «Fast i planen». Endringene lagres i ukedokumentet (`day`) og nullstilles når uka er over.
 
 ## Vurderes for neste versjon
 

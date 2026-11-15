@@ -235,6 +235,10 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .hchip b{color:var(--ink);font-weight:700}
 .hchip[aria-pressed="true"]{text-decoration:line-through;opacity:.55}
 .husday{padding:4px 0}
+.daybtns{display:flex;flex-direction:column;gap:6px}
+.movehead{padding:12px 16px 6px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.movehead:first-child{border-top:0}
+.movehead h3{margin:0}
 .packrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:700}
 .packrow input{width:6.5em;border:1px solid var(--line);background:var(--surface2);color:var(--ink);border-radius:10px;padding:9px 11px;font:inherit;font-size:16px}
 .packrow .secsel{font-size:15px;padding:8px}
@@ -372,7 +376,7 @@ function dayNote(w,d){ const parts=[]; const pp=servingsAt(w,d); if(pp!==CFG.ser
 const SHORT_RE = /koriander|spinat|salat|basilikum|bønnespirer|vårløk|persille|ruccola/i;
 function minutes(t){ if(!t) return 0; const h=(t.match(/(\d+)\s*t\b/)||[])[1]; const m=(t.match(/(\d+)\s*min/)||[])[1]; return (h?+h*60:0)+(m?+m:0); }
 function isQuick(d){ const m=minutes(d.t); return d.tags && d.tags.indexOf('rest')<0 && m>0 && m<=(CFG.maxMin||25); }
-function doubleOn(w){ return CFG.doubleDay>=0 && CFG.restDay>=0 && dishAt(w,CFG.restDay)==='rest'; }
+function doubleOn(w){ return CFG.doubleDay>=0 && CFG.restDay>=0 && planAt(w,CFG.restDay)==='rest'; }
 const FASTE = [['melk','Melk','m'],['brod','Brød','b'],['egg','Egg, 18 stk','m'],['smor','Smør eller margarin','m'],['palegg','Pålegg (ost, leverpostei, skinke)','m'],['frukt','Frukt (bananer, epler, klementiner)','g'],['yoghurt','Yoghurt','m'],['knekke','Knekkebrød','b']];
 const GROUPS = [['krydder','Krydder'],['flytende','Oljer, eddik og sauser'],['torr','Ris, pasta, mel og bakst'],['belg','Bønner og linser'],['fro','Frø, nøtter og søtt'],['hermetikk','Hermetikk og buljong'],['kjol','Kjøleskap og bod'],['annet','Husholdning og annet']];
 const GNAME = Object.fromEntries(GROUPS);
@@ -408,7 +412,7 @@ function dayLabel(key){ const [w,d]=key.split('-').map(Number); return 'Uke '+(w
 function describe(path, patch){
   const all = allDishes(); const out=[];
   if(path==='app/plan'){
-    for(const k in (patch.swaps||{})){ const [w,d]=k.split('-').map(Number); const from=all[dishAt(w,d)]; const to=all[patch.swaps[k]||baseAt(w,d)]; out.push(dayLabel(k)+': '+(from?from.n:'?')+' → '+(to?to.n:'?')); }
+    for(const k in (patch.swaps||{})){ const [w,d]=k.split('-').map(Number); const from=all[planAt(w,d)]; const to=all[patch.swaps[k]||baseAt(w,d)]; out.push(dayLabel(k)+': '+(from?from.n:'?')+' → '+(to?to.n:'?')); }
     for(const k in (patch.edits||{})){ const d=all[k]; out.push(patch.edits[k]===null ? 'Satte '+(d?d.n:k)+' tilbake til original' : 'Endret '+(patch.edits[k].n||(d&&d.n)||k)); }
     for(const k in (patch.custom||{})){ const d=all[k]; out.push(patch.custom[k]===null ? 'Slettet '+(d?d.n:k) : (d?'Endret ':'La til ')+(patch.custom[k].n||(d&&d.n)||k)); }
   } else if(path==='app/basis'){
@@ -485,8 +489,20 @@ function servingsWeek(w){ const v = CFG.ppl && CFG.ppl[w]; return v>0 ? v : CFG.
 function servingsAt(w,d){ const v = CFG.pplDay && CFG.pplDay[w+'-'+d]; return v>0 ? v : servingsWeek(w); }
 // Retten slik den skal lages den dagen, regnet om til antall personer da.
 function dishScaler(){ const cache={}; return (w,d)=>{ const n=servingsAt(w,d); const all=cache[n]||(cache[n]=allDishes(n)); return all[dishAt(w,d)]; }; }
-function dishAt(w,d){ const k = S.plan.swaps[w+'-'+d]; const all = allDishes(); return (k && all[k]) ? k : baseAt(w,d); }
-function usage(id){ const u=[]; for(let w=0;w<4;w++) for(let d=0;d<7;d++) if(dishAt(w,d)===id) u.push('Uke '+(w+1)+' '+DAYN[d].toLowerCase()); return u; }
+// ---------- Endringer bare denne uka ----------
+// Ukedokumentet har «day»: {dag: {id, from, had, note}}. id = retten den dagen denne uka. from = dagen retten
+// egentlig sto på (ved flytting innen uka), så varene regnes som før: samme handletur og samme doble porsjon.
+// had = retten er utsatt fra forrige uke og varene er kjøpt, så de kommer ikke på lista igjen.
+// Alt nullstilles når uka starter på nytt, som avkrysningene. Fast plan (planAt) endres med «Fast i planen».
+function planAt(w,d){ const k = S.plan.swaps[w+'-'+d]; const all = allDishes(); return (k && all[k]) ? k : baseAt(w,d); }
+function dayOv(w,d){ const o=(weekDoc(w).day||{})[d]; return o && o.id && allDishes()[o.id] ? o : null; }
+function dishAt(w,d){ const o=dayOv(w,d); return o ? o.id : planAt(w,d); }
+function dayFrom(w,d){ const o=dayOv(w,d); return o && o.from!=null ? o.from : d; }
+function ovVal(w,d,id,from,had,note){ if(id===planAt(w,d) && (from==null || from===d) && !had) return null; return {id:id, from:from==null?null:from, had:had?1:null, note:note||null}; }
+function nextWeekOf(w){ const w2=(w+1)%4; return absFor(w2)===absFor(w)+1 ? w2 : -1; }
+function freshOf(id){ const x=allDishes()[id]; return x ? (x.i||[]).filter(r=>r[4]).map(r=>r[0]) : []; }
+function freshWarn(id, dayTxt){ const f=freshOf(id); return f.length ? ' Ferskvarer: '+f.join(', ')+'. Frys dem hvis de ikke holder til '+dayTxt+'.' : ''; }
+function usage(id){ const u=[]; for(let w=0;w<4;w++) for(let d=0;d<7;d++) if(planAt(w,d)===id) u.push('Uke '+(w+1)+' '+DAYN[d].toLowerCase()); return u; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function cz(d){ return d && d.c ? '<span class="chip c-kj">'+esc(d.c)+'</span>' : ''; }
 function chips(tags){ return (tags||[]).filter(t=>t!=='ny').map(t=>'<span class="chip c-'+t+'">'+esc(TAGS[t]||t)+'</span>').join(''); }
@@ -510,7 +526,7 @@ function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
 function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
 function pantryNames(){ const m={}; basisList().forEach(b=>{ m[b.n.toLowerCase()]=b; }); return m; }
-function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const mult=(d===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
+function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const ov=dayOv(w,d); if(ov && ov.had) continue; const mult=(dayFrom(w,d)===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
 function needQty(o){ return Object.keys(o.parts).map(u=>qtyStr(o.parts[u],u)).join(' + '); }
 function toggleLowByName(n){ const b=pantryByName(n); if(b){ write('app/basis',{low:{[b.id]:!S.basis.low[b.id]}}); } else { const id='u'+Date.now().toString(36); write('app/basis',{basisAdd:{[id]:{n:n,g:guessGroup(n)}}, low:{[id]:true}}); } }
 
@@ -523,11 +539,13 @@ function buildList(w, days, incl){
   for(let d=0; d<7; d++){
     if(days && days.indexOf(d)<0) continue;
     const dish = dishOn(w,d); if(!dish) continue;
+    const ov = dayOv(w,d); if(ov && ov.had) continue; // utsatt fra forrige uke: varene er kjøpt
+    const dd = dayFrom(w,d); // flyttet innen uka: regn varene fra dagen retten egentlig sto på
     (dish.i||[]).forEach(r=>{
       if(PN[r[0].toLowerCase()]) return; // står i skapet: havner på sjekklista
       const late = r[4] && d>=3;
-      const target = (CFG.padDay>=0 && r[4] && d>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
-      const mult = (d===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
+      const target = (CFG.padDay>=0 && r[4] && dd>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
+      const mult = (dd===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
       add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:dishSec(r), for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
     });
   }
@@ -626,10 +644,11 @@ function renderWeek(w){
     const id = dishAt(w,d); const dish = all[id]; const date = addDays(ws,d);
     (dish.tags||[]).forEach(t=>{ if(t in cnt) cnt[t]++; });
     const swapped = S.plan.swaps[w+'-'+d] && S.plan.swaps[w+'-'+d]!==baseAt(w,d);
+    const ov = dayOv(w,d); const ovChip = ov ? '<span class="chip c-helg">'+esc(ov.note || (ov.had ? 'Handlet forrige uke' : (ov.from!=null && ov.from!==d) ? 'Flyttet fra '+DAYN[ov.from].toLowerCase() : 'Bare denne uka'))+'</span>' : '';
     const isToday = +date===+today;
     rows += '<li class="day'+(isToday?' today':'')+'"><div class="dn"><b>'+DAYN[d]+'</b><small>'+fmt(date)+'</small></div>'+
-      '<div class="dish">'+(dayNote(w,d)?'<span class="eyebrow">'+esc(dayNote(w,d))+'</span>':'')+'<button class="name linkish" data-edit="'+id+'" aria-label="Rediger '+esc(dish.n)+'">'+esc(dish.n)+'</button><span class="meta">'+chips(dish.tags)+cz(dish)+(swapped?'<span class="chip c-bytta">Byttet</span>':'')+(isQuickDay(d) && id!=='rest' && !isQuick(dish)?'<span class="chip c-tex">Tar lengre tid</span>':'')+(dish.t?'<span>'+esc(dish.t)+'</span>':'')+((dish.m&&dish.m.length)?'<button class="linkish rlink" data-recipe="'+id+'|'+servingsAt(w,d)+'">Oppskrift</button>':dish.url?'<a class="rlink" href="'+esc(dish.url)+'" target="_blank" rel="noopener">Oppskrift ↗</a>':'')+'</span>'+(dish.note && id==='rest'?'<span class="note">'+esc(dish.note)+'</span>':'')+(husOn()?husLine(w,d):'')+'</div>'+
-      '<button class="btn small" data-swap="'+w+'-'+d+'" aria-label="Bytt middag '+DAYLONG[d]+'">Bytt</button></li>';
+      '<div class="dish">'+(dayNote(w,d)?'<span class="eyebrow">'+esc(dayNote(w,d))+'</span>':'')+'<button class="name linkish" data-edit="'+id+'" aria-label="Rediger '+esc(dish.n)+'">'+esc(dish.n)+'</button><span class="meta">'+chips(dish.tags)+cz(dish)+(swapped && !ov?'<span class="chip c-bytta">Byttet</span>':'')+ovChip+(isQuickDay(d) && id!=='rest' && !isQuick(dish)?'<span class="chip c-tex">Tar lengre tid</span>':'')+(dish.t?'<span>'+esc(dish.t)+'</span>':'')+((dish.m&&dish.m.length)?'<button class="linkish rlink" data-recipe="'+id+'|'+servingsAt(w,d)+'">Oppskrift</button>':dish.url?'<a class="rlink" href="'+esc(dish.url)+'" target="_blank" rel="noopener">Oppskrift ↗</a>':'')+'</span>'+(dish.note && id==='rest'?'<span class="note">'+esc(dish.note)+'</span>':'')+(husOn()?husLine(w,d):'')+'</div>'+
+      '<span class="daybtns"><button class="btn small" data-swap="'+w+'-'+d+'" aria-label="Bytt middag '+DAYLONG[d]+'">Bytt</button><button class="btn small" data-flytt="'+w+'-'+d+'" aria-label="Flytt middagen '+DAYLONG[d]+'">Flytt</button></span></li>';
   }
   if(CFG.padDay<0) UI.seg='stor';
   const V = viewOf(w); const L = V.L; const cur = V.cur; const days = V.days;
@@ -777,7 +796,8 @@ const NEWS = [
   {id:'2026-11-08', title:'Neste versjon', items:[
     ['Nye retter', 'Larb, en laotisk kjøttsalat med svin, urter og lime, servert i salatblader, og lammetagine med rosiner og mandler fra Marokko, en helgerett som putrer lenge. Finn dem under Rettene, og bytt dem inn i planen med «Bytt».'],
     ['Oppskriften i appen', 'Retter med fremgangsmåte har knappen «Oppskrift» i ukeplanen. Den viser varene regnet om til hvor mange dere er den dagen, og stegene, og skjermen holdes på mens dere lager mat. Under Rettene kan dere skrive inn fremgangsmåte for egne retter med «Rediger». Endrer dere en innebygd rett, får dere fortsatt med dere forbedringer vi gjør i resten av retten.'],
-    ['Hele pakker i handlelista', 'Trykk «Flytt varer» og så «Pakke» på en vare, og si hvor mye som er i én pakke, f.eks. 1 pose spinat = 200 g. Da legger lista sammen hele ukas behov og runder opp til hele pakker, også når det er dobbel porsjon. Pakkestørrelsene ser dere under Skapet.']]},
+    ['Hele pakker i handlelista', 'Trykk «Flytt varer» og så «Pakke» på en vare, og si hvor mye som er i én pakke, f.eks. 1 pose spinat = 200 g. Da legger lista sammen hele ukas behov og runder opp til hele pakker, også når det er dobbel porsjon. Pakkestørrelsene ser dere under Skapet.'],
+    ['Endre planene i siste liten', 'Trykk «Flytt» på en dag for å bytte plass med en annen dag den uka (de raske rettene står først), eller utsette retten til neste uke. Er varene allerede kjøpt, kommer de ikke på neste ukes liste. «Bytt» gjelder nå bare denne uka, med mindre dere velger «Fast i planen». Neste runde kommer den vanlige planen tilbake.']]},
   {id:'2026-11-07', title:'7. november', items:[
     ['Medlemskort under handlelista', 'Legg inn Coop, Trumf eller andre medlemskort nederst under handlelista. Trykk på kortet i kassen, så vises strekkoden stort på skjermen. Står det bare tall under strekkoden, skriver du dem inn. Nyere kort med mer sammensatte koder (f.eks. PDF417 eller QR) skanner du med en skanner-app og limer inn innholdet.'],
     ['Riktigere avdelinger for varer i egne retter', 'Varer appen ikke kjente, havnet før under Frukt og grønt, f.eks. salami og pesto. Nå blir salami Kjøtt, pesto, oliven og andre ting på glass Tørrvarer og hermetikk, og det appen ikke kjenner, havner under Annet. Der kan dere velge avdeling med «Flytt varer», så huskes det i alle retter.']]},
@@ -853,9 +873,31 @@ function renderPackEdit(el){
     '<div class="tools"><span class="right"><button class="btn primary" type="button" data-submit>Lagre</button></span>'+(pk?'<span class="right"><button class="btn small" type="button" data-packdel="'+esc(n)+'">Fjern pakkestørrelsen</button></span>':'')+'</div>'+
     '</form></div>';
 }
+function renderMove(el){
+  const [w,a] = UI.move.split('-').map(Number); const all = allDishes(); const aid = dishAt(w,a); const A = all[aid];
+  const row = (ww,d,attr) => { const id=dishAt(ww,d); const x=all[id]; const date=addDays(weekStart(ww),d);
+    return '<button class="opt" type="button" '+attr+'><span class="dish"><span class="name">'+DAYN[d]+' '+fmt(date)+': '+esc(x.n)+'</span><span class="meta">'+(isQuick(x)?'<span class="chip c-veg">Maks '+(CFG.maxMin||25)+' min</span>':'')+(x.t?'<span>'+esc(x.t)+'</span>':'')+(dayOv(ww,d)?'<span>endret denne uka</span>':'')+'</span></span><span class="used">Bytt plass</span></button>'; };
+  let days = [0,1,2,3,4,5,6].filter(d=>d!==a);
+  const quickFirst = aid!=='rest' && !isQuick(A);
+  if(quickFirst) days = days.filter(d=>isQuick(all[dishAt(w,d)])).concat(days.filter(d=>!isQuick(all[dishAt(w,d)])));
+  const w2 = nextWeekOf(w);
+  const anyOv = [0,1,2,3,4,5,6].some(d=>dayOv(w,d));
+  el.className='sheet'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Flytt middagen"><div class="shead"><div class="row"><h2>Flytt '+esc(A.n)+'</h2><button class="btn small" data-close>Avbryt</button></div>'+
+    '<p class="note">Fra '+DAYLONG[a]+' '+fmt(addDays(weekStart(w),a))+' Gjelder bare denne uka. Neste runde kommer den vanlige planen tilbake.</p></div>'+
+    '<div class="list">'+
+    '<div class="movehead"><h3>Bytt plass med en dag denne uka</h3><p class="note">'+(quickFirst?'Lite tid? De raske rettene står først. ':'')+'Handlelista blir den samme, for varene er de samme.</p></div>'+
+    days.map(d=>row(w,d,'data-flyttil="'+w+'|'+d+'"')).join('')+
+    (w2>=0 && aid!=='rest' ? '<div class="movehead"><h3>Ikke denne uka: utsett til Uke '+(w2+1)+'</h3><p class="note">Retten tar plassen til den som står der. Den hoppes over denne runden.</p>'+
+      '<button class="pchip small" type="button" data-flytthad aria-pressed="'+(UI.moveHad!==false)+'">Varene er allerede kjøpt</button>'+
+      '<p class="note">'+(UI.moveHad!==false ? 'Varene kommer ikke på handlelista for Uke '+(w2+1)+'.' : 'Varene kommer på handlelista for Uke '+(w2+1)+'.')+'</p></div>'+
+      [0,1,2,3,4,5,6].map(d=>row(w2,d,'data-flyttneste="'+w2+'|'+d+'"').replace('>Bytt plass<','>Flytt hit<')).join('') : '')+
+    (anyOv ? '<div class="movehead"><button class="btn small" type="button" data-flyttreset="'+w+'">Tilbake til planen for hele Uke '+(w+1)+'</button></div>' : '')+
+    '</div></div>';
+}
 function renderSheet(){
   const el = document.getElementById('sheet');
-  const kind = UI.news ? 'news' : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
+  const kind = UI.news ? 'news' : UI.move ? 'move:'+UI.move : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
   if(kind.indexOf('recipe:')!==0) wake(false);
   const same = !el.hidden && !!kind && el.dataset.kind===kind;
   if(same && kind==='news') return;
@@ -874,6 +916,7 @@ function renderSheetBody(el){
   if(UI.edit){ renderEditor(el); return; }
   if(UI.add){ renderAdd(el); return; }
   if(UI.recipe){ renderRecipe(el); return; }
+  if(UI.move){ renderMove(el); return; }
   if(!UI.sheet){ el.hidden = true; el.innerHTML=''; return; }
   const [w,d] = UI.sheet.split('-').map(Number);
   const all = allDishes(); const cur = dishAt(w,d);
@@ -886,11 +929,12 @@ function renderSheetBody(el){
     if(UI.filter==='rask') return isQuick(all[id]) || id==='rest';
     return t.indexOf(UI.filter)>=0;
   }).sort((a,b)=> (a==='rest')-(b==='rest') || all[a].n.localeCompare(all[b].n,'nb'));
-  const orig = baseAt(w,d);
+  const orig = baseAt(w,d); const ovd = dayOv(w,d);
   el.className='sheet'; el.hidden=false;
   el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Velg middag"><div class="shead"><div class="row"><h2>'+DAYN[d]+' i Uke '+(w+1)+(CFG.notes&&CFG.notes[d]?' <span class="note">· '+esc(CFG.notes[d])+'</span>':'')+'</h2><button class="btn small" data-close>Lukk</button></div>'+
     '<div class="filters">'+Object.keys(F).map(k=>'<button class="btn small" data-filter="'+k+'" aria-pressed="'+(UI.filter===k)+'" style="'+(UI.filter===k?'background:var(--accent);color:var(--accent-ink);border-color:var(--accent)':'')+'">'+F[k]+'</button>').join('')+'</div>'+
-    (cur!==orig?'<button class="btn small" data-pick="'+orig+'">Tilbake til opprinnelig: '+esc(all[orig].n)+'</button>':'')+'</div>'+
+    '<div class="seg" role="group" aria-label="Hvor lenge"><button data-pickscope="uke" aria-pressed="'+!UI.pickFast+'">Bare denne uka<small>Vanlig plan neste runde</small></button><button data-pickscope="fast" aria-pressed="'+!!UI.pickFast+'">Fast i planen<small>Hver gang Uke '+(w+1)+' kommer</small></button></div>'+
+    (ovd && !UI.pickFast ? '<button class="btn small" data-pick="'+planAt(w,d)+'">Tilbake til planen: '+esc(all[planAt(w,d)].n)+'</button>' : (UI.pickFast && planAt(w,d)!==orig) ? '<button class="btn small" data-pick="'+orig+'">Tilbake til opprinnelig: '+esc(all[orig].n)+'</button>' : '')+'</div>'+
     '<div class="list">'+ids.map(id=>{ const u=usage(id); return '<button class="opt'+(id===cur?' cur':'')+'" data-pick="'+id+'"><span class="dish"><span class="name">'+esc(all[id].n)+'</span><span class="meta">'+chips(all[id].tags)+cz(all[id])+(all[id].t?'<span>'+esc(all[id].t)+'</span>':'')+'</span></span><span class="used">'+(u.length?esc(u.join(', ')):'I banken')+'</span></button>'; }).join('')+'</div></div>';
 }
 function render(){
@@ -1504,19 +1548,36 @@ document.addEventListener('click', e=>{
   const t = e.target.closest('button'); if(!t) return;
   if(husClick(t)) return;
   if(kortClick(t)) return;
+  if(t.dataset.flytt){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.moveHad=true; UI.move=t.dataset.flytt; render(); return; }
+  if(t.hasAttribute('data-flytthad')){ UI.moveHad = UI.moveHad===false; render(); return; }
+  if(t.dataset.flyttil){ const [w,b]=t.dataset.flyttil.split('|').map(Number); const a=+UI.move.split('-')[1]; UI.move=null;
+    const A={id:dishAt(w,a), from:dayFrom(w,a), had:!!(dayOv(w,a)||{}).had}, B={id:dishAt(w,b), from:dayFrom(w,b), had:!!(dayOv(w,b)||{}).had};
+    setWeek(w,{day:{[a]:ovVal(w,a,B.id,B.from,B.had), [b]:ovVal(w,b,A.id,A.from,A.had)}});
+    const all=allDishes(); const later = b>a ? A.id : B.id; const laterDay = DAYLONG[Math.max(a,b)];
+    toast(all[A.id].n+' er flyttet til '+DAYLONG[b]+', og '+all[B.id].n+' til '+DAYLONG[a]+'.'+freshWarn(later, laterDay)); return; }
+  if(t.dataset.flyttneste){ const [w2,b]=t.dataset.flyttneste.split('|').map(Number); const [w,a]=UI.move.split('-').map(Number); const had = UI.moveHad!==false; UI.move=null;
+    const id=dishAt(w,a); const all=allDishes(); const dTxt=DAYN[b].toLowerCase()+' '+fmt(addDays(weekStart(w2),b));
+    setWeek(w,{day:{[a]:ovVal(w,a,'rest',null,false,'Utsatt til '+dTxt)}});
+    setWeek(w2,{day:{[b]:ovVal(w2,b,id,null,had)}});
+    toast(all[id].n+' er flyttet til '+dTxt+(had ? freshWarn(id, DAYLONG[b]) : '')); return; }
+  if(t.dataset.flyttreset!=null){ const w=+t.dataset.flyttreset; const p={}; for(let d=0;d<7;d++) if((weekDoc(w).day||{})[d]) p[d]=null; UI.move=null; setWeek(w,{day:p}); toast('Uke '+(w+1)+' følger planen igjen.'); return; }
   if(t.dataset.pack){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.pack=t.dataset.pack; render(); const q=document.getElementById('pack-q'); if(q) q.focus({preventScroll:true}); return; }
   if(t.dataset.packdel){ const n=t.dataset.packdel; UI.pack=null; write('app/basis',{pack:{[n.toLowerCase()]:null}}); return; }
   if(t.dataset.recipe){ const r=t.dataset.recipe.split('|'); UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.recipe=r[0]+'|'+(+r[1]||CFG.servings); render(); return; }
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
-  if(t.dataset.swap){ UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
-  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; render(); return; }
+  if(t.dataset.swap){ UI.pickFast=false; UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
+  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; render(); return; }
   if(t.dataset.addopen){ UI.add=t.dataset.addopen; UI.addSec=''; UI.sheet=null; UI.edit=null; render(); const i=document.getElementById('add-n'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.asec!=null){ UI.addSec=t.dataset.asec; document.querySelectorAll('[data-asec]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.asec===UI.addSec))); return; }
   if(t.dataset.edit){ UI.sheet=null; UI.edit=t.dataset.edit; render(); const f=document.getElementById('ed-n'); if(f) f.focus({preventScroll:true}); return; }
   if(t.dataset.resetdish){ const id=t.dataset.resetdish; UI.edit=null; write('app/plan',{edits:{[id]:null}}); toast('Retten er tilbake slik den var.'); return; }
   if(t.dataset.filter){ UI.filter=t.dataset.filter; render(); return; }
-  if(t.dataset.pick){ const key=UI.sheet; const [w,d]=key.split('-').map(Number); const id=t.dataset.pick; UI.sheet=null; write('app/plan',{swaps:{[key]: id===baseAt(w,d) ? null : id}}); toast(DAYN[d]+' i Uke '+(w+1)+': '+allDishes()[id].n); return; }
+  if(t.dataset.pickscope){ UI.pickFast = t.dataset.pickscope==='fast'; render(); return; }
+  if(t.dataset.pick){ const key=UI.sheet; const [w,d]=key.split('-').map(Number); const id=t.dataset.pick; UI.sheet=null;
+    if(UI.pickFast){ if(dayOv(w,d)) setWeek(w,{day:{[d]:null}}); write('app/plan',{swaps:{[key]: id===baseAt(w,d) ? null : id}}); toast(DAYN[d]+' i Uke '+(w+1)+', fast i planen: '+allDishes()[id].n); }
+    else { setWeek(w,{day:{[d]: ovVal(w,d,id,null,false)}}); toast(DAYN[d]+' denne uka: '+allDishes()[id].n+'. Neste runde kommer den vanlige planen tilbake.'); }
+    return; }
   if(t.dataset.low){ const id=t.dataset.low; write('app/basis',{low:{[id]:!S.basis.low[id]}}); return; }
   if(t.dataset.lowname){ toggleLowByName(t.dataset.lowname); return; }
   if(t.hasAttribute('data-addpantry')){ const n=UI.pq.trim(); if(!n) return; const g=(document.getElementById('pantry-g')||{}).value||guessGroup(n); const id='u'+Date.now().toString(36); UI.pq=''; const qi=document.getElementById('pantry-q'); if(qi) qi.value=''; write('app/basis',{basisAdd:{[id]:{n:n,g:g}}, low:{[id]:true}}); toast(n+' er lagt i skapet og merket som tomt.'); return; }
@@ -1629,8 +1690,8 @@ document.addEventListener('click', e=>{ const b=e.target.closest('button[data-su
 document.addEventListener('keydown', e=>{ if(e.key!=='Enter') return; const t=e.target; if(!t || t.tagName!=='INPUT' || t.type==='checkbox') return; const f=t.closest('form'); if(!f) return; e.preventDefault(); handleForm(f); });
 document.addEventListener('input', e=>{ if(e.target.id==='kort-v'){ kortPreview(); return; } if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
 document.addEventListener('toggle', e=>{ const d=e.target; if(d && d.dataset && d.dataset.openkey) UI.open[d.dataset.openkey]=d.open; }, true);
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; render(); } });
-document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; render(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack||UI.move)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; render(); } });
+document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; render(); } });
 
 // ---------- Rolig oppdatering: ikke tegn siden på nytt mens noen berører eller scroller ----------
 const lastSnap = {};
