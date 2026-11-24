@@ -10,6 +10,7 @@ Les dette før du endrer noe. Brukeren skriver norsk, og all tekst i appen, i co
 - `tool/` er verktøyet for Light Phone III. Det leser dokumentet `lp3`, som nettsiden skriver.
 - Resten (`sdk/`, `plugin/`, `gradle/` osv.) er Light SDK. Ikke endre der.
 - Planer og ideer står i `ROADMAP.md`.
+- Forslag til nye innebygde retter (kuratert av eieren) står i `RETTER.md`. Når brukeren sender en oppskriftslenke, føres den opp der, og den bygges inn i `D` etter reglene i fila.
 
 ## Arbeidsflyt: endringer samles i versjoner
 
