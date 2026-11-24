@@ -6,6 +6,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 - **Bruk det som ligger i fryseren:** ligger noe i fryseren som en rett i uka trenger, viser handlelista «Fra fryseren» med «Bruk fra fryseren» (varen kommer ikke på lista, `frysUse` i ukedokumentet) og «Ikke nå» (`frysIgn`). Varer med oppgitt mengde blir liggende i fryseren, de uten mengde tas ut. «Kjøp likevel» angrer. På handledagen sier det gule feltet fra.
 - **Tilbakemelding:** under Oppsett kan husstander melde fra om feil eller ønske seg noe nytt (Netlify Forms, «tilbakemelding»), med frivillig teknisk info. Versjonen står under «Nytt i Middagshjulet». Begge skjemaene sier at Netlify lagrer IP-adresse og nettleser.
+- **Kartong som pakning:** «kartong» kan velges som pakning, og «l» som mål. Liter og desiliter (og kg og g) regnes om, så de legges sammen før det rundes opp til hele pakker.
 
 ## Vurderes for neste versjon
 
