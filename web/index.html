@@ -282,6 +282,7 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 <body>
 <!-- Netlify Forms: skjemaet «forslag» finnes her så Netlify oppdager det ved publisering. Appen sender med fetch (se forslagSend). -->
 <form name="forslag" data-netlify="true" netlify-honeypot="bot-field" hidden><input name="lenke"><input name="rett"><textarea name="kommentar"></textarea><input name="fra"><input name="bot-field"></form>
+<form name="tilbakemelding" data-netlify="true" netlify-honeypot="bot-field" hidden><input name="type"><input name="hvor"><textarea name="hva"></textarea><input name="epost"><input name="versjon"><input name="fane"><input name="skjerm"><input name="tid"><input name="bot-field"></form>
 
 <div class="wrap">
   <header class="top">
@@ -885,6 +886,8 @@ function renderAdd(el){
 // ---------- Nytt i Middagshjulet ----------
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
+  {id:'2026-11-25', title:'Neste versjon', items:[
+    ['Meld fra om feil og ønsker', 'Under Oppsett kan dere melde fra om noe som ikke virker, eller ønske dere noe nytt. Der står også hvilken versjon av appen dere har.']]},
   {id:'2026-11-24.2', title:'24. november, del 2', items:[
     ['Tøm fryseren', 'Under Skapet kan dere skrive inn hva som ligger i fryseren. «Tøm fryseren» foreslår retter dere har som bruker det, og setter dem inn i planen denne eller neste uke. Varene fra fryseren kommer ikke på handlelista den dagen, og tas ut av fryseren.'],
     ['Foreslå en rett til alle', 'Har dere en god oppskrift på nett? Under Rettene kan dere sende lenken som forslag til de innebygde rettene som alle husstander får.'],
@@ -995,11 +998,40 @@ function renderMove(el){
 // ---------- Forslag til nye innebygde retter ----------
 // Sendes til Netlify Forms (skjemaet «forslag»). Kuratoren ser forslagene i Netlify under Forms, og de føres inn i RETTER.md.
 // Husstandslenken sendes ikke med.
+function netlifyPost(data){ return fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(data).toString()}).then(r=>{ if(!r.ok) throw new Error(r.status); return r; }); }
+// ---------- Tilbakemelding: feil og ønsker ----------
+// Sendes til Netlify Forms (skjemaet «tilbakemelding»). Teknisk info (versjon, fane, skjerm, tid) sendes bare hvis det er krysset av,
+// og aldri husstandslenken eller husstandens data.
+const FB_HVOR = [['ukeplan','Ukeplanen'],['handleliste','Handlelista'],['retter','Rettene'],['skapet','Skapet'],['husarbeid','Husarbeid'],['kort','Medlemskort'],['oppsett','Oppsett'],['annet','Annet']];
+function appVersion(){ return NEWS && NEWS[0] ? NEWS[0].title : ''; }
+function renderFeedback(el){
+  const t = UI.feedback==='onske' ? 'onske' : 'feil';
+  el.className='sheet top'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Tilbakemelding"><div class="shead"><div class="row"><h2>'+(t==='feil'?'Meld fra om en feil':'Ønsk dere noe nytt')+'</h2><button class="btn small" data-close>Avbryt</button></div>'+
+    '<div class="seg" role="group" aria-label="Type"><button type="button" data-fbtype="feil" aria-pressed="'+(t==='feil')+'">Noe virker ikke</button><button type="button" data-fbtype="onske" aria-pressed="'+(t==='onske')+'">Ønske eller idé</button></div></div>'+
+    '<form class="form edlist" data-fbform>'+
+    '<label class="field">'+(t==='feil'?'Hva skjedde?':'Hva ønsker dere dere?')+'<textarea id="fb-hva" rows="5" placeholder="'+(t==='feil'?'F.eks. handlelista viste to poser spinat, men retten trenger bare litt':'F.eks. at appen kan foreslå hva vi bør handle til frokost')+'"></textarea></label>'+
+    '<label class="field">Hvor i appen<select class="secsel" id="fb-hvor">'+FB_HVOR.map(o=>'<option value="'+o[0]+'"'+(((UI.tab||'').charAt(0)==='w'&&o[0]==='ukeplan')||UI.tab===o[0]||(UI.tab==='hus'&&o[0]==='husarbeid')?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></label>'+
+    '<label class="field">E-post (valgfritt, hvis dere vil ha svar)<input id="fb-epost" type="email" inputmode="email" autocomplete="email"></label>'+
+    '<div class="checks"><label><input type="checkbox" id="fb-tek" checked> Ta med teknisk info (versjon '+esc(appVersion())+', fane og skjermstørrelse)</label></div>'+
+    '<p class="note">Lenken til husstanden og det som står i planen, sendes ikke med. '+'Netlify, som drifter siden, lagrer også IP-adressen og nettleseren til den som sender.'+'</p>'+
+    '<div class="tools"><span class="right"><button class="btn primary" type="button" data-submit>Send</button></span></div>'+
+    '</form></div>';
+}
+function feedbackSend(){
+  const hva = (document.getElementById('fb-hva').value||'').trim(); if(!hva){ toast('Skriv litt om hva det gjelder.'); return; }
+  const tek = document.getElementById('fb-tek').checked;
+  const data = {'form-name':'tilbakemelding', 'bot-field':'', type: UI.feedback==='onske' ? 'Ønske' : 'Feil', hvor: document.getElementById('fb-hvor').value, hva: hva, epost: (document.getElementById('fb-epost').value||'').trim(),
+    versjon: tek ? appVersion() : '', fane: tek ? String(UI.tab||'') : '', skjerm: tek ? (window.innerWidth+'×'+window.innerHeight) : '', tid: tek ? new Date().toISOString() : ''};
+  const btn = document.querySelector('[data-fbform] [data-submit]'); if(btn){ btn.disabled=true; btn.textContent='Sender …'; }
+  netlifyPost(data).then(()=>{ UI.feedback=null; render(); toast('Takk! Tilbakemeldingen er sendt.'); })
+    .catch(()=>{ if(btn){ btn.disabled=false; btn.textContent='Send'; } toast('Fikk ikke sendt. Sjekk nettet og prøv igjen.'); });
+}
 function urlKey(u){ try{ const x=new URL(u); return (x.hostname.replace(/^www\./,'')+x.pathname.replace(/\/+$/,'')).toLowerCase(); }catch(e){ return String(u||'').toLowerCase(); } }
 function renderForslag(el){
   el.className='sheet top'; el.hidden=false;
   el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Foreslå en rett"><div class="shead"><div class="row"><h2>Foreslå en rett</h2><button class="btn small" data-close>Avbryt</button></div>'+
-    '<p class="note">Forslaget sendes til den som velger de innebygde rettene. Lenken til husstanden deres sendes ikke med.</p></div>'+
+    '<p class="note">Forslaget sendes til den som velger de innebygde rettene. Lenken til husstanden deres sendes ikke med. Netlify, som drifter siden, lagrer også IP-adressen og nettleseren til den som sender.</p></div>'+
     '<form class="form edlist" data-forslagform>'+
     '<label class="field">Lenke til oppskriften<input id="fs-lenke" type="url" inputmode="url" placeholder="https://www.matprat.no/oppskrifter/…" autocomplete="off"></label>'+
     '<label class="field">Navn på retten (valgfritt)<input id="fs-rett" autocomplete="off"></label>'+
@@ -1016,13 +1048,13 @@ function forslagSend(){
   if(has){ toast('Den finnes allerede: '+all[has].n+'.'); return; }
   const data = {'form-name':'forslag', 'bot-field':'', lenke:lenke, rett:(document.getElementById('fs-rett').value||'').trim(), kommentar:(document.getElementById('fs-kommentar').value||'').trim(), fra:(document.getElementById('fs-fra').value||'').trim()};
   const btn = document.querySelector('[data-forslagform] [data-submit]'); if(btn){ btn.disabled=true; btn.textContent='Sender …'; }
-  fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(data).toString()})
-    .then(r=>{ if(!r.ok) throw new Error(r.status); UI.forslag=null; render(); toast('Takk! Forslaget er sendt.'); })
+  netlifyPost(data)
+    .then(()=>{ UI.forslag=null; render(); toast('Takk! Forslaget er sendt.'); })
     .catch(()=>{ if(btn){ btn.disabled=false; btn.textContent='Send forslaget'; } toast('Fikk ikke sendt forslaget. Sjekk nettet og prøv igjen.'); });
 }
 function renderSheet(){
   const el = document.getElementById('sheet');
-  const kind = UI.news ? 'news' : UI.forslag ? 'forslag' : UI.frys ? 'frys:'+(UI.frysPick||'') : UI.move ? 'move:'+UI.move : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
+  const kind = UI.news ? 'news' : UI.feedback ? 'feedback:'+UI.feedback : UI.forslag ? 'forslag' : UI.frys ? 'frys:'+(UI.frysPick||'') : UI.move ? 'move:'+UI.move : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
   if(kind.indexOf('recipe:')!==0) wake(false);
   const same = !el.hidden && !!kind && el.dataset.kind===kind;
   if(same && kind==='news') return;
@@ -1036,6 +1068,7 @@ function renderSheetBody(el){
   if(UI.news){ renderNews(el); return; }
   if(UI.pack){ renderPackEdit(el); return; }
   if(UI.forslag){ renderForslag(el); return; }
+  if(UI.feedback){ renderFeedback(el); return; }
   if(UI.frys){ renderFrys(el); return; }
   if(UI.husEdit){ renderHusEdit(el); return; }
   if(UI.kortEdit){ renderKortEdit(el); return; }
@@ -1553,7 +1586,8 @@ function husForm(f){
 }
 function renderOppsett(){
   return renderOppsettInner() + renderPeople() + renderHusSetup() + renderShare() + renderLp3() +
-    '<div class="card"><div class="cardhead"><h2>Nytt i Middagshjulet</h2><p class="note">Det som er nytt i de siste oppdateringene.</p></div><div class="form"><div><button class="btn" data-news>Vis nyhetene</button></div></div></div>';
+    '<div class="card"><div class="cardhead"><h2>Tilbakemelding</h2><p class="note">Er det noe som ikke virker, eller noe dere skulle ønske appen kunne? Si fra, så blir det sett på.</p></div><div class="form"><div class="tools"><span class="right"><button class="btn" data-feedback="feil">Meld fra om en feil</button><button class="btn" data-feedback="onske">Ønsk dere noe nytt</button></span></div></div></div>'+
+    '<div class="card"><div class="cardhead"><h2>Nytt i Middagshjulet</h2><p class="note">Det som er nytt i de siste oppdateringene.</p></div><div class="form"><div><button class="btn" data-news>Vis nyhetene</button></div><p class="note">Versjon: '+esc(appVersion())+'</p></div></div>';
 }
 function renderPeople(){
   const weeks = [0,1,2,3].map(w=>{ const n=servingsWeek(w); const ws=weekStart(w);
@@ -1676,6 +1710,8 @@ document.addEventListener('click', e=>{
   if(husClick(t)) return;
   if(kortClick(t)) return;
   if(frysClick(t)) return;
+  if(t.dataset.feedback){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.feedback=t.dataset.feedback; render(); const i=document.getElementById('fb-hva'); if(i) i.focus({preventScroll:true}); return; }
+  if(t.dataset.fbtype){ UI.feedback=t.dataset.fbtype; render(); return; }
   if(t.hasAttribute('data-forslag')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.forslag=true; render(); const i=document.getElementById('fs-lenke'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.flytt){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.moveHad=true; UI.move=t.dataset.flytt; render(); return; }
   if(t.hasAttribute('data-flytthad')){ UI.moveHad = UI.moveHad===false; render(); return; }
@@ -1701,7 +1737,7 @@ document.addEventListener('click', e=>{
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
   if(t.dataset.swap){ UI.pickFast=false; UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
-  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); return; }
+  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; UI.feedback=null; render(); return; }
   if(t.dataset.addopen){ UI.add=t.dataset.addopen; UI.addSec=''; UI.sheet=null; UI.edit=null; render(); const i=document.getElementById('add-n'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.asec!=null){ UI.addSec=t.dataset.asec; document.querySelectorAll('[data-asec]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.asec===UI.addSec))); return; }
   if(t.dataset.edit){ UI.sheet=null; UI.edit=t.dataset.edit; render(); const f=document.getElementById('ed-n'); if(f) f.focus({preventScroll:true}); return; }
@@ -1774,6 +1810,7 @@ document.addEventListener('change', e=>{
 });
 function handleForm(f){
   if(f.hasAttribute('data-forslagform')){ forslagSend(); return; }
+  if(f.hasAttribute('data-fbform')){ feedbackSend(); return; }
   if(frysForm(f)) return;
   if(f.hasAttribute('data-packform')){ const n=UI.pack.split('|')[0]; const q=parseFloat(String(document.getElementById('pack-q').value).replace(',','.'));
     if(!(q>0)){ toast('Skriv hvor mye som er i én pakke.'); return; }
@@ -1826,8 +1863,8 @@ document.addEventListener('click', e=>{ const b=e.target.closest('button[data-su
 document.addEventListener('keydown', e=>{ if(e.key!=='Enter') return; const t=e.target; if(!t || t.tagName!=='INPUT' || t.type==='checkbox') return; const f=t.closest('form'); if(!f) return; e.preventDefault(); handleForm(f); });
 document.addEventListener('input', e=>{ if(e.target.id==='kort-v'){ kortPreview(); return; } if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
 document.addEventListener('toggle', e=>{ const d=e.target; if(d && d.dataset && d.dataset.openkey) UI.open[d.dataset.openkey]=d.open; }, true);
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack||UI.move||UI.frys||UI.forslag)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); } });
-document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack||UI.move||UI.frys||UI.forslag||UI.feedback)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; UI.feedback=null; render(); } });
+document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; UI.feedback=null; render(); } });
 
 // ---------- Rolig oppdatering: ikke tegn siden på nytt mens noen berører eller scroller ----------
 const lastSnap = {};
