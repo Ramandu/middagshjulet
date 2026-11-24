@@ -4,6 +4,8 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
+- **Foreslå en rett til alle:** skjema under Rettene som sender lenke, navn, kommentar og avsender til Netlify Forms («forslag»). Lenker som finnes fra før, stoppes i appen. Eieren kuraterer (se `CLAUDE.md`).
+- **Fullstendige oppskrifter for retter uten lenke:** 16 retter har fått oppskrift fra Matprat eller Tine, med ingredienser og mengder derfra (regnet om til 5) og skapvarer. Den gamle tabellen `SKAP` beholder bare husstandens vaner. Worcestershiresaus står i standardskapet. Fortsatt uten lenke: Saritas korma (ferdig saus), lammetagine (bok) og kyllingformen (ingen oppskrift funnet).
 - **Tøm fryseren:** under Skapet skriver husstanden inn hva som ligger i fryseren (`basis.frys`). «Tøm fryseren» foreslår retter dere har som bruker varene (gjenkjenning på ord og ordstart), og setter dem inn i planen denne eller neste uke (bare den uka, `day.frys`). Varene fra fryseren kommer ikke på handlelista den dagen, og kan tas ut av fryseren.
 
 ## Vurderes for neste versjon
@@ -28,6 +30,7 @@ Utvide fanen «Rettene» med en sammenfoldet seksjon, «Fra andre husstander», 
 Vise dagens oppgaver fra husarbeid i Light Phone-verktøyet. Det krever endringer både i `lp3`-dokumentet og i `tool/`.
 
 ### Faktiske mengder i de innebygde rettene
+Retter uten lenke er gjort (se «Neste versjon»). Det som gjenstår, er rettene som allerede hadde lenke.
 Rundt 100 varer i de innebygde rettene står i pakninger (pose, pakke, potte, beger, glass, bunt). Der oppskriften bruker mindre enn en pakning, skal de få den faktiske mengden, slik at dobling og flere retter gir riktige mengder. Begynn med det som oftest gir rare mengder: spinat, urter i potte, revet ost, rømme og crème fraîche. Butter chicken er rettet (spinat 65 g for 4).
 
 - 32 av 52 innebygde retter har lenke til oppskriften. For å lese dem må skymiljøet ha tilgang til disse nettstedene: `www.matprat.no` (21 retter), `vegetarentusiast.no`, `www.tine.no`, `www.saritas.no`, `www.etkjokken.com`, `gladkokken.no`, `detgladekjokken.no` og `aichasmat.no`. Eieren må godkjenne det fra en PC (det gikk ikke fra telefonen 2026-11-14). Spør igjen når eieren sitter ved PC.

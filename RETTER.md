@@ -17,6 +17,10 @@ Retter som foreslås til de innebygde rettene i appen (`D` i `web/index.html`), 
 
 Flere retter samles før de sendes inn til `neste` i én pull request.
 
+## Forslag fra brukere
+
+Brukere sender forslag fra appen (Rettene → «Foreslå en rett til alle»). De ligger i Netlify under Forms → «forslag», og føres inn her når eieren har sett på dem.
+
 ## Forslag
 
 | Dato | Rett | Lenke | Merknad |
