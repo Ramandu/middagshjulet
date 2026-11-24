@@ -239,6 +239,7 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .item.arr label{flex:1 1 0}
 .item.arr .arrctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex-basis:100%;padding-left:32px}
 .item.arr .arrctl .secsel{flex:1 1 7em;width:auto;min-width:0}
+.frysform{display:flex;flex-direction:column;gap:8px}
 .daybtns{display:flex;flex-direction:column;gap:6px}
 .movehead{padding:12px 16px 6px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
 .movehead:first-child{border-top:0}
@@ -279,6 +280,8 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 </style>
 </head>
 <body>
+<!-- Netlify Forms: skjemaet «forslag» finnes her så Netlify oppdager det ved publisering. Appen sender med fetch (se forslagSend). -->
+<form name="forslag" data-netlify="true" netlify-honeypot="bot-field" hidden><input name="lenke"><input name="rett"><textarea name="kommentar"></textarea><input name="fra"><input name="bot-field"></form>
 
 <div class="wrap">
   <header class="top">
@@ -320,24 +323,24 @@ const PLURAL = {boks:'bokser',pose:'poser',bunt:'bunter',bit:'biter',flaske:'fla
 
 // i: [navn, mengde, enhet, avdeling, fersk (kjøpes på mandag hvis retten er tir/ons)]
 const D = {
- taco:{n:'Taco',tags:['tex'],t:'30 min',i:[['Kjøttdeig',600,'g','k',1],['Tacokrydder',1,'pose','t'],['Tacolefser eller -skjell',1,'pk','b'],['Tacosaus',1,'glass','t'],['Mais',1,'boks','t'],['Isbergsalat',1,'stk','g'],['Agurk',1,'stk','g'],['Tomater',4,'stk','g'],['Paprika',1,'stk','g'],['Rømme',1,'beger','m'],['Revet ost',1,'pose','m']]},
+ taco:{n:'Taco',tags:['tex'],t:'40 min',url:'https://www.matprat.no/oppskrifter/familien/taco/',rating:'Matprat · 4,5 av 5',note:'Matprats oppskrift er for 4. Grønnsakene, osten og sausene settes frem i skåler, så alle lager sin egen. Paprika er lagt til.',i:[['Kjøttdeig',500,'g','k',1],['Tacoskjell eller tortillalefser',1,'pk','b'],['Revet ost',250,'g','m'],['Agurk',1,'stk','g'],['Tomater',3,'stk','g'],['Paprika',1,'stk','g'],['Hjertesalat',1,'stk','g',1],['Rømme',1,'beger','m'],['Salsa',1,'glass','t'],['Guacamole',1,'boks','m']],k:[['Tacokrydder',1,'pose'],['Mais',1,'boks'],['Løk',1,'stk'],['Matolje',null,'']]},
  enchiladas:{n:'Enchiladas med spinat og artisjokk',tags:['tex','veg'],t:'1 t',url:'https://vegetarentusiast.no/enchiladas/',note:'Vegetarentusiasts oppskrift er for 4. Guacamole og salsa er med. Edamame er valgfritt.',i:[['Tortillalefser, store',8,'stk','b'],['Rødløk',2,'stk','g'],['Artisjokkhjerter',1,'boks','t'],['Spinat, fersk',250,'g','g'],['Edamamebønner (valgfritt)',1,'pose','z'],['Kokoskrem eller crème fraîche',1,'beger','m'],['Revet ost',1,'pose','m'],['Koriander, fersk',1,'potte','g'],['Avokado',3,'stk','g'],['Lime',2,'stk','g'],['Syltet jalapeño',1,'glass','t'],['Cherrytomater',150,'g','g'],['Rød chili',1,'stk','g']],k:[['Sorte bønner',1,'boks'],['Tomatpuré',6,'ss'],['Buljong',1,'terning'],['Chilipulver',null,''],['Spisskummen',null,''],['Oregano',null,''],['Hvitløk',10,'fedd'],['Soyasaus',null,''],['Olivenolje',null,'']]},
- quesadillas:{n:'Quesadillas',tags:['tex'],t:'25 min',note:'Kyllingen kan byttes med bønner eller rester.',i:[['Tortillalefser',1,'pk','b'],['Kyllinglårfilet',400,'g','k',1],['Revet ost',2,'pose','m'],['Mais',1,'boks','t'],['Paprika',1,'stk','g'],['Rømme',1,'beger','m'],['Salsa',1,'glass','t']]},
- chili:{n:'Chili con carne med ris',tags:['tex'],t:'45 min',note:'Mye er passiv putring. Ta ut barnas porsjon før ekstra chili.',i:[['Kjøttdeig',600,'g','k',1],['Løk',1,'stk','g'],['Paprika',1,'stk','g'],['Hermetiske tomater',2,'boks','t'],['Kidneybønner',1,'boks','t'],['Mais',1,'boks','t'],['Rømme',1,'beger','m'],['Revet ost',1,'pose','m']]},
- pizza:{n:'Pizza i langpanne',tags:['helg'],t:'1 t',note:'Mel og tørrgjær fra skapet.',i:[['Knuste tomater',1,'boks','t'],['Revet pizzaost',2,'pose','m'],['Skinke',1,'pk','k'],['Pepperoni',1,'pk','k'],['Paprika',1,'stk','g'],['Mais',1,'boks','t']]},
- korma:{n:'Saritas chicken korma med ris og naan',c:'Indisk',tags:[],t:'20 min',note:'Ferdig saus fra butikken. Ris fra skapet.',i:[['Kyllingfilet',800,'g','k',1],['Saritas korma-saus',1,'glass','t'],['Naanbrød',1,'pk','b']]},
- fiskekaker:{n:'Fiskekaker og makaronistuing',tags:['fisk'],t:'25 min',note:'Stuing av makaroni, smør, mel og melk fra skapet. Gulrøtter som råkost.',i:[['Fiskekaker',800,'g','f',1],['Gulrøtter',5,'stk','g']]},
+ quesadillas:{n:'Quesadillas',tags:['tex'],t:'15 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/kylling-og-fjarkre/quesadilla-med-kylling',rating:'Tine · 4 av 5',note:'Tines oppskrift er for 4. Kyllingen kan byttes med bønner eller rester.',i:[['Kyllingfilet',375,'g','k',1],['Tortillalefser, store',5,'stk','b'],['Revet ost',375,'g','m'],['Paprika',1,'stk','g'],['Vårløk',1,'bunt','g',1],['Rømme',1,'beger','m'],['Lime',1,'stk','g']],k:[['Tacokrydder',1,'pose'],['Mais',1,'boks'],['Smør',1,'ss']]},
+ chili:{n:'Chili con carne med ris',tags:['tex'],t:'40 min',url:'https://www.matprat.no/oppskrifter/rask/chili-con-carne/',rating:'Matprat · 4,7 av 5',note:'Matprats oppskrift er for 4. Mye er passiv putring. Ta ut barnas porsjon før ekstra chili. Ris, rømme og ost er tilbehør.',i:[['Kjøttdeig',500,'g','k',1],['Rød chili',1,'stk','g'],['Chilibønner',1,'boks','t'],['Paprika, rød',1,'stk','g'],['Paprika, grønn',1,'stk','g'],['Rømme',1,'beger','m'],['Revet ost',1,'pose','m']],k:[['Løk',1,'stk'],['Hvitløk',3,'fedd'],['Hermetiske tomater',1,'boks'],['Chilipulver',2,'ts'],['Spisskummen',0.5,'ts'],['Salt',0.5,'ts'],['Matolje',null,''],['Ris',500,'g']]},
+ pizza:{n:'Pizza i langpanne',tags:['helg'],t:'1 t 20 min',url:'https://www.matprat.no/oppskrifter/kos/langpannepizza/',rating:'Matprat · 4,7 av 5',note:'Matprats langpannepizza med kjøttdeig, oppskriften er for 4. Deigen skal heve til dobbel størrelse. Skinke eller pepperoni passer også som fyll.',i:[['Gjær, fersk',1,'pk','m'],['Kjøttdeig',500,'g','k',1],['Revet ost',375,'g','m'],['Paprika, rød',1,'stk','g']],k:[['Hvetemel',9,'dl'],['Matolje',2.5,'ss'],['Salt',0.5,'ts'],['Smør',null,''],['Løk',1,'stk'],['Hvitløk',1,'fedd'],['Tomatpuré',2.5,'ss'],['Hermetiske tomater',1,'boks'],['Oregano',3,'ts'],['Sukker',2.5,'ts']]},
+ korma:{n:'Saritas chicken korma med ris og naan',c:'Indisk',tags:[],t:'20 min',note:'Ferdig saus fra butikken. Ris fra skapet.',i:[['Kyllingfilet',800,'g','k',1],['Saritas korma-saus',1,'glass','t'],['Naanbrød',1,'pk','b']],k:[['Ris',500,'g']]},
+ fiskekaker:{n:'Fiskekaker og makaronistuing',tags:['fisk'],t:'25 min',url:'https://www.matprat.no/oppskrifter/familien/hverdagskaker/',rating:'Matprat · 4,8 av 5',note:'Makaronistuingen er fra Matprats «Hverdagskaker» (kjøttkaker med stuing), oppskriften er for 4. Her med fiskekaker, og gulrøtter som råkost.',i:[['Fiskekaker',800,'g','f',1],['Gulrøtter',5,'stk','g']],k:[['Makaroni',4.5,'dl'],['Smør',2.5,'ss'],['Hvetemel',4,'ss'],['Melk',6,'dl'],['Muskat',null,''],['Salt',null,''],['Pepper',null,'']]},
  linsegryte:{n:'Lynrask linsegryte',tags:['veg'],t:'15 min',url:'https://vegetarentusiast.no/linsegryte/',note:'Vegetarentusiasts oppskrift er for 3. Server med naan eller pita, rømme og chiliflak.',i:[['Løk',2,'stk','g'],['Spinat, fersk',1,'pose','g',1],['Rømme',1,'beger','m'],['Naanbrød',1,'pk','b']],k:[['Knuste tomater',2,'boks'],['Kokosmelk',2,'boks'],['Linser, hermetiske',3,'boks'],['Rød karripasta',null,''],['Buljong',1,'terning'],['Hvitløk',4,'fedd'],['Chiliflak',null,''],['Matolje',null,'']]},
  laks:{n:'Chili- og limeglasert laks med ris',tags:['fisk','ny'],t:'15 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/fisk-og-skalldyr/chili-og-limeglasert-laks-med-ris',rating:'Tine · 4,3 av 5',note:'Søt chili, soya og ris fra skapet.',i:[['Laksefilet uten skinn',650,'g','f',1],['Lime',1,'stk','g'],['Rød chili',1,'stk','g'],['Ingefær',1,'bit','g'],['Kinakål',1,'stk','g',1],['Sesamfrø',1,'pose','t']]},
  kjottkaker:{n:'Kjøttkaker med ertepuré, poteter og brun saus',tags:['helg'],t:'1 t',url:'https://www.matprat.no/oppskrifter/familien/hjemmelagde-kjottkaker/',note:'Fra Matprat. Vann eller melk og smør fra kjøleskapet.',i:[['Kjøttdeig',600,'g','k',1],['Poteter',1500,'g','g'],['Grønne erter',500,'g','z'],['Gulrøtter',4,'stk','g'],['Tyttebærsyltetøy',1,'glass','t']],k:[['Potetmel',3,'ss'],['Hvetemel',3,'ss'],['Storfebuljong',1,'terning'],['Muskat',null,''],['Ingefær, malt',null,''],['Salt',null,''],['Pepper',null,'']]},
- kyllinglar:{n:'Kyllinglår i ovn med rotgrønnsaker',tags:['helg'],t:'1 t, mest i ovnen',i:[['Kyllinglår eller lårfilet',1200,'g','k',1],['Poteter',1000,'g','g'],['Gulrøtter',4,'stk','g'],['Søtpotet',1,'stk','g'],['Rødløk',2,'stk','g']]},
- bolognese:{n:'Pasta bolognese',tags:[],t:'40 min',note:'Legg kjøttdeigen i fryseren på handledagen hvis datoen er kort.',i:[['Kjøttdeig',600,'g','k'],['Løk',1,'stk','g'],['Gulrøtter',2,'stk','g'],['Hermetiske tomater',2,'boks','t'],['Parmesan',1,'bit','m']]},
- fiskeboller:{n:'Fiskeboller i hvit saus med poteter og gulrøtter',tags:['fisk'],t:'25 min',i:[['Fiskeboller',2,'boks','t'],['Poteter',1000,'g','g'],['Gulrøtter',6,'stk','g']]},
+ kyllinglar:{n:'Kyllinglår i ovn med rotgrønnsaker',tags:['helg'],t:'50 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/kylling-og-fjarkre/kylling-i-form-med-rotgronnsaker',rating:'Tine · 3,8 av 5',note:'Tines «Kylling i form med rotgrønnsaker» er for 6 og bruker en hel kylling delt i biter. Her med lår. Kyllingen marineres i sitron, sennep, rømme og urter.',i:[['Kyllinglår eller lårfilet',1200,'g','k',1],['Sitron',2,'stk','g'],['Rømme',1,'beger','m'],['Urter, friske (f.eks. timian, rosmarin, persille)',1,'potte','g',1],['Sellerirot',1,'bit','g'],['Persillerot',1,'stk','g'],['Gulrøtter',2,'stk','g'],['Rødløk',1,'stk','g'],['Poteter',4,'stk','g']],k:[['Sennep',2,'ss'],['Hvitløk',3,'fedd'],['Smør',2,'ss'],['Salt',1,'ts'],['Pepper',0.5,'ts']]},
+ bolognese:{n:'Pasta bolognese',tags:[],t:'40 min',url:'https://www.matprat.no/oppskrifter/familien/spagetti-bolognese/',rating:'Matprat · 4,7 av 5',note:'Matprats oppskrift er for 4. Legg kjøttdeigen i fryseren på handledagen hvis datoen er kort. Parmesan er tilbehør.',i:[['Kjøttdeig eller karbonadedeig',500,'g','k'],['Gulrøtter',1,'stk','g'],['Stangselleri',1,'stk','g'],['Parmesan',1,'bit','m']],k:[['Løk',1,'stk'],['Matolje',null,''],['Tomatpuré',2.5,'ss'],['Hermetiske tomater',1,'boks'],['Storfebuljong',1,'terning'],['Salt',1,'ts'],['Pepper',0.5,'ts'],['Muskat',null,''],['Sukker',0.5,'ts'],['Spaghetti',500,'g']]},
+ fiskeboller:{n:'Fiskeboller i hvit saus med poteter og gulrøtter',tags:['fisk'],t:'30 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/fisk-og-skalldyr/fiskeboller-med-hvit-saus',rating:'Tine · 3,8 av 5',note:'Tines oppskrift er for 4. Kraften fra fiskebolleboksen brukes i sausen.',i:[['Fiskeboller',1,'boks','t'],['Poteter',10,'stk','g'],['Gulrøtter',5,'stk','g']],k:[['Smør',2.5,'ss'],['Hvetemel',4,'ss'],['Melk',3,'dl'],['Muskat',null,''],['Salt',null,''],['Pepper',null,'']]},
  wok:{n:'Stekte nudler med skinke og egg',tags:['ny'],t:'Under 20 min',url:'https://www.matprat.no/oppskrifter/rask/stekte-nudler/',note:'Matprat kaller den «superenkel». Egg fra skapet. Ingen ferskvarer, så alt kan kjøpes på handledagen.',i:[['Smårettskinke',250,'g','k'],['Wokgrønnsaker',1,'pose','z'],['Ferdigkokte nudler',400,'g','t'],['Woksaus',1,'pose','t']]},
- lasagne:{n:'Lasagne, vegetar',tags:['veg','helg'],t:'1 t 20 min',note:'Varelista er et utgangspunkt. Juster mot deres oppskrift.',i:[['Lasagneplater',1,'pk','t'],['Hermetiske tomater',2,'boks','t'],['Røde linser',200,'g','t'],['Løk',1,'stk','g'],['Squash',1,'stk','g'],['Paprika',1,'stk','g'],['Spinat',1,'pose','z'],['Revet ost',1,'pose','m']]},
- polsemos:{n:'Pølse og potetmos',tags:[],t:'25 min',note:'Kok potetene mens pølsene varmes. Potetmospulver går enda raskere.',i:[['Wienerpølser',1000,'g','k'],['Poteter',1500,'g','g'],['Grønne erter',1,'pose','z']]},
+ lasagne:{n:'Lasagne, vegetar',tags:['veg','helg'],t:'45 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/gronnsaker-og-poteter/gronnsakslasagne',rating:'Tine · 4 av 5',note:'Tines «Grønnsakslasagne», oppskriften er for 4. Grønnsakene stekes, og lagene får tomatsaus med rømme, feta og ost.',i:[['Rødløk',2,'stk','g'],['Paprika, rød',3,'stk','g'],['Aubergine',1,'stk','g'],['Squash',1,'stk','g'],['Rømme',1,'beger','m'],['Basilikum, fersk',1,'potte','g',1],['Fetaost',250,'g','m'],['Revet ost',1,'pose','m']],k:[['Hvitløk',3,'fedd'],['Matolje',null,''],['Hermetiske tomater',3,'boks'],['Salt',null,''],['Pepper',null,''],['Lasagneplater',15,'stk']]},
+ polsemos:{n:'Pølse og potetmos',tags:[],t:'40 min',url:'https://www.matprat.no/oppskrifter/tradisjon/potetmos/',rating:'Matprat · 4,7 av 5',note:'Potetmosen er fra Matprat, oppskriften er for 4. Kok potetene mens pølsene varmes. Potetmospulver går enda raskere.',i:[['Wienerpølser',1000,'g','k'],['Poteter',1250,'g','g'],['Grønne erter',1,'pose','z']],k:[['Melk',2.5,'dl'],['Smør',2.5,'ss'],['Salt',0.5,'ts'],['Pepper',0.5,'ts'],['Muskat',null,'']]},
  tomatsuppe:{n:'Tomatsuppe med egg og makaroni',tags:['veg','ny'],t:'30 min',url:'https://www.matprat.no/oppskrifter/familien/tomatsuppe-med-kokt-egg/',note:'Matprats tomatsuppe med kokt egg, med makaroni i. Tomatpuré, buljong og egg fra skapet. Grovbrød til.',i:[['Hermetiske tomater',3,'boks','t'],['Løk',1,'stk','g'],['Basilikum',1,'potte','g',1]]},
- laksewraps:{n:'Laksewraps med karri',tags:['fisk'],t:'25 min',i:[['Laksefilet',600,'g','f',1],['Tortillalefser',1,'pk','b'],['Isbergsalat',1,'stk','g',1],['Agurk',1,'stk','g'],['Paprika',1,'stk','g'],['Crème fraîche',1,'beger','m']]},
+ laksewraps:{n:'Laksewraps med karri',tags:['fisk'],t:'30 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/fisk-og-skalldyr/wrap-med-laks',rating:'Tine · 4,2 av 5',note:'Tines «Wrap med laks», oppskriften er for 4. Her med Tines karrisaus (crème fraîche, karri og salt) i stedet for rømme.',i:[['Laksefilet',500,'g','f',1],['Tortillalefser',5,'stk','b'],['Agurk',1,'stk','g'],['Tomater',4,'stk','g'],['Salat',1,'stk','g',1],['Crème fraîche',1,'beger','m']],k:[['Karri',1,'ts'],['Matolje',2.5,'ss'],['Salt',null,''],['Pepper',null,'']]},
  burger:{n:'Hjemmelagde hamburgere med ovnspoteter',tags:['helg','ny'],t:'45 min',url:'https://www.matprat.no/oppskrifter/familien/hamburger/',note:'Matprats oppskrift er for 4. Ovnspoteter ved siden av.',i:[['Kjøttdeig',600,'g','k',1],['Hamburgerbrød',1,'pk','b'],['Ost i skiver',1,'pk','m'],['Isbergsalat',1,'stk','g'],['Tomater',3,'stk','g'],['Rødløk',1,'stk','g'],['Sylteagurk',1,'glass','t'],['Poteter',1200,'g','g']]},
  marryme:{n:'Marry me chicken med pasta',p:6,tags:[],t:'40 min',url:'https://gladkokken.no/oppskrifter/marry-me-chicken',note:'Gladkokkens oppskrift er for 3 (3 kyllingbryst = 3 porsjoner). Soltørkede tomater: 8 ss til 6 personer. Tiden er anslått ut fra 10 min reduksjon av sausen og 20 min putring. Server med pasta.',i:[['Kyllingbryst',6,'stk','k',1],['Kremfløte',6,'dl','m'],['Kyllingkraft',6,'dl','t'],['Parmesan',300,'g','m'],['Soltørkede tomater',1,'glass','t'],['Sitron',2,'stk','g'],['Persille, fersk',1,'potte','g',1]],k:[['Annen pasta',null,''],['Løk',2,'stk'],['Hvitløk',12,'fedd'],['Smør',4,'ss'],['Tomatpuré',2,'ss'],['Oregano',2,'ss'],['Chiliflak',4,'ts'],['Sennep',2,'ss'],['Salt',2,'ts'],['Pepper',2,'ts'],['Hvitløkspulver',2,'ts'],['Paprikapulver',2,'ts'],['Cayennepepper',1,'ts']]},
  fisketaco:{n:'Fisketaco med panert torsk',tags:['tex','fisk','ny'],t:'40 min',url:'https://www.matprat.no/oppskrifter/kos/fisketaco-med-panert-torsk/',note:'Matprat kaller den en favoritt for hele familien. Kjøp gjerne fryst torsk og tin den på torsdag, så slipper dere å tenke på datoen. Syltet rødløk og urtedressing hører til.',i:[['Torskefilet',750,'g','f',1],['Panko',1,'pose','t'],['Tacolefser',1,'pk','b'],['Rømme',1,'beger','m'],['Persille, fersk',1,'potte','g',1],['Rødløk',1,'stk','g'],['Isbergsalat',1,'stk','g']],k:[['Majones',null,''],['Sennep',null,''],['Paprikapulver',null,''],['Hvitløkspulver',null,''],['Oregano',null,''],['Hvitløk',1,'fedd'],['Eddik',null,''],['Sukker',null,'']]},
@@ -361,15 +364,15 @@ const D = {
  kjottsuppe:{n:'Kjøttsuppe',c:'Norsk',tags:['helg','ny'],t:'Over 1 t',url:'https://www.matprat.no/oppskrifter/tradisjon/kjottsuppe/',note:'Matprat oppgir ikke antall porsjoner. Mengdene er regnet som 4 porsjoner. Server med flatbrød eller brød og smør. Lag gjerne dobbelt på søndag.',i:[['Suppekjøtt uten bein (lam eller storfe)',900,'g','k',1],['Purre',1,'stk','g'],['Gulrøtter',3,'stk','g'],['Sellerirot',1,'stk','g'],['Kålrot',1,'stk','g'],['Persillerot',2,'stk','g'],['Poteter',750,'g','g'],['Timian, fersk',1,'potte','g']],k:[['Løk',1,'stk'],['Storfebuljong',4,'terning'],['Flatbrød',null,'']]},
  rekordsuppe:{n:'Enkel suppe med suppeboller',c:'Norsk',tags:['ny'],t:'Under 20 min',url:'https://www.matprat.no/oppskrifter/rask/rekordsuppe/',note:'Matprats oppskrift er for 4. Godt med rundstykker.',i:[['Lapskausblanding, fryst',1000,'g','z'],['Suppeboller',1,'boks','t']],k:[['Storfebuljong',3,'terning']]},
  gnocchi:{n:'Gnocchiform med brokkoli, ost og tomatsaus',tags:['veg','ny'],t:'30 min',url:'https://vegetarentusiast.no/gnocchiform/',note:'Fra Vegetarentusiast. Pestoen er valgfri.',i:[['Fersk gnocchi',2,'pk','t'],['Brokkoli',1,'stk','g',1],['Gulrøtter',2,'stk','g'],['Hvite bønner',1,'boks','t'],['Tomatsaus med basilikum',2,'glass','t'],['Revet ost',1,'pose','m']]},
- fiskegrateng:{n:'Fiskegrateng med råkost',tags:['fisk'],t:'50 min',note:'Kan lages kvelden før og settes rett i ovnen.',i:[['Torsk eller sei, fryst',600,'g','z'],['Revet ost',1,'pose','m'],['Gulrøtter',4,'stk','g']]},
+ fiskegrateng:{n:'Fiskegrateng med råkost',tags:['fisk'],t:'50 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/fisk-og-skalldyr/hjemmelaget-fiskegrateng',rating:'Tine · 3,9 av 5',note:'Sausen og mengdene bygger på Tines «Hjemmelaget fiskegrateng» (for 4). Her uten egg, og med fiskebuljong i sausen. Worcestershiresaus er valgfritt. Griljermel på toppen. Råkost av gulrøtter til. Kan lages kvelden før og settes rett i ovnen.',i:[['Torsk eller sei, fryst',600,'g','z'],['Revet ost',1,'pose','m'],['Gulrøtter',4,'stk','g']],k:[['Makaroni',2.5,'dl'],['Smør',4,'ss'],['Hvetemel',6,'ss'],['Melk',5,'dl'],['Fiskebuljong',1,'terning'],['Worcestershiresaus',null,''],['Muskat',0.5,'ts'],['Salt',1,'ts'],['Pepper',null,''],['Griljermel',3,'ss']]},
  linsepannekaker:{n:'Linsepannekaker med spinat',tags:['veg'],t:'20 min',url:'https://vegetarentusiast.no/linsepannekaker/',note:'«Pannekaker med skjulte linser», grønn variant. Oppskriften er for 4. Melk og egg fra kjøleskapet.',i:[['Spinat, fersk',1,'pose','g',1]],k:[['Melk',8,'dl'],['Egg',3,'stk'],['Linser, hermetiske',1,'boks'],['Hvetemel',375,'g'],['Bakepulver',null,''],['Sukker',null,''],['Salt',null,'']]},
  carbonara:{n:'Pasta carbonara',tags:['ny'],t:'20 min',url:'https://www.matprat.no/oppskrifter/kos/pasta-carbonara/',note:'Egg og spaghetti fra skapet. Salat ved siden av.',i:[['Bacon',2,'pk','k'],['Parmesan',1,'bit','m'],['Salatmiks',1,'pose','g',1]]},
- gronngrateng:{n:'Grønnsaksgrateng',tags:['veg'],t:'50 min',note:'Kan lages kvelden før og settes rett i ovnen.',i:[['Brokkoli',1,'stk','g',1],['Blomkål',1,'stk','g',1],['Gulrøtter',3,'stk','g'],['Revet ost',1,'pose','m']]},
+ gronngrateng:{n:'Grønnsaksgrateng',tags:['veg'],t:'30 min',url:'https://www.tine.no/oppskrifter/middag-og-hovedretter/gronnsaker-og-poteter/gratinert-blomkal',rating:'Tine · 3,8 av 5',note:'Ostesausen er fra Tines «Gratinert blomkål» (for 4). Her med brokkoli og gulrøtter i tillegg, og uten spekeskinke, så retten er vegetar. Kan lages kvelden før og settes rett i ovnen.',i:[['Blomkål',1,'stk','g',1],['Brokkoli',1,'stk','g',1],['Gulrøtter',3,'stk','g'],['Revet ost',1,'pose','m'],['Persille, fersk',1,'potte','g',1]],k:[['Smør',1,'ss'],['Hvetemel',2.5,'ss'],['Melk',5,'dl'],['Salt',1,'ts'],['Pepper',null,'']]},
  // I banken: klare til å byttes inn
- polsegrateng:{n:'Pølsegrateng',tags:[],t:'45 min',i:[['Wienerpølser',800,'g','k'],['Revet ost',1,'pose','m'],['Brokkoli',1,'stk','g',1]]},
+ polsegrateng:{n:'Pølsegrateng',tags:[],t:'1 t',url:'https://www.matprat.no/oppskrifter/familien/polsegrateng/',rating:'Matprat · 4,7 av 5',note:'Matprats oppskrift er for 4.',i:[['Kjøttpølse',750,'g','k'],['Vårløk',1,'bunt','g',1],['Grønne erter',1,'pose','z'],['Revet ost',1,'pose','m']],k:[['Makaroni',125,'g'],['Smør',2.5,'ss'],['Hvetemel',4,'ss'],['Melk',6,'dl']]},
  kyllingform:{n:'Kyllingform i fløtesaus med ost, pasta og brokkoli',tags:[],t:'40 min',i:[['Kyllingfilet',800,'g','k',1],['Matfløte',1,'beger','m'],['Revet ost',1,'pose','m'],['Brokkoli',1,'stk','g',1]]},
- kjottboller:{n:'Kjøttboller og pasta med tomatsaus',tags:[],t:'40 min',i:[['Kjøttdeig',600,'g','k',1],['Løk',1,'stk','g'],['Hermetiske tomater',2,'boks','t']]},
- lapskaus:{n:'Lapskaus',tags:['helg'],t:'1 t 30 min',i:[['Lapskauskjøtt',600,'g','k',1],['Poteter',1500,'g','g'],['Gulrøtter',4,'stk','g'],['Kålrot',1,'stk','g'],['Løk',1,'stk','g'],['Flatbrød',1,'pk','b']]},
+ kjottboller:{n:'Kjøttboller og pasta med tomatsaus',tags:[],t:'40 min',url:'https://www.matprat.no/oppskrifter/familien/kjottboller-med-tomatsaus-og-pasta/',rating:'Matprat · 4,7 av 5',note:'Matprats oppskrift er for 4.',i:[['Kjøttdeig',750,'g','k',1],['Parmesan',75,'g','m'],['Basilikum, fersk',1,'potte','g',1],['Tagliatelle, fersk',600,'g','m']],k:[['Hvitløk',4,'fedd'],['Løk',1,'stk'],['Knuste tomater',1,'boks'],['Tomatpuré',2.5,'ss'],['Sukker',1,'ts'],['Storfebuljong',null,''],['Matolje',2.5,'ss'],['Salt',1,'ts'],['Pepper',1,'ts']]},
+ lapskaus:{n:'Lapskaus',tags:['helg'],t:'1 t 20 min',url:'https://www.matprat.no/oppskrifter/tradisjon/lapskaus/',rating:'Matprat · 4,8 av 5',note:'Matprats brune lapskaus, oppskriften er for 4. Server med flatbrød.',i:[['Høyrygg eller bog av storfe, uten ben',1000,'g','k',1],['Poteter',1000,'g','g'],['Gulrøtter',4,'stk','g'],['Kålrot',200,'g','g'],['Persillerot',200,'g','g'],['Purre',1,'stk','g'],['Flatbrød',1,'pk','b']],k:[['Smør',2.5,'ss'],['Storfebuljong',1,'terning'],['Salt',1,'ts'],['Pepper',0.5,'ts']]},
  farikal:{n:'Fårikål',tags:['helg','ny'],t:'2 t 30 min, mest passivt',url:'https://www.matprat.no/oppskrifter/tradisjon/farikal/',note:'Sesongrett i september og oktober.',i:[['Fårikålkjøtt',1500,'g','k',1],['Hodekål',1,'stk','g'],['Poteter',1500,'g','g'],['Hel pepper',1,'pose','t']]},
  pannekaker:{n:'Pannekaker med bacon og blåbærsyltetøy',tags:['ny'],t:'40 min',url:'https://www.matprat.no/oppskrifter/familien/pannekaker/',note:'Røren må hvile i 30 min. Mel, egg og melk fra skapet.',i:[['Bacon',2,'pk','k'],['Blåbærsyltetøy',1,'glass','t']]},
  rest:{n:'Restedag',tags:['rest'],t:'',note:'Rester fra dagen med dobbel porsjon, eller brødmat.',i:[]}
@@ -386,17 +389,19 @@ const GROUPS = [['krydder','Krydder'],['flytende','Oljer, eddik og sauser'],['to
 const GNAME = Object.fromEntries(GROUPS);
 const BASIS = [
  ['salt','Salt','krydder'],['pepper','Pepper','krydder'],['helpepper','Hel pepper','krydder'],['paprikap','Paprikapulver','krydder'],['rokpaprika','Røkt paprika','krydder'],['spisskummen','Spisskummen','krydder'],['koriandermalt','Koriander, malt','krydder'],['chilip','Chilipulver','krydder'],['chiliflak','Chiliflak','krydder'],['cayenne','Cayennepepper','krydder'],['oregano','Oregano','krydder'],['basilikumt','Basilikum, tørket','krydder'],['timian','Timian','krydder'],['einebaer','Einebær','krydder'],['rosmarin','Rosmarin','krydder'],['laurbaer','Laurbærblad','krydder'],['karri','Karri','krydder'],['garam','Garam masala','krydder'],['gurkemeie','Gurkemeie','krydder'],['ingefaerm','Ingefær, malt','krydder'],['kanel','Kanel','krydder'],['kardemomme','Kardemomme','krydder'],['muskat','Muskat','krydder'],['hvitlokp','Hvitløkspulver','krydder'],['tacokrydder','Tacokrydder','krydder'],['hvitlok','Hvitløk','kjol'],['lok','Løk','kjol'],
- ['olje','Matolje','flytende'],['olivenolje','Olivenolje','flytende'],['sesamolje','Sesamolje','flytende'],['eddik','Eddik','flytende'],['balsamico','Balsamico','flytende'],['soya','Soyasaus','flytende'],['osterssaus','Østerssaus','flytende'],['tamarind','Tamarindsaus','flytende'],['ketjap','Ketjap manis','flytende'],['sotchili','Søt chili','flytende'],['karripasta','Rød karripasta','flytende'],['sriracha','Sriracha','flytende'],['fiskesaus','Fiskesaus','flytende'],['ketchup','Ketchup','flytende'],['sennep','Sennep','flytende'],['majones','Majones','flytende'],
+ ['olje','Matolje','flytende'],['olivenolje','Olivenolje','flytende'],['sesamolje','Sesamolje','flytende'],['eddik','Eddik','flytende'],['balsamico','Balsamico','flytende'],['soya','Soyasaus','flytende'],['osterssaus','Østerssaus','flytende'],['tamarind','Tamarindsaus','flytende'],['worcester','Worcestershiresaus','flytende'],['ketjap','Ketjap manis','flytende'],['sotchili','Søt chili','flytende'],['karripasta','Rød karripasta','flytende'],['sriracha','Sriracha','flytende'],['fiskesaus','Fiskesaus','flytende'],['ketchup','Ketchup','flytende'],['sennep','Sennep','flytende'],['majones','Majones','flytende'],
  ['ris','Ris','torr'],['spaghetti','Spaghetti','torr'],['makaroni','Makaroni','torr'],['pasta','Annen pasta','torr'],['lasagneplater','Lasagneplater','torr'],['eggnudler','Eggnudler','torr'],['couscous','Couscous','torr'],['havregryn','Havregryn','torr'],['mel','Hvetemel','torr'],['maisenna','Maisenna','torr'],['potetmel','Potetmel','torr'],['gjaer','Tørrgjær','torr'],['bakepulver','Bakepulver','torr'],['sukker','Sukker','torr'],['brunsukker','Brunt sukker','torr'],
  ['rodelinser','Røde linser','belg'],['linserherm','Linser, hermetiske','belg'],['kikerter','Kikerter','belg'],['kidney','Kidneybønner','belg'],['sortebonner','Sorte bønner','belg'],['hvitebonner','Hvite bønner','belg'],
  ['sesamfro','Sesamfrø','fro'],['solsikke','Solsikkekjerner','fro'],['gresskar','Gresskarkjerner','fro'],['linfro','Linfrø','fro'],['chia','Chiafrø','fro'],['kokosmasse','Kokosmasse','fro'],['kokosflak','Kokosflak','fro'],['kakao','Kakao','fro'],['rosiner','Rosiner','fro'],['cashew','Cashewnøtter','fro'],
  ['hermtomat','Hermetiske tomater','hermetikk'],['knustetomat','Knuste tomater','hermetikk'],['tomatpure','Tomatpuré','hermetikk'],['kokosmelk','Kokosmelk','hermetikk'],['mais','Mais','hermetikk'],['ananas','Ananas','hermetikk'],['buljong','Buljong','hermetikk'],['kyllingbuljong','Kyllingbuljong','hermetikk'],['storfebuljong','Storfebuljong','hermetikk'],['fiskebuljong','Fiskebuljong','hermetikk'],['brunsaus','Brun saus / sjysaus','hermetikk'],
  ['bakepapir','Bakepapir','annet'],['folie','Matpakkepapir','annet'],['aluminium','Aluminiumsfolie','annet'],['fryseposer','Fryseposer','annet']
 ];
-const GUESSG = [['kjol',/^(løk|gul løk|rødløk|hvitløk|sjalottløk|poteter|potet|gulrøtter|gulrot)$/],['hermetikk',/hermetisk|tomater|tomatpuré|kokosmelk|^mais|ananas|buljong|boks/],['flytende',/olje|eddik|saus|soya|ketchup|sennep|majones|sirup|balsamico|sriracha/],['belg',/bønner|linser|kikert|erter/],['fro',/frø|kjerner|nøtt|kokos|kakao|rosin|mandler|sjokolade/],['torr',/ris\b|pasta|spaghetti|makaroni|mel\b|mel$|nudler|gryn|couscous|bulgur|gjær|sukker|bakepulver|natron|maisenna|lasagne|flatbrød/],['krydder',/pulver|krydder|pepper|salt|kanel|karri|masala|oregano|timian|basilikum|rosmarin|kummen|kardemomme|muskat|laurbær|chili|paprika|nellik|koriander|gurkemeie|hvitløk/]];
+const GUESSG = [['kjol',/^(løk|gul løk|rødløk|hvitløk|sjalottløk|poteter|potet|gulrøtter|gulrot)$/],['hermetikk',/hermetisk|tomater|tomatpuré|kokosmelk|^mais|ananas|buljong|boks/],['flytende',/olje|eddik|saus|soya|ketchup|sennep|majones|sirup|balsamico|sriracha|salsa|pesto/],['belg',/bønner|linser|kikert|erter/],['fro',/frø|kjerner|nøtt|kokos|kakao|rosin|mandler|sjokolade/],['torr',/ris\b|pasta|spaghetti|makaroni|mel\b|mel$|nudler|gryn|couscous|bulgur|gjær|sukker|bakepulver|natron|maisenna|lasagne|flatbrød/],['krydder',/pulver|krydder|pepper|salt|kanel|karri|masala|oregano|timian|basilikum|rosmarin|kummen|kardemomme|muskat|laurbær|chili|paprika|nellik|koriander|gurkemeie|hvitløk/]];
 function guessGroup(n){ const l=n.toLowerCase(); for(const [g,re] of GUESSG) if(re.test(l)) return g; return 'annet'; }
 const PANTRY_RE = /^(hermetiske tomater|knuste tomater|mais|kidneybønner|sorte bønner|hvite bønner|røde linser|kokosmelk|sesamfrø|hel pepper)$/i;
-const SKAP = {pizza:['Hvetemel','Tørrgjær','Ananas'],laks:['Ris','Søt chili','Soyasaus'],korma:['Ris'],fiskekaker:['Makaroni','Hvetemel'],chili:['Ris','Spisskummen','Chilipulver'],carbonara:['Spaghetti'],linsegryte:[],linsepannekaker:[],tomatsuppe:['Makaroni','Tomatpuré','Buljong'],fiskegrateng:['Makaroni','Hvetemel'],gronngrateng:['Hvetemel'],kjottkaker:[],enchiladas:[],marryme:[],lasagne:['Lasagneplater','Oregano'],fiskeboller:['Hvetemel'],polsemos:['Ketchup','Sennep'],burger:['Ketchup'],kyllinglar:['Olivenolje'],laksewraps:['Karri'],pannekaker:['Hvetemel'],kjottboller:['Spaghetti'],polsegrateng:['Makaroni'],kyllingform:['Annen pasta'],taco:['Ananas'],quesadillas:[],bolognese:['Spaghetti','Tomatpuré','Oregano'],wok:[]};
+// Ekstra skapvarer for innebygde retter fra den første versjonen. Retter med oppskrift på nett har skapvarene i k, så her står bare
+// det som er husstandens egne vaner (ananas på taco og pizza, ketchup og sennep til pølser).
+const SKAP = {pizza:['Ananas'],laks:['Ris','Søt chili','Soyasaus'],korma:[],fiskekaker:[],chili:[],carbonara:['Spaghetti'],linsegryte:[],linsepannekaker:[],tomatsuppe:['Makaroni','Tomatpuré','Buljong'],fiskegrateng:[],gronngrateng:[],kjottkaker:[],enchiladas:[],marryme:[],lasagne:[],fiskeboller:[],polsemos:['Ketchup','Sennep'],burger:['Ketchup'],kyllinglar:[],laksewraps:[],pannekaker:['Hvetemel'],kjottboller:[],polsegrateng:[],kyllingform:['Annen pasta'],taco:['Ananas'],quesadillas:[],bolognese:[],wok:[]};
 for(const id in D){ const d=D[id]; const keep=[], k=[]; (d.i||[]).forEach(r=>{ (PANTRY_RE.test(r[0])?k:keep).push(r); }); (SKAP[id]||[]).forEach(n=>k.push([n,null,''])); d.i=keep; d.k=(d.k||[]).concat(k); }
 
 // ---------- State ----------
@@ -427,6 +432,7 @@ function describe(path, patch){
     if(patch.fasteAdd||patch.fasteOff||patch.fasteSec) out.push('Endret faste ukevarer');
     if(patch.secAdd||patch.secOrder||patch.secOff||patch.secRename) out.push('Endret avdelinger i butikken');
     if(patch.itemSec){ for(const n in patch.itemSec) if(patch.itemSec[n]) out.push('Flyttet '+n+' til '+secName(patch.itemSec[n])); }
+    if(patch.frys){ for(const id in patch.frys){ const v=patch.frys[id]; const o=(S.basis.frys||{})[id]; out.push(v ? 'La '+v.n+' i fryseren' : 'Tok '+((o&&o.n)||'varen')+' ut av fryseren'); } }
     if(patch.pack){ for(const n in patch.pack){ const v=patch.pack[n]; const o=(S.basis.pack||{})[n]; out.push(v ? '1 '+v.e+' '+v.n+' = '+qtyStr(v.q,v.u) : 'Fjernet pakkestørrelsen for '+((o&&o.n)||n)); } }
   }
   return out.filter((x,i,a)=>a.indexOf(x)===i).join(' · ') || 'Endring';
@@ -502,7 +508,7 @@ function planAt(w,d){ const k = S.plan.swaps[w+'-'+d]; const all = allDishes(); 
 function dayOv(w,d){ const o=(weekDoc(w).day||{})[d]; return o && o.id && allDishes()[o.id] ? o : null; }
 function dishAt(w,d){ const o=dayOv(w,d); return o ? o.id : planAt(w,d); }
 function dayFrom(w,d){ const o=dayOv(w,d); return o && o.from!=null ? o.from : d; }
-function ovVal(w,d,id,from,had,note){ if(id===planAt(w,d) && (from==null || from===d) && !had) return null; return {id:id, from:from==null?null:from, had:had?1:null, note:note||null}; }
+function ovVal(w,d,id,from,had,note,frys){ if(id===planAt(w,d) && (from==null || from===d) && !had && !frys) return null; return {id:id, from:from==null?null:from, had:had?1:null, note:note||null, frys:frys&&frys.length?frys:null}; }
 function nextWeekOf(w){ const w2=(w+1)%4; return absFor(w2)===absFor(w)+1 ? w2 : -1; }
 function freshOf(id){ const x=allDishes()[id]; return x ? (x.i||[]).filter(r=>r[4]).map(r=>r[0]) : []; }
 function freshWarn(id, dayTxt){ const f=freshOf(id); return f.length ? ' Ferskvarer: '+f.join(', ')+'. Frys dem hvis de ikke holder til '+dayTxt+'.' : ''; }
@@ -530,7 +536,7 @@ function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
 function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
 function pantryNames(){ const m={}; basisList().forEach(b=>{ m[b.n.toLowerCase()]=b; }); return m; }
-function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const ov=dayOv(w,d); if(ov && ov.had) continue; const mult=(dayFrom(w,d)===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
+function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const ov=dayOv(w,d); if(ov && ov.had) continue; const fz=(ov&&ov.frys)||null; const mult=(dayFrom(w,d)===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ if(fz && fz.some(n=>frysMatch(n, r[0]))) return; const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
 function needQty(o){ return Object.keys(o.parts).map(u=>qtyStr(o.parts[u],u)).join(' + '); }
 function toggleLowByName(n){ const b=pantryByName(n); if(b){ write('app/basis',{low:{[b.id]:!S.basis.low[b.id]}}); } else { const id='u'+Date.now().toString(36); write('app/basis',{basisAdd:{[id]:{n:n,g:guessGroup(n)}}, low:{[id]:true}}); } }
 
@@ -545,8 +551,10 @@ function buildList(w, days, incl){
     const dish = dishOn(w,d); if(!dish) continue;
     const ov = dayOv(w,d); if(ov && ov.had) continue; // utsatt fra forrige uke: varene er kjøpt
     const dd = dayFrom(w,d); // flyttet innen uka: regn varene fra dagen retten egentlig sto på
+    const fz = (ov && ov.frys) || null;
     (dish.i||[]).forEach(r=>{
       if(PN[r[0].toLowerCase()]) return; // står i skapet: havner på sjekklista
+      if(fz && fz.some(n=>frysMatch(n, r[0]))) return; // tas fra fryseren
       const late = r[4] && d>=3;
       const target = (CFG.padDay>=0 && r[4] && dd>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
       const mult = (dd===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
@@ -712,7 +720,8 @@ function renderRetter(){
   return '<section class="panel">'+renderLog()+'<div class="hint"><b>Bytte:</b> trykk «Bytt» på en dag i ukeplanen. <b>Endre en rett:</b> trykk på navnet i ukeplanen eller «Rediger» her. Handlelista oppdateres med en gang.</div>'+
     '<div class="card"><div class="cardhead"><h2>I rotasjonen</h2><p class="note">'+inPlan.length+' retter fordelt på fire uker.</p></div>'+inPlan.map(row).join('')+'</div>'+
     '<div class="card"><div class="cardhead"><h2>I banken</h2><p class="note">Retter dere har, men som ikke står i planen nå.</p></div>'+(bank.length?bank.map(row).join(''):'<p class="empty" style="padding:0 14px 14px">Alle retter er i bruk.</p>')+'</div>'+
-    '<div class="card"><div class="cardhead"><h2>Legg til en rett</h2><p class="note">Den havner i banken og kan byttes inn på hvilken som helst dag.</p></div><div class="form"><div><button class="btn primary" data-edit="new">Ny rett</button></div></div></div></section>';
+    '<div class="card"><div class="cardhead"><h2>Legg til en rett</h2><p class="note">Den havner i banken og kan byttes inn på hvilken som helst dag.</p></div><div class="form"><div><button class="btn primary" data-edit="new">Ny rett</button></div></div></div>'+
+    '<div class="card"><div class="cardhead"><h2>Foreslå en rett til alle</h2><p class="note">Har dere en god oppskrift på nett som flere burde ha? Send lenken, så vurderes den for de innebygde rettene som alle husstander får.</p></div><div class="form"><div><button class="btn" data-forslag>Foreslå en rett</button></div></div></div></section>';
 }
 function pantryResults(){
   const q = UI.pq.trim().toLowerCase(); if(!q) return '';
@@ -741,6 +750,84 @@ function renderStore(){
     '<form class="addrow" data-addsec style="padding:10px 14px 4px"><input id="sec-new" placeholder="Ny avdeling, f.eks. Pålegg og salater" aria-label="Ny avdeling"><button class="btn" type="button" data-submit>Legg til</button></form>'+
     (offN?'<div style="padding:6px 14px 14px"><button class="btn small" data-secrestore>Hent tilbake slettede standardavdelinger ('+offN+')</button></div>':'<div style="height:10px"></div>')+'</div>';
 }
+// ---------- Fryseren ----------
+// Husstanden skriver inn hva som ligger i fryseren (basis.frys = {id: {n, q, o}}). «Tøm fryseren» foreslår retter dere
+// har som bruker varene, og setter dem inn i planen denne eller neste uke (bare den uka). Varene fra fryseren kommer
+// da ikke på handlelista den dagen (dagens «frys»), og kan tas ut av fryseren med en gang.
+const FRYS_FORSLAG = ['Kjøttdeig','Kyllingfilet','Laks','Torsk','Pølser','Fiskekaker','Frosne grønnsaker','Erter','Brød','Bacon'];
+const FRYS_STOP = /\b(frossen|frosne|fryst|frysevare|pakke|pakker|pk|pose|poser|ferdig)\b/g;
+function frysNorm(n){ return String(n||'').toLowerCase().replace(FRYS_STOP,' ').replace(/[^a-zæøåäöü\s]/g,' ').replace(/\s+/g,' ').trim(); }
+// Treff på ord: likt ord, eller ordet i fryseren er starten av ordet i retten («laks» → «laksefilet»,
+// «kylling» → «kyllingfilet», «kjøttdeig» → «Kjøttdeig av svin», «frosne erter» → «Grønne erter»), men ikke midt i et ord
+// («erter» treffer ikke «kikerter»).
+function frysMatch(fn, item){ const A=frysNorm(fn).split(' ').filter(w=>w.length>=3), B=frysNorm(item).split(' ').filter(w=>w.length>=3); if(!A.length || !B.length) return false;
+  return A.some(w=>B.some(v=> v===w || v.indexOf(w)===0 || (w.indexOf(v)===0 && v.length>=4))); }
+function frysList(){ const F=S.basis.frys||{}; return Object.keys(F).filter(k=>F[k]&&F[k].n).map(k=>Object.assign({}, F[k], {id:k})).sort((x,y)=>(x.o||0)-(y.o||0)); }
+function frysSuggest(){
+  const F = frysList(); if(!F.length) return [];
+  const all = allDishes(); const PN = pantryNames(); const out = [];
+  Object.keys(all).forEach(id=>{ if(id==='rest') return; const d=all[id]; const items=(d.i||[]).concat(d.k||[]);
+    const used = F.filter(f=>items.some(r=>frysMatch(f.n, r[0])));
+    if(!used.length) return;
+    const buy = (d.i||[]).filter(r=>!PN[r[0].toLowerCase()] && !used.some(f=>frysMatch(f.n, r[0])));
+    out.push({id:id, d:d, used:used, buy:buy}); });
+  return out.sort((a,b)=> b.used.length-a.used.length || a.buy.length-b.buy.length || a.d.n.localeCompare(b.d.n,'nb')).slice(0,20);
+}
+function renderFrysCard(){
+  const F = frysList(); const have = {}; F.forEach(f=>{ have[f.n.toLowerCase()]=1; });
+  const quick = FRYS_FORSLAG.filter(n=>!have[n.toLowerCase()]);
+  return '<div class="card"><div class="cardhead"><h2>Fryseren</h2><p class="note">'+(F.length ? 'Trykk «Tøm fryseren» for å få forslag til retter dere har som bruker det som ligger her.' : 'Skriv inn det som ligger i fryseren, så kan dere få forslag til retter som bruker det.')+'</p></div>'+
+    (F.length ? '<ul class="items" style="padding:0 14px">'+F.map(f=>'<li class="item"><span class="nm" style="flex:1">'+esc(f.n)+(f.q?'<span class="for">'+esc(f.q)+'</span>':'')+'</span><button class="x" data-frysdel="'+f.id+'" aria-label="Ta '+esc(f.n)+' ut av fryseren">×</button></li>').join('')+'</ul>' : '')+
+    '<div class="form"><form class="frysform" data-frysadd><input id="frys-n" class="search" placeholder="Hva ligger i fryseren?" aria-label="Vare i fryseren" autocomplete="off"><div class="addrow"><input id="frys-q" placeholder="Mengde (valgfritt), f.eks. 2 pk" aria-label="Mengde" autocomplete="off"><button class="btn" type="button" data-submit>Legg til</button></div></form>'+
+    (quick.length ? '<div class="pantry" style="padding:0">'+quick.map(n=>'<button class="pchip small" type="button" data-frysquick="'+esc(n)+'">＋ '+esc(n)+'</button>').join('')+'</div>' : '')+
+    (F.length ? '<div><button class="btn primary" type="button" data-frysopen>Tøm fryseren</button></div>' : '')+'</div></div>';
+}
+function renderFrys(el){
+  el.className='sheet'; el.hidden=false;
+  if(UI.frysPick){
+    const all = allDishes(); const id = UI.frysPick; const d = all[id]; if(!d){ UI.frysPick=null; return renderFrys(el); }
+    const used = frysList().filter(f=>((d.i||[]).concat(d.k||[])).some(r=>frysMatch(f.n, r[0])));
+    const take = UI.frysTake || {};
+    const w = curW<0 ? 0 : curW; const w2 = nextWeekOf(w);
+    const dayBtn = (ww,dd) => { const date=addDays(weekStart(ww),dd); const past = ww===w && +date<+today; const cur=all[dishAt(ww,dd)];
+      return past ? '' : '<button class="opt" type="button" data-frysday="'+ww+'|'+dd+'"><span class="dish"><span class="name">'+DAYN[dd]+' '+fmt(date)+(+date===+today?' · i dag':'')+'</span><span class="meta"><span>I stedet for '+esc(cur?cur.n:'')+'</span></span></span><span class="used">Velg</span></button>'; };
+    el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Sett inn '+esc(d.n)+'"><div class="shead"><div class="row"><h2>'+esc(d.n)+'</h2><button class="btn small" data-frysback>Tilbake</button></div>'+
+      '<p class="note">Velg dag. Gjelder bare den uka. Varene fra fryseren kommer ikke på handlelista den dagen.</p>'+
+      (used.length ? '<div class="pantry" style="padding:0">'+used.map(f=>'<button class="pchip small" type="button" data-frystake="'+f.id+'" aria-pressed="'+(take[f.id]!==false)+'">Ta ut: '+esc(f.n)+'</button>').join('')+'</div><p class="note">Det som er valgt, tas ut av fryseren når retten settes inn.</p>' : '')+'</div>'+
+      '<div class="list"><div class="movehead"><h3>Denne uka (Uke '+(w+1)+')</h3></div>'+[0,1,2,3,4,5,6].map(dd=>dayBtn(w,dd)).join('')+
+      (w2>=0 ? '<div class="movehead"><h3>Neste uke (Uke '+(w2+1)+')</h3></div>'+[0,1,2,3,4,5,6].map(dd=>dayBtn(w2,dd)).join('') : '')+'</div></div>';
+    return;
+  }
+  const L = frysSuggest();
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Tøm fryseren"><div class="shead"><div class="row"><h2>Tøm fryseren</h2><button class="btn small" data-close>Lukk</button></div>'+
+    '<p class="note">Retter dere har som bruker det som ligger i fryseren. De som bruker mest av fryseren, står først.</p></div>'+
+    '<div class="list">'+(L.length ? L.map(x=>'<button class="opt" type="button" data-fryspick="'+x.id+'"><span class="dish"><span class="name">'+esc(x.d.n)+'</span><span class="meta">'+chips(x.d.tags)+(x.d.t?'<span>'+esc(x.d.t)+'</span>':'')+'</span>'+
+      '<span class="note">Fra fryseren: '+esc(x.used.map(f=>f.n.toLowerCase()).join(', '))+' · '+(x.buy.length ? 'må kjøpe '+x.buy.length+' '+(x.buy.length===1?'vare':'varer') : 'ingenting å kjøpe')+'</span></span><span class="used">Sett inn</span></button>').join('')
+      : '<p class="empty" style="padding:14px 16px">Ingen av rettene deres bruker det som ligger i fryseren. Sjekk at navnene ligner, f.eks. «Kjøttdeig» og ikke «KD».</p>')+'</div></div>';
+}
+function frysClick(t){
+  const D = t.dataset;
+  if(D.frysopen!=null){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.frysPick=null; UI.frys=true; render(); return true; }
+  if(D.frysquick){ write('app/basis',{frys:{['z'+Date.now().toString(36)]:{n:D.frysquick, q:'', o:Date.now()}}}); return true; }
+  if(D.frysdel){ write('app/basis',{frys:{[D.frysdel]:null}}); return true; }
+  if(D.fryspick){ UI.frysPick=D.fryspick; UI.frysTake={}; render(); return true; }
+  if(t.hasAttribute('data-frysback')){ UI.frysPick=null; render(); return true; }
+  if(D.frystake){ UI.frysTake = UI.frysTake||{}; UI.frysTake[D.frystake] = UI.frysTake[D.frystake]===false; render(); return true; }
+  if(D.frysday){ const [w,d]=D.frysday.split('|').map(Number); const id=UI.frysPick; const all=allDishes(); const dish=all[id]; if(!dish) return true;
+    const used = frysList().filter(f=>((dish.i||[]).concat(dish.k||[])).some(r=>frysMatch(f.n, r[0])));
+    const take = UI.frysTake||{}; const out = used.filter(f=>take[f.id]!==false);
+    setWeek(w,{day:{[d]: ovVal(w,d,id,null,false,'Fra fryseren',used.map(f=>f.n))}});
+    if(out.length){ const p={}; out.forEach(f=>{ p[f.id]=null; }); write('app/basis',{frys:p}, false, {quiet:true}); }
+    UI.frys=null; UI.frysPick=null; UI.frysTake=null;
+    toast(dish.n+' står '+DAYLONG[d]+' '+fmt(addDays(weekStart(w),d))+(out.length?' Tatt ut av fryseren: '+out.map(f=>f.n.toLowerCase()).join(', ')+'.':'')); return true; }
+  return false;
+}
+function frysForm(f){
+  if(!f.hasAttribute('data-frysadd')) return false;
+  const n=document.getElementById('frys-n').value.trim(); const q=document.getElementById('frys-q').value.trim(); if(!n){ toast('Skriv hva som ligger i fryseren.'); return true; }
+  document.getElementById('frys-n').value=''; document.getElementById('frys-q').value='';
+  write('app/basis',{frys:{['z'+Date.now().toString(36)]:{n:n, q:q, o:Date.now()}}}); return true;
+}
 function renderSkapet(){
   const b = basisList(); const f = fasteList();
   const low = b.filter(x=>S.basis.low[x.id]);
@@ -751,6 +838,7 @@ function renderSkapet(){
   return '<section class="panel">'+
     '<div class="card"><div class="cardhead"><h2>Noe som er tomt?</h2><p class="note">Søk opp varen og trykk på den, så kommer den på handlelista. Finnes den ikke, legger dere den til med en gang.</p></div>'+
     '<div class="form"><input id="pantry-q" class="search" type="search" autocomplete="off" placeholder="F.eks. kanel, balsamico, kikerter" aria-label="Søk i skapet"><div id="pantry-res">'+pantryResults()+'</div></div></div>'+
+    renderFrysCard()+
     '<div class="card"><div class="cardhead"><h2>Tomt nå</h2><p class="note">'+(low.length?'Står på storhandelslista. Trykk for å fjerne.':'Ingenting er merket som tomt.')+'</p></div>'+
     (low.length?'<div class="pantry">'+low.map(x=>'<button class="pchip" data-low="'+x.id+'" aria-pressed="true">'+esc(x.n)+'</button>').join('')+'</div>':'<div style="height:6px"></div>')+'</div>'+
     '<div class="card"><div class="cardhead"><h2>Hyllene</h2><p class="note">Alt dere pleier å ha hjemme, også ting i kjøleskapet og storinnkjøp som løk og hvitløk. Står en vare her, havner den på «Sjekk i skapet» i stedet for handlelista, i alle oppskrifter.</p></div>'+groups+'</div>'+
@@ -797,6 +885,10 @@ function renderAdd(el){
 // ---------- Nytt i Middagshjulet ----------
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
+  {id:'2026-11-24.2', title:'24. november, del 2', items:[
+    ['Tøm fryseren', 'Under Skapet kan dere skrive inn hva som ligger i fryseren. «Tøm fryseren» foreslår retter dere har som bruker det, og setter dem inn i planen denne eller neste uke. Varene fra fryseren kommer ikke på handlelista den dagen, og tas ut av fryseren.'],
+    ['Foreslå en rett til alle', 'Har dere en god oppskrift på nett? Under Rettene kan dere sende lenken som forslag til de innebygde rettene som alle husstander får.'],
+    ['Fullstendige oppskrifter', 'Flere retter har fått lenke til oppskriften på Matprat eller Tine, med alle ingrediensene og mengdene derfra, også det dere vanligvis har i skapet.']]},
   {id:'2026-11-24', title:'24. november', items:[
     ['Nye retter', 'Larb, en laotisk kjøttsalat med svin, urter og lime, servert i salatblader, og lammetagine med rosiner og mandler fra Marokko, en helgerett som putrer lenge. Finn dem under Rettene, og bytt dem inn i planen med «Bytt».'],
     ['Oppskriften i appen', 'Retter med fremgangsmåte har knappen «Oppskrift» i ukeplanen. Den viser varene regnet om til hvor mange dere er den dagen, og stegene, og skjermen holdes på mens dere lager mat. Under Rettene kan dere skrive inn fremgangsmåte for egne retter med «Rediger». Endrer dere en innebygd rett, får dere fortsatt med dere forbedringer vi gjør i resten av retten.'],
@@ -900,9 +992,37 @@ function renderMove(el){
     (anyOv ? '<div class="movehead"><button class="btn small" type="button" data-flyttreset="'+w+'">Tilbake til planen for hele Uke '+(w+1)+'</button></div>' : '')+
     '</div></div>';
 }
+// ---------- Forslag til nye innebygde retter ----------
+// Sendes til Netlify Forms (skjemaet «forslag»). Kuratoren ser forslagene i Netlify under Forms, og de føres inn i RETTER.md.
+// Husstandslenken sendes ikke med.
+function urlKey(u){ try{ const x=new URL(u); return (x.hostname.replace(/^www\./,'')+x.pathname.replace(/\/+$/,'')).toLowerCase(); }catch(e){ return String(u||'').toLowerCase(); } }
+function renderForslag(el){
+  el.className='sheet top'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Foreslå en rett"><div class="shead"><div class="row"><h2>Foreslå en rett</h2><button class="btn small" data-close>Avbryt</button></div>'+
+    '<p class="note">Forslaget sendes til den som velger de innebygde rettene. Lenken til husstanden deres sendes ikke med.</p></div>'+
+    '<form class="form edlist" data-forslagform>'+
+    '<label class="field">Lenke til oppskriften<input id="fs-lenke" type="url" inputmode="url" placeholder="https://www.matprat.no/oppskrifter/…" autocomplete="off"></label>'+
+    '<label class="field">Navn på retten (valgfritt)<input id="fs-rett" autocomplete="off"></label>'+
+    '<label class="field">Hvorfor den er god (valgfritt)<textarea id="fs-kommentar" rows="3" placeholder="F.eks. rask, barna liker den, billig"></textarea></label>'+
+    '<label class="field">Fra (valgfritt)<input id="fs-fra" placeholder="F.eks. Familien Hansen" autocomplete="off"></label>'+
+    '<div class="tools"><span class="right"><button class="btn primary" type="button" data-submit>Send forslaget</button></span></div>'+
+    '</form></div>';
+}
+function forslagSend(){
+  let lenke = (document.getElementById('fs-lenke').value||'').trim();
+  if(lenke && !/^https?:\/\//i.test(lenke)) lenke = 'https://'+lenke;
+  if(!/^https?:\/\/[^\s\/]+\.[^\s]+/i.test(lenke)){ toast('Lim inn lenken til oppskriften.'); return; }
+  const key = urlKey(lenke); const all = allDishes(); const has = Object.keys(all).find(id=>all[id].url && urlKey(all[id].url)===key);
+  if(has){ toast('Den finnes allerede: '+all[has].n+'.'); return; }
+  const data = {'form-name':'forslag', 'bot-field':'', lenke:lenke, rett:(document.getElementById('fs-rett').value||'').trim(), kommentar:(document.getElementById('fs-kommentar').value||'').trim(), fra:(document.getElementById('fs-fra').value||'').trim()};
+  const btn = document.querySelector('[data-forslagform] [data-submit]'); if(btn){ btn.disabled=true; btn.textContent='Sender …'; }
+  fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(data).toString()})
+    .then(r=>{ if(!r.ok) throw new Error(r.status); UI.forslag=null; render(); toast('Takk! Forslaget er sendt.'); })
+    .catch(()=>{ if(btn){ btn.disabled=false; btn.textContent='Send forslaget'; } toast('Fikk ikke sendt forslaget. Sjekk nettet og prøv igjen.'); });
+}
 function renderSheet(){
   const el = document.getElementById('sheet');
-  const kind = UI.news ? 'news' : UI.move ? 'move:'+UI.move : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
+  const kind = UI.news ? 'news' : UI.forslag ? 'forslag' : UI.frys ? 'frys:'+(UI.frysPick||'') : UI.move ? 'move:'+UI.move : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
   if(kind.indexOf('recipe:')!==0) wake(false);
   const same = !el.hidden && !!kind && el.dataset.kind===kind;
   if(same && kind==='news') return;
@@ -915,6 +1035,8 @@ function renderSheet(){
 function renderSheetBody(el){
   if(UI.news){ renderNews(el); return; }
   if(UI.pack){ renderPackEdit(el); return; }
+  if(UI.forslag){ renderForslag(el); return; }
+  if(UI.frys){ renderFrys(el); return; }
   if(UI.husEdit){ renderHusEdit(el); return; }
   if(UI.kortEdit){ renderKortEdit(el); return; }
   if(UI.kort){ renderKortShow(el); return; }
@@ -1553,6 +1675,8 @@ document.addEventListener('click', e=>{
   const t = e.target.closest('button'); if(!t) return;
   if(husClick(t)) return;
   if(kortClick(t)) return;
+  if(frysClick(t)) return;
+  if(t.hasAttribute('data-forslag')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.forslag=true; render(); const i=document.getElementById('fs-lenke'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.flytt){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.moveHad=true; UI.move=t.dataset.flytt; render(); return; }
   if(t.hasAttribute('data-flytthad')){ UI.moveHad = UI.moveHad===false; render(); return; }
   if(t.dataset.flyttil){ const [w,b]=t.dataset.flyttil.split('|').map(Number); const a=+UI.move.split('-')[1]; UI.move=null;
@@ -1577,7 +1701,7 @@ document.addEventListener('click', e=>{
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
   if(t.dataset.swap){ UI.pickFast=false; UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
-  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; render(); return; }
+  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); return; }
   if(t.dataset.addopen){ UI.add=t.dataset.addopen; UI.addSec=''; UI.sheet=null; UI.edit=null; render(); const i=document.getElementById('add-n'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.asec!=null){ UI.addSec=t.dataset.asec; document.querySelectorAll('[data-asec]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.asec===UI.addSec))); return; }
   if(t.dataset.edit){ UI.sheet=null; UI.edit=t.dataset.edit; render(); const f=document.getElementById('ed-n'); if(f) f.focus({preventScroll:true}); return; }
@@ -1649,6 +1773,8 @@ document.addEventListener('change', e=>{
   if(c.dataset.basis && c.checked) write('app/basis',{low:{[c.dataset.basis]:false}});
 });
 function handleForm(f){
+  if(f.hasAttribute('data-forslagform')){ forslagSend(); return; }
+  if(frysForm(f)) return;
   if(f.hasAttribute('data-packform')){ const n=UI.pack.split('|')[0]; const q=parseFloat(String(document.getElementById('pack-q').value).replace(',','.'));
     if(!(q>0)){ toast('Skriv hvor mye som er i én pakke.'); return; }
     const pk={n:n, q:q, u:document.getElementById('pack-u').value, e:document.getElementById('pack-e').value};
@@ -1700,8 +1826,8 @@ document.addEventListener('click', e=>{ const b=e.target.closest('button[data-su
 document.addEventListener('keydown', e=>{ if(e.key!=='Enter') return; const t=e.target; if(!t || t.tagName!=='INPUT' || t.type==='checkbox') return; const f=t.closest('form'); if(!f) return; e.preventDefault(); handleForm(f); });
 document.addEventListener('input', e=>{ if(e.target.id==='kort-v'){ kortPreview(); return; } if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
 document.addEventListener('toggle', e=>{ const d=e.target; if(d && d.dataset && d.dataset.openkey) UI.open[d.dataset.openkey]=d.open; }, true);
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack||UI.move)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; render(); } });
-document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; render(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack||UI.move||UI.frys||UI.forslag)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); } });
+document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); } });
 
 // ---------- Rolig oppdatering: ikke tegn siden på nytt mens noen berører eller scroller ----------
 const lastSnap = {};

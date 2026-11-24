@@ -17,10 +17,15 @@ Retter som foreslås til de innebygde rettene i appen (`D` i `web/index.html`), 
 
 Flere retter samles før de sendes inn til `neste` i én pull request.
 
+## Forslag fra brukere
+
+Brukere sender forslag fra appen (Rettene → «Foreslå en rett til alle»). De ligger i Netlify under Forms → «forslag», og føres inn her når eieren har sett på dem.
+
 ## Forslag
 
 | Dato | Rett | Lenke | Merknad |
 |---|---|---|---|
+| 2026-11-24 | Boeuf Bourguignon | https://farminsittkjokken.com/boeuf-bourguignon-og-babelsk-forvirring/ | Fra skjemaet i appen («Familien test»): «Denne er veldig god!». Nettstedet er ikke tillatt i skymiljøet ennå, så ingredienslisten er ikke lest. |
 
 ## Bygget inn, kommer med neste versjon
 
