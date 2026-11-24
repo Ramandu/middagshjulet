@@ -4,14 +4,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
-- **Nye retter fra `RETTER.md`:** larb og lammetagine med rosiner og mandler. Flere samles før de sendes inn.
-- **Oppskriften i appen:** knappen «Oppskrift» i ukeplanen og «Vis oppskrift» under Rettene viser varene regnet om til porsjonene den dagen, og fremgangsmåten. Skjermen holdes på mens vinduet er åpent. Fremgangsmåten kan redigeres, både for egne og innebygde retter.
-- **Endringer i innebygde retter lagrer bare det som er endret,** så husstanden fortsatt får med seg forbedringer i resten av retten.
-- **Hele pakker i handlelista:** husstanden sier hvor mye som er i én pakke av en vare («Flytt varer» → «Pakke», oversikt under Skapet). Lista legger sammen hele ukas behov og runder opp til hele pakker, f.eks. «2 poser (360 g av 2 × 200 g)».
-- **Butter chicken:** spinaten står i gram (65 g for 4), ikke som en hel pose.
-- **Service workeren lagrer ikke feilsider:** svarer Netlify med en feil eller en side som ikke er appen (f.eks. hvis prosjektet er satt på pause), bruker appen versjonen som er lagret på telefonen.
-- **Skapvarer rett fra handlelista:** «Til skapet» under «Flytt varer» legger en vare i husstandens skap, så den havner under «Sjekk i skapet» i alle retter. Østerssaus og tamarindsaus står i standardskapet. Knappene under «Flytt varer» ligger på en egen linje under varen.
-- **Endre planene i siste liten (bare denne uka):** «Flytt» på hver dag bytter plass med en annen dag den uka (raske retter først, handlelista blir den samme) eller utsetter retten til neste uke (varer som er kjøpt, kommer ikke på neste ukes liste). Varsel om ferskvarer. «Bytt» gjelder bare denne uka som standard, med valget «Fast i planen». Endringene lagres i ukedokumentet (`day`) og nullstilles når uka er over.
+Ingenting valgt ennå.
 
 ## Vurderes for neste versjon
 
@@ -49,6 +42,7 @@ En skanneknapp der telefonen støtter det (`BarcodeDetector`, bl.a. Chrome på A
 
 ## Sluppet
 
+- **2026-11-24:** nye retter (larb og lammetagine), oppskriften i appen med fremgangsmåte som kan redigeres, endringer i innebygde retter lagrer bare det som er endret, hele pakker i handlelista, butter chicken med spinat i gram, endre planene i siste liten (flytt, utsett og «Bytt» bare denne uka), skapvarer rett fra handlelista (østerssaus og tamarindsaus i standardskapet), og service workeren lagrer ikke feilsider (#9–#12).
 - **2026-11-07:** medlemskort under handlelista, og riktigere avdeling for varer i egne retter (#7).
 - **2026-11-04:** husarbeid (#4), kompakte oppgavekort (#5), «Sammen» og «Den som kan» (#6).
 - **2026-11-04:** hvitløk og løk under Frukt og grønt når de er tomme i skapet (#3).
