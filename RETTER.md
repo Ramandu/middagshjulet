@@ -26,9 +26,10 @@ Flere retter samles før de sendes inn til `neste` i én pull request.
 
 | Dato | Rett i appen | Lenke | Merknad |
 |---|---|---|---|
-| 2026-11-08 | Larb (laotisk kjøttsalat med svin), `larb` | https://detgladekjokken.no/oppskrift/thai-larb/ | Regnet om fra 4 til 5 porsjoner. Ingrediensene er hentet fra et skjermbilde av oppskriften. |
-| 2026-11-08 | Lammetagine med rosiner og mandler, `lammetagine` | Kokeboka «The Food of Morocco» av Paula Wolfert, s. 372: «Lamb Tagine with Raisins and Almonds, Tiznit-Style» | For 5–6 personer, mengdene står som i boka. Fra et bilde av boksiden. Fremgangsmåten er skrevet om med egne ord (8 steg). Fantes ikke på nett. |
 
 ## I appen
 
-Ingen ennå.
+| Sluppet | Rett i appen | Kilde | Merknad |
+|---|---|---|---|
+| 2026-11-24 | Larb (laotisk kjøttsalat med svin), `larb` | https://detgladekjokken.no/oppskrift/thai-larb/ | Regnet om fra 4 til 5 porsjoner. Ingrediensene er hentet fra et skjermbilde av oppskriften. |
+| 2026-11-24 | Lammetagine med rosiner og mandler, `lammetagine` | Kokeboka «The Food of Morocco» av Paula Wolfert, s. 372: «Lamb Tagine with Raisins and Almonds, Tiznit-Style» | For 5–6 personer, mengdene står som i boka. Fra et bilde av boksiden. Fremgangsmåten er skrevet om med egne ord (8 steg). Fantes ikke på nett. |
