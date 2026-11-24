@@ -4,7 +4,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
-Ingenting valgt ennå.
+- **Tilbakemelding:** under Oppsett kan husstander melde fra om feil eller ønske seg noe nytt (Netlify Forms, «tilbakemelding»), med frivillig teknisk info. Versjonen står under «Nytt i Middagshjulet». Begge skjemaene sier at Netlify lagrer IP-adresse og nettleser.
 
 ## Vurderes for neste versjon
 
