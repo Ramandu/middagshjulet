@@ -74,7 +74,16 @@ Nettsiden ligger i mappa `web/` i repoet `Ramandu/middagshjulet`. I stedet for �
 1. Netlify → nettstedet → **Site configuration → Build & deploy → Link repository**, og velg GitHub-repoet.
 2. **Base directory:** `web`. **Publish directory:** `web`. **Build command:** la stå tom.
 
-Da publiseres nettsiden på nytt hver gang noe endres i `web/` på GitHub.
+Da publiseres nettsiden på nytt hver gang noe endres i `web/` på grenen `main` på GitHub.
+
+### Testside for neste versjon
+
+Endringer samles i grenen `neste` før de slippes til `main` (se `CLAUDE.md` i roten av repoet). Netlify publiserer `neste` til en egen testside:
+
+- **Adresse:** https://neste--middagshjulet.netlify.app
+- **Oppsett i Netlify:** Project configuration → Build & deploy → Continuous deployment → Branches and deploy contexts → Branch deploys → «Let me add individual branches» → `neste` (navnet på grenen, uten bindestreker) → Save.
+- **Kostnad:** testpublisering av grener koster ikke kreditter i gratisplanen. Det gjør bare publisering fra `main` (15 kreditter hver).
+- **Bruk en egen testhusstand.** Testsiden bruker den samme databasen som den vanlige appen. Åpne testsiden uten husstandslenken og trykk «Start en ny husstand». Ellers kan endringer som bare den nye versjonen forstår (f.eks. redigerte retter og flyttede middager), se feil ut i den vanlige appen til versjonen er sluppet.
 
 ## Light Phone
 
