@@ -323,7 +323,7 @@ function secOrder(){ const add=(S.basis.secAdd)||{}; const off=S.basis.secOff||{
 function secName(k){ const add=S.basis.secAdd||{}; const rn=S.basis.secRename||{}; return (add[k]&&add[k].n) || rn[k] || SEC[k] || 'Annet'; }
 function resolveSec(k){ return secOrder().indexOf(k)>=0 ? k : 'a'; }
 const TAGS = {veg:'Vegetar',fisk:'Fisk',ny:'Ny',helg:'Helg',tex:'Tex-mex',rest:'Rester'};
-const PLURAL = {boks:'bokser',pose:'poser',bunt:'bunter',bit:'biter',flaske:'flasker',potte:'potter'};
+const PLURAL = {boks:'bokser',pose:'poser',bunt:'bunter',bit:'biter',flaske:'flasker',potte:'potter',kartong:'kartonger'};
 
 // i: [navn, mengde, enhet, avdeling, fersk (kjøpes på mandag hvis retten er tir/ons)]
 const D = {
@@ -584,19 +584,22 @@ function buildList(w, days, incl){
 // Husstanden sier én gang hvor mye som er i en pakke av en vare (basis.pack[navn] = {n, q, u, e}: «1 pose = 200 g»).
 // Når handlelista er lagt sammen, slås varens linjer i samme mål (g/stk/dl) og i pakker sammen, og det rundes opp
 // til hele pakker. Linjer i pakker regnes som hele pakker. Uten pakkestørrelse vises mengden som før.
-const PACK_U = ['g','stk','dl'];
-const PACK_E = ['pose','pk','boks','beger','glass','flaske','potte','bunt'];
+const PACK_U = ['g','stk','dl','l'];
+const PACK_E = ['pose','pk','boks','beger','glass','flaske','kartong','potte','bunt'];
+// Omregning mellom mål som betyr det samme, så «1,25 l melk» og «1 kartong = 10 dl» kan legges sammen.
+const UNIT_CONV = {kg:{g:1000}, g:{kg:0.001}, l:{dl:10}, dl:{l:0.1}};
+function unitFactor(from, to){ return from===to ? 1 : ((UNIT_CONV[from]||{})[to] || 0); }
 function packOf(n){ const P=S.basis.pack||{}; const x=P[String(n||'').toLowerCase()]; return x && x.q>0 && PACK_U.indexOf(x.u)>=0 ? x : null; }
 function packStr(n,e){ return n+' '+(n>1 && PLURAL[e] ? PLURAL[e] : e); }
 function packify(out){
   ['stor','paafyll'].forEach(t=>{ const L=out[t]; const groups={};
     Object.keys(L).forEach(k=>{ const it=L[k]; if(it.basis || it.qs!=null) return; const pk=packOf(it.n); if(!pk) return;
-      const inPacks = it.u===pk.e; if(!inPacks && it.u!==pk.u) return; if(it.q==null && !inPacks) return;
-      const amt = inPacks ? (it.q==null?1:it.q)*pk.q : it.q;
+      const inPacks = it.u===pk.e; const fac = inPacks ? 0 : unitFactor(it.u, pk.u); if(!inPacks && !fac) return; if(it.q==null && !inPacks) return;
+      const amt = inPacks ? (it.q==null?1:it.q)*pk.q : it.q*fac;
       const g = groups[it.n.toLowerCase()] || (groups[it.n.toLowerCase()] = {keys:[], amt:0, pk:pk});
       g.keys.push(k); g.amt += amt; });
     Object.keys(groups).forEach(n=>{ const g=groups[n]; const pk=g.pk;
-      const main = g.keys.find(k=>L[k].u===pk.u) || g.keys[0]; const it = Object.assign({}, L[main], {for:(L[main].for||[]).slice()});
+      const main = g.keys.find(k=>L[k].u===pk.u) || g.keys.find(k=>L[k].u!==pk.e) || g.keys[0]; const it = Object.assign({}, L[main], {for:(L[main].for||[]).slice()});
       g.keys.forEach(k=>{ if(k===main) return; const o=L[k]; (o.for||[]).forEach(f=>{ if(it.for.indexOf(f)<0) it.for.push(f); }); if(o.fresh) it.fresh=1; if(o.moved) it.moved=o.moved; if(o.tag && !it.tag) it.tag=o.tag; delete L[k]; });
       const packs = Math.max(1, Math.ceil(g.amt/pk.q - 1e-6));
       it.q = g.amt; it.u = pk.u; it.qs = packStr(packs, pk.e); it.pk = qtyStr(g.amt, pk.u)+' av '+(packs>1?packs+' × ':'')+qtyStr(pk.q, pk.u);
@@ -930,7 +933,8 @@ function renderAdd(el){
 const NEWS = [
   {id:'2026-11-25', title:'Neste versjon', items:[
     ['Meld fra om feil og ønsker', 'Under Oppsett kan dere melde fra om noe som ikke virker, eller ønske dere noe nytt. Der står også hvilken versjon av appen dere har.'],
-    ['Bruk det som ligger i fryseren', 'Ligger det noe i fryseren som en rett i uka trenger, står det «Fra fryseren» øverst på handlelista. Trykk «Bruk fra fryseren», så kommer det ikke på lista. På handledagen sier feltet øverst også fra.']]},
+    ['Bruk det som ligger i fryseren', 'Ligger det noe i fryseren som en rett i uka trenger, står det «Fra fryseren» øverst på handlelista. Trykk «Bruk fra fryseren», så kommer det ikke på lista. På handledagen sier feltet øverst også fra.'],
+    ['Kartong som pakning', 'Under «Pakke» på handlelista kan dere nå velge kartong, f.eks. for melk og fløte, og liter som mål. Liter og desiliter legges sammen, så 1 l og 3 dl matfløte blir 3 kartonger hvis én kartong er 5 dl.']]},
   {id:'2026-11-24.2', title:'24. november, del 2', items:[
     ['Tøm fryseren', 'Under Skapet kan dere skrive inn hva som ligger i fryseren. «Tøm fryseren» foreslår retter dere har som bruker det, og setter dem inn i planen denne eller neste uke. Varene fra fryseren kommer ikke på handlelista den dagen, og tas ut av fryseren.'],
     ['Foreslå en rett til alle', 'Har dere en god oppskrift på nett? Under Rettene kan dere sende lenken som forslag til de innebygde rettene som alle husstander får.'],
@@ -1739,9 +1743,9 @@ function parseItems(txt, prev){
   const P = {}; (prev||[]).forEach(r=>{ P[r[0].toLowerCase()] = r[3]; });
   return txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
     let fresh = 0; if(/\*\s*$/.test(l)){ fresh = 1; l = l.replace(/\s*\*\s*$/,''); }
-    const m = l.match(/^(.*?)\s+(\d+(?:[.,]\d+)?)\s*(kg|g|stk|pk|pakke|pakker|boks|bokser|pose|poser|glass|beger|bunt|bunter|bit|biter|flaske|flasker|potte|potter|fedd|terning|terninger|l|dl|ss|ts)?$/i);
+    const m = l.match(/^(.*?)\s+(\d+(?:[.,]\d+)?)\s*(kg|g|stk|pk|pakke|pakker|boks|bokser|pose|poser|glass|beger|bunt|bunter|bit|biter|flaske|flasker|kartong|kartonger|potte|potter|fedd|terning|terninger|l|dl|ss|ts)?$/i);
     let name = l, q = null, u = '';
-    if(m){ name = m[1]; q = parseFloat(m[2].replace(',','.')); u = (m[3]||'stk').toLowerCase(); if(u==='kg'){ q*=1000; u='g'; } const back={bokser:'boks',poser:'pose',bunter:'bunt',biter:'bit',flasker:'flaske',potter:'potte',pakke:'pk',pakker:'pk'}; u = back[u]||u; }
+    if(m){ name = m[1]; q = parseFloat(m[2].replace(',','.')); u = (m[3]||'stk').toLowerCase(); if(u==='kg'){ q*=1000; u='g'; } const back={bokser:'boks',poser:'pose',bunter:'bunt',biter:'bit',flasker:'flaske',kartonger:'kartong',potter:'potte',pakke:'pk',pakker:'pk'}; u = back[u]||u; }
     const sec = P[name.toLowerCase()] || guessSec(name);
     const r = [name, q, u, sec]; if(fresh) r.push(1); return r;
   });
