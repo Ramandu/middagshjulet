@@ -10,6 +10,7 @@ Les dette før du endrer noe. Brukeren skriver norsk, og all tekst i appen, i co
 - `tool/` er verktøyet for Light Phone III. Det leser dokumentet `lp3`, som nettsiden skriver.
 - Resten (`sdk/`, `plugin/`, `gradle/` osv.) er Light SDK. Ikke endre der.
 - Planer og ideer står i `ROADMAP.md`.
+- Forslag til nye innebygde retter (kuratert av eieren) står i `RETTER.md`. Når brukeren sender en oppskriftslenke, føres den opp der, og den bygges inn i `D` etter reglene i fila.
 
 ## Arbeidsflyt: endringer samles i versjoner
 
@@ -18,7 +19,7 @@ Husstanden bruker appen hver dag, så endringer slippes samlet, ikke flere gange
 | Gren | Hva |
 |---|---|
 | `main` | Det som ligger ute nå. Netlify publiserer den til middagshjulet.netlify.app. |
-| `neste` | Neste versjon. Ferdige endringer samles her. Testside: neste--middagshjulet.netlify.app (krever at grenpublisering er skrudd på i Netlify). |
+| `neste` | Neste versjon. Ferdige endringer samles her. Testside: https://neste--middagshjulet.netlify.app (grenpublisering skrudd på i Netlify 2026-11-24). Publiseres når `neste` endres. Brukeren tester med en egen testhusstand. |
 
 1. **Ny endring:** lag en arbeidsgren fra `neste`, og lag en pull request til `neste`. Flett med «squash» når brukeren sier ja.
 2. **Slipp:** når brukeren sier at versjonen skal slippes, lag en pull request fra `neste` til `main`, og flett med vanlig «merge», ikke «squash», så grenene ikke kommer i utakt. Flytt punktene i `ROADMAP.md` fra «Neste versjon» til «Sluppet» med dato.
