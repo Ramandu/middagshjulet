@@ -25,6 +25,7 @@ Brukere sender forslag fra appen (Rettene → «Foreslå en rett til alle»). De
 
 | Dato | Rett | Lenke | Merknad |
 |---|---|---|---|
+| 2026-11-24 | Boeuf Bourguignon | https://farminsittkjokken.com/boeuf-bourguignon-og-babelsk-forvirring/ | Fra skjemaet i appen («Familien test»): «Denne er veldig god!». Nettstedet er ikke tillatt i skymiljøet ennå, så ingredienslisten er ikke lest. |
 
 ## Bygget inn, kommer med neste versjon
 
