@@ -9,11 +9,12 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 - **Endringer i innebygde retter lagrer bare det som er endret,** så husstanden fortsatt får med seg forbedringer i resten av retten.
 - **Hele pakker i handlelista:** husstanden sier hvor mye som er i én pakke av en vare («Flytt varer» → «Pakke», oversikt under Skapet). Lista legger sammen hele ukas behov og runder opp til hele pakker, f.eks. «2 poser (360 g av 2 × 200 g)».
 - **Butter chicken:** spinaten står i gram (65 g for 4), ikke som en hel pose.
+- **Service workeren lagrer ikke feilsider:** svarer Netlify med en feil eller en side som ikke er appen (f.eks. hvis prosjektet er satt på pause), bruker appen versjonen som er lagret på telefonen.
 - **Endre planene i siste liten (bare denne uka):** «Flytt» på hver dag bytter plass med en annen dag den uka (raske retter først, handlelista blir den samme) eller utsetter retten til neste uke (varer som er kjøpt, kommer ikke på neste ukes liste). Varsel om ferskvarer. «Bytt» gjelder bare denne uka som standard, med valget «Fast i planen». Endringene lagres i ukedokumentet (`day`) og nullstilles når uka er over.
 
 ## Vurderes for neste versjon
 
-- **Service workeren skal ikke lagre feilsider.** Hvis Netlify svarer med en feil (f.eks. hvis prosjektet settes på pause fordi gratiskredittene er brukt opp), skal appen bruke den lagrede versjonen i stedet for å lagre og vise feilsiden.
+Ingenting nå.
 
 ## Senere
 
