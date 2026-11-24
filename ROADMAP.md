@@ -4,7 +4,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
-Ingenting valgt ennå.
+- **Tøm fryseren:** under Skapet skriver husstanden inn hva som ligger i fryseren (`basis.frys`). «Tøm fryseren» foreslår retter dere har som bruker varene (gjenkjenning på ord og ordstart), og setter dem inn i planen denne eller neste uke (bare den uka, `day.frys`). Varene fra fryseren kommer ikke på handlelista den dagen, og kan tas ut av fryseren.
 
 ## Vurderes for neste versjon
 
