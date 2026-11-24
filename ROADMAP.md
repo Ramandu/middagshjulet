@@ -4,9 +4,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
-- **Foreslå en rett til alle:** skjema under Rettene som sender lenke, navn, kommentar og avsender til Netlify Forms («forslag»). Lenker som finnes fra før, stoppes i appen. Eieren kuraterer (se `CLAUDE.md`).
-- **Fullstendige oppskrifter for retter uten lenke:** 16 retter har fått oppskrift fra Matprat eller Tine, med ingredienser og mengder derfra (regnet om til 5) og skapvarer. Den gamle tabellen `SKAP` beholder bare husstandens vaner. Worcestershiresaus står i standardskapet. Fortsatt uten lenke: Saritas korma (ferdig saus), lammetagine (bok) og kyllingformen (ingen oppskrift funnet).
-- **Tøm fryseren:** under Skapet skriver husstanden inn hva som ligger i fryseren (`basis.frys`). «Tøm fryseren» foreslår retter dere har som bruker varene (gjenkjenning på ord og ordstart), og setter dem inn i planen denne eller neste uke (bare den uka, `day.frys`). Varene fra fryseren kommer ikke på handlelista den dagen, og kan tas ut av fryseren.
+Ingenting valgt ennå.
 
 ## Vurderes for neste versjon
 
@@ -45,6 +43,8 @@ En skanneknapp der telefonen støtter det (`BarcodeDetector`, bl.a. Chrome på A
 
 ## Sluppet
 
+- **2026-11-24 (del 2):** tøm fryseren (#17), fullstendige oppskrifter for 16 retter uten lenke og forslagsskjema for nye retter (#18), fiskegrateng med makaroni og griljermel (#19).
+- **2026-11-24 (hastefeil):** merknader og mengder i rettene passer for alle antall personer (#15).
 - **2026-11-24:** nye retter (larb og lammetagine), oppskriften i appen med fremgangsmåte som kan redigeres, endringer i innebygde retter lagrer bare det som er endret, hele pakker i handlelista, butter chicken med spinat i gram, endre planene i siste liten (flytt, utsett og «Bytt» bare denne uka), skapvarer rett fra handlelista (østerssaus og tamarindsaus i standardskapet), og service workeren lagrer ikke feilsider (#9–#12).
 - **2026-11-07:** medlemskort under handlelista, og riktigere avdeling for varer i egne retter (#7).
 - **2026-11-04:** husarbeid (#4), kompakte oppgavekort (#5), «Sammen» og «Den som kan» (#6).
