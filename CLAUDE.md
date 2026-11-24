@@ -11,6 +11,8 @@ Les dette før du endrer noe. Brukeren skriver norsk, og all tekst i appen, i co
 - Resten (`sdk/`, `plugin/`, `gradle/` osv.) er Light SDK. Ikke endre der.
 - Planer og ideer står i `ROADMAP.md`.
 - Forslag til nye innebygde retter (kuratert av eieren) står i `RETTER.md`. Når brukeren sender en oppskriftslenke, føres den opp der, og den bygges inn i `D` etter reglene i fila.
+- Brukere kan foreslå retter i appen (Rettene → «Foreslå en rett til alle»). Forslagene havner i Netlify Forms, skjemaet `forslag`. Når eieren ber om det («se på forslagene»), hent dem med Netlify-koblingen (`manage-form-submissions`, `get-submissions`), sjekk mot `D` og `RETTER.md`, og før dem eieren godtar inn under «Forslag» i `RETTER.md`. Behandlede innsendinger kan slettes i Netlify.
+- Oppskrifter leses fra nett med det maskinlesbare formatet på siden (JSON-LD «Recipe»). Matprat, Tine, Gladkokken og noen andre nettsteder er tillatt i skymiljøets nettverk. `meny.no` er ikke det.
 
 ## Arbeidsflyt: endringer samles i versjoner
 
