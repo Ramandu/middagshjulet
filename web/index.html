@@ -383,7 +383,7 @@ const D = {
 };
 function baseAt(w,d){ const b=S.plan.base; return (b&&b[w]&&b[w][d])||'rest'; }
 function isQuickDay(d){ return !!(CFG.quick&&CFG.quick[d]); }
-function dayNote(w,d){ const parts=[]; const pp=servingsAt(w,d); if(pp!==CFG.servings) parts.push('Til '+pp); if(d===CFG.doubleDay && doubleOn(w)) parts.push('Lag dobbel porsjon'); if(CFG.notes&&CFG.notes[d]) parts.push(CFG.notes[d]); return parts.join(' · '); }
+function dayNote(w,d){ const parts=[]; const pp=servingsAt(w,d); if(pp!==CFG.servings) parts.push('Til '+pp); if(d===CFG.doubleDay && doubleOn(w) && dishAt(w,d)!=='rest') parts.push('Lag dobbel porsjon'); if(CFG.notes&&CFG.notes[d]) parts.push(CFG.notes[d]); return parts.join(' · '); }
 const SHORT_RE = /koriander|spinat|salat|basilikum|bønnespirer|vårløk|persille|ruccola/i;
 function minutes(t){ if(!t) return 0; const h=(t.match(/(\d+)\s*t\b/)||[])[1]; const m=(t.match(/(\d+)\s*min/)||[])[1]; return (h?+h*60:0)+(m?+m:0); }
 function isQuick(d){ const m=minutes(d.t); return d.tags && d.tags.indexOf('rest')<0 && m>0 && m<=(CFG.maxMin||25); }
@@ -540,7 +540,7 @@ function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
 function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
 function pantryNames(){ const m={}; basisList().forEach(b=>{ m[b.n.toLowerCase()]=b; }); return m; }
-function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const ov=dayOv(w,d); if(ov && ov.had) continue; const fz=((ov&&ov.frys)||[]).concat(frysUsed(weekDoc(w), d)); const mult=(dayFrom(w,d)===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ if(fz.length && fz.some(n=>frysMatch(n, r[0]))) return; const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
+function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const ov=dayOv(w,d); if(ov && ov.had) continue; const fz=((ov&&ov.frys)||[]).concat(frysUsed(weekDoc(w), d)); const mult=(d===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ if(fz.length && fz.some(n=>frysMatch(n, r[0]))) return; const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
 function needQty(o){ return Object.keys(o.parts).map(u=>qtyStr(o.parts[u],u)).join(' + '); }
 function toggleLowByName(n){ const b=pantryByName(n); if(b){ write('app/basis',{low:{[b.id]:!S.basis.low[b.id]}}); } else { const id='u'+Date.now().toString(36); write('app/basis',{basisAdd:{[id]:{n:n,g:guessGroup(n)}}, low:{[id]:true}}); } }
 
@@ -561,7 +561,7 @@ function buildList(w, days, incl){
       if(fz.length && fz.some(n=>frysMatch(n, r[0]))) return; // tas fra fryseren
       const late = r[4] && d>=3;
       const target = (CFG.padDay>=0 && r[4] && dd>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
-      const mult = (dd===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
+      const mult = (d===CFG.doubleDay && doubleOn(w)) ? 2 : 1; // dobbel porsjon følger dagen, ikke retten: restene er til restedagen
       add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:dishSec(r), for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
     });
   }
@@ -931,10 +931,11 @@ function renderAdd(el){
 // ---------- Nytt i Middagshjulet ----------
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
-  {id:'2026-11-25', title:'Neste versjon', items:[
+  {id:'2026-11-27', title:'27. november', items:[
     ['Meld fra om feil og ønsker', 'Under Oppsett kan dere melde fra om noe som ikke virker, eller ønske dere noe nytt. Der står også hvilken versjon av appen dere har.'],
     ['Bruk det som ligger i fryseren', 'Ligger det noe i fryseren som en rett i uka trenger, står det «Fra fryseren» øverst på handlelista. Trykk «Bruk fra fryseren», så kommer det ikke på lista. På handledagen sier feltet øverst også fra.'],
-    ['Kartong som pakning', 'Under «Pakke» på handlelista kan dere nå velge kartong, f.eks. for melk og fløte, og liter som mål. Liter og desiliter legges sammen, så 1 l og 3 dl matfløte blir 3 kartonger hvis én kartong er 5 dl.']]},
+    ['Kartong som pakning', 'Under «Pakke» på handlelista kan dere nå velge kartong, f.eks. for melk og fløte, og liter som mål. Liter og desiliter legges sammen, så 1 l og 3 dl matfløte blir 3 kartonger hvis én kartong er 5 dl.'],
+    ['Dobbel porsjon når dere flytter middagen', 'Bytter middagen på dagen med dobbel porsjon plass med en annen dag, er det retten som står der nå, som lages dobbelt. Da blir det rester til restedagen som før.']]},
   {id:'2026-11-24.2', title:'24. november, del 2', items:[
     ['Tøm fryseren', 'Under Skapet kan dere skrive inn hva som ligger i fryseren. «Tøm fryseren» foreslår retter dere har som bruker det, og setter dem inn i planen denne eller neste uke. Varene fra fryseren kommer ikke på handlelista den dagen, og tas ut av fryseren.'],
     ['Foreslå en rett til alle', 'Har dere en god oppskrift på nett? Under Rettene kan dere sende lenken som forslag til de innebygde rettene som alle husstander får.'],
@@ -1033,7 +1034,7 @@ function renderMove(el){
   el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Flytt middagen"><div class="shead"><div class="row"><h2>Flytt '+esc(A.n)+'</h2><button class="btn small" data-close>Avbryt</button></div>'+
     '<p class="note">Fra '+DAYLONG[a]+' '+fmt(addDays(weekStart(w),a))+' Gjelder bare denne uka. Neste runde kommer den vanlige planen tilbake.</p></div>'+
     '<div class="list">'+
-    '<div class="movehead"><h3>Bytt plass med en dag denne uka</h3><p class="note">'+(quickFirst?'Lite tid? De raske rettene står først. ':'')+'Handlelista blir den samme, for varene er de samme.</p></div>'+
+    '<div class="movehead"><h3>Bytt plass med en dag denne uka</h3><p class="note">'+(quickFirst?'Lite tid? De raske rettene står først. ':'')+(doubleOn(w) ? 'Det som står på '+DAYLONG[CFG.doubleDay]+', lages dobbelt, så det blir rester til '+DAYLONG[CFG.restDay]+'. Ellers blir handlelista den samme.' : 'Handlelista blir den samme, for varene er de samme.')+'</p></div>'+
     days.map(d=>row(w,d,'data-flyttil="'+w+'|'+d+'"')).join('')+
     (w2>=0 && aid!=='rest' ? '<div class="movehead"><h3>Ikke denne uka: utsett til Uke '+(w2+1)+'</h3><p class="note">Retten tar plassen til den som står der. Den hoppes over denne runden.</p>'+
       '<button class="pchip small" type="button" data-flytthad aria-pressed="'+(UI.moveHad!==false)+'">Varene er allerede kjøpt</button>'+
