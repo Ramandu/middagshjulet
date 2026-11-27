@@ -4,9 +4,7 @@ Ideer og planer for nettsiden og Light Phone-verktøyet. Endringer samles i `nes
 
 ## Neste versjon
 
-- **Bruk det som ligger i fryseren:** ligger noe i fryseren som en rett i uka trenger, viser handlelista «Fra fryseren» med «Bruk fra fryseren» (varen kommer ikke på lista, `frysUse` i ukedokumentet) og «Ikke nå» (`frysIgn`). Varer med oppgitt mengde blir liggende i fryseren, de uten mengde tas ut. «Kjøp likevel» angrer. På handledagen sier det gule feltet fra.
-- **Tilbakemelding:** under Oppsett kan husstander melde fra om feil eller ønske seg noe nytt (Netlify Forms, «tilbakemelding»), med frivillig teknisk info. Versjonen står under «Nytt i Middagshjulet». Begge skjemaene sier at Netlify lagrer IP-adresse og nettleser.
-- **Kartong som pakning:** «kartong» kan velges som pakning, og «l» som mål. Liter og desiliter (og kg og g) regnes om, så de legges sammen før det rundes opp til hele pakker.
+Ingenting ennå.
 
 ## Vurderes for neste versjon
 
@@ -45,6 +43,7 @@ En skanneknapp der telefonen støtter det (`BarcodeDetector`, bl.a. Chrome på A
 
 ## Sluppet
 
+- **2026-11-27:** meld fra om feil og ønsker under Oppsett (#22), «Fra fryseren» på handlelista når noe i fryseren passer til ukas retter (#23), kartong som pakning og omregning mellom liter og desiliter (#24), og dobbel porsjon følger dagen når middagen flyttes (#25).
 - **2026-11-24 (del 2):** tøm fryseren (#17), fullstendige oppskrifter for 16 retter uten lenke og forslagsskjema for nye retter (#18), fiskegrateng med makaroni og griljermel (#19).
 - **2026-11-24 (hastefeil):** merknader og mengder i rettene passer for alle antall personer (#15).
 - **2026-11-24:** nye retter (larb og lammetagine), oppskriften i appen med fremgangsmåte som kan redigeres, endringer i innebygde retter lagrer bare det som er endret, hele pakker i handlelista, butter chicken med spinat i gram, endre planene i siste liten (flytt, utsett og «Bytt» bare denne uka), skapvarer rett fra handlelista (østerssaus og tamarindsaus i standardskapet), og service workeren lagrer ikke feilsider (#9–#12).
