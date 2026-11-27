@@ -239,6 +239,9 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 .item.arr label{flex:1 1 0}
 .item.arr .arrctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex-basis:100%;padding-left:32px}
 .item.arr .arrctl .secsel{flex:1 1 7em;width:auto;min-width:0}
+.frysmatch{border:1px solid var(--line);border-radius:12px;background:var(--surface2);padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.frysmatch .items{padding:0}
+.fmbtns{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
 .frysform{display:flex;flex-direction:column;gap:8px}
 .daybtns{display:flex;flex-direction:column;gap:6px}
 .movehead{padding:12px 16px 6px;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:6px;align-items:flex-start}
@@ -282,6 +285,7 @@ textarea.copyfb{width:100%;min-height:160px;font-family:var(--mono);font-size:13
 <body>
 <!-- Netlify Forms: skjemaet «forslag» finnes her så Netlify oppdager det ved publisering. Appen sender med fetch (se forslagSend). -->
 <form name="forslag" data-netlify="true" netlify-honeypot="bot-field" hidden><input name="lenke"><input name="rett"><textarea name="kommentar"></textarea><input name="fra"><input name="bot-field"></form>
+<form name="tilbakemelding" data-netlify="true" netlify-honeypot="bot-field" hidden><input name="type"><input name="hvor"><textarea name="hva"></textarea><input name="epost"><input name="versjon"><input name="fane"><input name="skjerm"><input name="tid"><input name="bot-field"></form>
 
 <div class="wrap">
   <header class="top">
@@ -319,7 +323,7 @@ function secOrder(){ const add=(S.basis.secAdd)||{}; const off=S.basis.secOff||{
 function secName(k){ const add=S.basis.secAdd||{}; const rn=S.basis.secRename||{}; return (add[k]&&add[k].n) || rn[k] || SEC[k] || 'Annet'; }
 function resolveSec(k){ return secOrder().indexOf(k)>=0 ? k : 'a'; }
 const TAGS = {veg:'Vegetar',fisk:'Fisk',ny:'Ny',helg:'Helg',tex:'Tex-mex',rest:'Rester'};
-const PLURAL = {boks:'bokser',pose:'poser',bunt:'bunter',bit:'biter',flaske:'flasker',potte:'potter'};
+const PLURAL = {boks:'bokser',pose:'poser',bunt:'bunter',bit:'biter',flaske:'flasker',potte:'potter',kartong:'kartonger'};
 
 // i: [navn, mengde, enhet, avdeling, fersk (kjøpes på mandag hvis retten er tir/ons)]
 const D = {
@@ -379,7 +383,7 @@ const D = {
 };
 function baseAt(w,d){ const b=S.plan.base; return (b&&b[w]&&b[w][d])||'rest'; }
 function isQuickDay(d){ return !!(CFG.quick&&CFG.quick[d]); }
-function dayNote(w,d){ const parts=[]; const pp=servingsAt(w,d); if(pp!==CFG.servings) parts.push('Til '+pp); if(d===CFG.doubleDay && doubleOn(w)) parts.push('Lag dobbel porsjon'); if(CFG.notes&&CFG.notes[d]) parts.push(CFG.notes[d]); return parts.join(' · '); }
+function dayNote(w,d){ const parts=[]; const pp=servingsAt(w,d); if(pp!==CFG.servings) parts.push('Til '+pp); if(d===CFG.doubleDay && doubleOn(w) && dishAt(w,d)!=='rest') parts.push('Lag dobbel porsjon'); if(CFG.notes&&CFG.notes[d]) parts.push(CFG.notes[d]); return parts.join(' · '); }
 const SHORT_RE = /koriander|spinat|salat|basilikum|bønnespirer|vårløk|persille|ruccola/i;
 function minutes(t){ if(!t) return 0; const h=(t.match(/(\d+)\s*t\b/)||[])[1]; const m=(t.match(/(\d+)\s*min/)||[])[1]; return (h?+h*60:0)+(m?+m:0); }
 function isQuick(d){ const m=minutes(d.t); return d.tags && d.tags.indexOf('rest')<0 && m>0 && m<=(CFG.maxMin||25); }
@@ -536,7 +540,7 @@ function secSelect(id, val, attrs){ return '<select id="'+id+'" class="secsel" '
 function basisList(){ const off=S.basis.basisOff||{}; const l = BASIS.filter(b=>!off[b[0]]).map(b=>({id:b[0],n:b[1],g:b[2]})); for(const k in S.basis.basisAdd){ const v=S.basis.basisAdd[k]; if(v) l.push({id:k,n:v.n,g:v.g||guessGroup(v.n),custom:1}); } return l; }
 function pantryByName(n){ const l=n.trim().toLowerCase(); return basisList().find(b=>b.n.toLowerCase()===l); }
 function pantryNames(){ const m={}; basisList().forEach(b=>{ m[b.n.toLowerCase()]=b; }); return m; }
-function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const ov=dayOv(w,d); if(ov && ov.had) continue; const fz=(ov&&ov.frys)||null; const mult=(dayFrom(w,d)===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ if(fz && fz.some(n=>frysMatch(n, r[0]))) return; const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
+function skapNeeds(w, days){ const dishOn=dishScaler(); const out={}; const PN=pantryNames(); for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const dish=dishOn(w,d); if(!dish) continue; const ov=dayOv(w,d); if(ov && ov.had) continue; const fz=((ov&&ov.frys)||[]).concat(frysUsed(weekDoc(w), d)); const mult=(d===CFG.doubleDay&&doubleOn(w))?2:1; (dish.k||[]).concat((dish.i||[]).filter(r=>PN[r[0].toLowerCase()])).forEach(r=>{ if(fz.length && fz.some(n=>frysMatch(n, r[0]))) return; const key=r[0].toLowerCase(); const o=out[key]||(out[key]={n:r[0],parts:{},for:[]}); if(r[1]!=null){ o.parts[r[2]]=(o.parts[r[2]]||0)+r[1]*mult; } if(o.for.indexOf(DAYN[d])<0) o.for.push(DAYN[d]); }); } return out; }
 function needQty(o){ return Object.keys(o.parts).map(u=>qtyStr(o.parts[u],u)).join(' + '); }
 function toggleLowByName(n){ const b=pantryByName(n); if(b){ write('app/basis',{low:{[b.id]:!S.basis.low[b.id]}}); } else { const id='u'+Date.now().toString(36); write('app/basis',{basisAdd:{[id]:{n:n,g:guessGroup(n)}}, low:{[id]:true}}); } }
 
@@ -551,13 +555,13 @@ function buildList(w, days, incl){
     const dish = dishOn(w,d); if(!dish) continue;
     const ov = dayOv(w,d); if(ov && ov.had) continue; // utsatt fra forrige uke: varene er kjøpt
     const dd = dayFrom(w,d); // flyttet innen uka: regn varene fra dagen retten egentlig sto på
-    const fz = (ov && ov.frys) || null;
+    const fz = ((ov && ov.frys) || []).concat(frysUsed(wd, d)); // tas fra fryseren
     (dish.i||[]).forEach(r=>{
       if(PN[r[0].toLowerCase()]) return; // står i skapet: havner på sjekklista
-      if(fz && fz.some(n=>frysMatch(n, r[0]))) return; // tas fra fryseren
+      if(fz.length && fz.some(n=>frysMatch(n, r[0]))) return; // tas fra fryseren
       const late = r[4] && d>=3;
       const target = (CFG.padDay>=0 && r[4] && dd>CFG.padDay && SHORT_RE.test(r[0])) ? 'paafyll' : 'stor';
-      const mult = (dd===CFG.doubleDay && doubleOn(w)) ? 2 : 1;
+      const mult = (d===CFG.doubleDay && doubleOn(w)) ? 2 : 1; // dobbel porsjon følger dagen, ikke retten: restene er til restedagen
       add(target, 'i|'+r[0]+'|'+r[2], {n:r[0], q:r[1]==null?null:r[1]*mult, u:r[2], s:dishSec(r), for:[DAYN[d]+(mult>1?' ×2':'')], tag:(late && target==='stor') ? 'sjekk dato' : undefined, fresh:r[4]?1:0});
     });
   }
@@ -580,19 +584,22 @@ function buildList(w, days, incl){
 // Husstanden sier én gang hvor mye som er i en pakke av en vare (basis.pack[navn] = {n, q, u, e}: «1 pose = 200 g»).
 // Når handlelista er lagt sammen, slås varens linjer i samme mål (g/stk/dl) og i pakker sammen, og det rundes opp
 // til hele pakker. Linjer i pakker regnes som hele pakker. Uten pakkestørrelse vises mengden som før.
-const PACK_U = ['g','stk','dl'];
-const PACK_E = ['pose','pk','boks','beger','glass','flaske','potte','bunt'];
+const PACK_U = ['g','stk','dl','l'];
+const PACK_E = ['pose','pk','boks','beger','glass','flaske','kartong','potte','bunt'];
+// Omregning mellom mål som betyr det samme, så «1,25 l melk» og «1 kartong = 10 dl» kan legges sammen.
+const UNIT_CONV = {kg:{g:1000}, g:{kg:0.001}, l:{dl:10}, dl:{l:0.1}};
+function unitFactor(from, to){ return from===to ? 1 : ((UNIT_CONV[from]||{})[to] || 0); }
 function packOf(n){ const P=S.basis.pack||{}; const x=P[String(n||'').toLowerCase()]; return x && x.q>0 && PACK_U.indexOf(x.u)>=0 ? x : null; }
 function packStr(n,e){ return n+' '+(n>1 && PLURAL[e] ? PLURAL[e] : e); }
 function packify(out){
   ['stor','paafyll'].forEach(t=>{ const L=out[t]; const groups={};
     Object.keys(L).forEach(k=>{ const it=L[k]; if(it.basis || it.qs!=null) return; const pk=packOf(it.n); if(!pk) return;
-      const inPacks = it.u===pk.e; if(!inPacks && it.u!==pk.u) return; if(it.q==null && !inPacks) return;
-      const amt = inPacks ? (it.q==null?1:it.q)*pk.q : it.q;
+      const inPacks = it.u===pk.e; const fac = inPacks ? 0 : unitFactor(it.u, pk.u); if(!inPacks && !fac) return; if(it.q==null && !inPacks) return;
+      const amt = inPacks ? (it.q==null?1:it.q)*pk.q : it.q*fac;
       const g = groups[it.n.toLowerCase()] || (groups[it.n.toLowerCase()] = {keys:[], amt:0, pk:pk});
       g.keys.push(k); g.amt += amt; });
     Object.keys(groups).forEach(n=>{ const g=groups[n]; const pk=g.pk;
-      const main = g.keys.find(k=>L[k].u===pk.u) || g.keys[0]; const it = Object.assign({}, L[main], {for:(L[main].for||[]).slice()});
+      const main = g.keys.find(k=>L[k].u===pk.u) || g.keys.find(k=>L[k].u!==pk.e) || g.keys[0]; const it = Object.assign({}, L[main], {for:(L[main].for||[]).slice()});
       g.keys.forEach(k=>{ if(k===main) return; const o=L[k]; (o.for||[]).forEach(f=>{ if(it.for.indexOf(f)<0) it.for.push(f); }); if(o.fresh) it.fresh=1; if(o.moved) it.moved=o.moved; if(o.tag && !it.tag) it.tag=o.tag; delete L[k]; });
       const packs = Math.max(1, Math.ceil(g.amt/pk.q - 1e-6));
       it.q = g.amt; it.u = pk.u; it.qs = packStr(packs, pk.e); it.pk = qtyStr(g.amt, pk.u)+' av '+(packs>1?packs+' × ':'')+qtyStr(pk.q, pk.u);
@@ -618,7 +625,7 @@ function renderNow(){
   const el = document.getElementById('now');
   let title, text;
   const nextShop = addDays(today, daysToShop);
-  if(isShop && curW>=0){ title='I dag: storhandel for Uke '+(curW+1); text='Menyen gjelder '+DAYLONG[0]+' '+fmt(weekStart(curW))+' til '+DAYLONG[6]+' '+fmt(addDays(weekStart(curW),6)); }
+  if(isShop && curW>=0){ title='I dag: storhandel for Uke '+(curW+1); text='Menyen gjelder '+DAYLONG[0]+' '+fmt(weekStart(curW))+' til '+DAYLONG[6]+' '+fmt(addDays(weekStart(curW),6))+(frysWeekMatches(curW).length ? ' Noe i fryseren passer til ukas middager. Se «Fra fryseren» på handlelista.' : ''); }
   else if(isPad && curW>=0){ title='Lite påfyll i dag, om dere trenger det'; text='Bare kortholdbare ting som koriander, spinat og salat til resten av uka. Se «Påfyll» under handlelista.'; }
   else { title='Neste storhandel: '+DAYLONG[0]+' '+fmt(nextShop); text= curW>=0 ? 'Nå går Uke '+(curW+1)+'. Da handles det inn til Uke '+(nextShopW+1)+'.' : ''; }
   el.innerHTML = '<div><b>'+esc(title)+'</b>'+(text?'<span>'+esc(text)+'</span>':'')+'</div>';
@@ -703,7 +710,7 @@ function renderWeek(w){
       '</div>')+ segHint +
       '<div class="tools"><span class="left">'+doneN+' av '+keys.length+' i kurven</span><span class="right"><button class="btn small" data-copy="'+w+'">Kopier lista</button><button class="btn small" data-reset="'+w+'">Nullstill</button><button class="btn small" data-arrange aria-pressed="'+!!UI.arrange+'">'+(UI.arrange?'Ferdig':'Flytt varer')+'</button></span></div>'+(UI.arrange?'<p class="note">Trykk «Til skapet» på det dere vanligvis har hjemme, f.eks. sauser på flaske. Da havner det under «Sjekk i skapet» i stedet for på handlelista, i alle retter. Trykk «Pakke» og si hvor mye som er i én pakke, så runder lista opp til hele pakker når hele ukas behov er lagt sammen. Velg avdeling for en vare, så ligger den der hver gang den dukker opp. Egne avdelinger og rekkefølgen lager dere under Skapet → Avdelinger i butikken.</p>':'')+
       '<div id="copyfb"></div>'+
-      sjekk+groups+
+      frysMatchCard(w, days)+sjekk+groups+
       '<button class="btn primary addopen" type="button" data-addopen="x'+w+'">＋ Legg til vare</button>'+
     '</div>'+renderKort()+'</section>';
 }
@@ -772,6 +779,45 @@ function frysSuggest(){
     const buy = (d.i||[]).filter(r=>!PN[r[0].toLowerCase()] && !used.some(f=>frysMatch(f.n, r[0])));
     out.push({id:id, d:d, used:used, buy:buy}); });
   return out.sort((a,b)=> b.used.length-a.used.length || a.buy.length-b.buy.length || a.d.n.localeCompare(b.d.n,'nb')).slice(0,20);
+}
+// Varer i fryseren som en rett i uka trenger. Ukedokumentet har «frysUse»: {dag: {fryser-ID: {n, q}}} for det dere har valgt
+// å ta fra fryseren (skal ikke kjøpes, og ble tatt ut av fryseren), og «frysIgn»: {dag|fryser-ID: true} for «Ikke nå».
+function frysUsed(wd, d){ const u=(wd.frysUse||{})[d]; return u ? Object.keys(u).filter(k=>u[k]&&u[k].n).map(k=>u[k].n) : []; }
+function frysWeekMatches(w, days){
+  const F = frysList(); if(!F.length) return [];
+  const wd = weekDoc(w); const dishOn = dishScaler(); const PN = pantryNames(); const out = []; const seen = {};
+  for(let d=0; d<7; d++){
+    if(days && days.indexOf(d)<0) continue;
+    const ov = dayOv(w,d); if(ov && ov.had) continue; const dish = dishOn(w,d); if(!dish) continue;
+    const taken = ((ov && ov.frys) || []).concat(frysUsed(wd, d));
+    (dish.i||[]).forEach(r=>{ if(PN[r[0].toLowerCase()]) return; if(taken.some(n=>frysMatch(n, r[0]))) return;
+      F.forEach(f=>{ const key=d+'|'+f.id; if(seen[key] || !frysMatch(f.n, r[0]) || (wd.frysIgn||{})[key]) return; seen[key]=1; out.push({d:d, f:f, r:r, dish:dish, key:key}); }); });
+  }
+  return out;
+}
+function frysMatchCard(w, days){
+  const M = frysWeekMatches(w, days); const wd = weekDoc(w); const used = [];
+  for(let d=0; d<7; d++){ if(days && days.indexOf(d)<0) continue; const u=(wd.frysUse||{})[d]||{}; Object.keys(u).forEach(id=>{ if(u[id]&&u[id].n) used.push({d:d, id:id, n:u[id].n}); }); }
+  if(!M.length && !used.length) return '';
+  const all = allDishes();
+  return '<div class="frysmatch"><b>Fra fryseren</b>'+
+    (M.length ? '<p class="note">Dette ligger i fryseren og trengs i uka. Bruker dere det, kommer det ikke på handlelista.</p><ul class="items">'+M.map(m=>'<li class="item"><span class="nm" style="flex:1">'+esc(m.f.n)+(m.f.q?' <span class="note">('+esc(m.f.q)+')</span>':'')+'<span class="for">'+esc(m.dish.n)+' '+DAYN[m.d].toLowerCase()+' trenger '+esc(m.r[0].toLowerCase())+(m.r[1]!=null?' '+esc(qtyStr(m.r[1],m.r[2])):'')+'</span></span>'+
+      '<span class="fmbtns"><button class="btn small primary" data-frysuse="'+w+'|'+m.d+'|'+m.f.id+'">Bruk fra fryseren</button><button class="btn small" data-frysign="'+w+'|'+m.key+'">Ikke nå</button></span></li>').join('')+'</ul>' : '')+
+    (used.length ? '<ul class="items">'+used.map(u=>'<li class="item"><span class="nm" style="flex:1">'+esc(u.n)+'<span class="for">Tas fra fryseren til '+esc((all[dishAt(w,u.d)]||{}).n||'')+' '+DAYN[u.d].toLowerCase()+'</span></span><button class="btn small" data-frysunuse="'+w+'|'+u.d+'|'+u.id+'">Kjøp likevel</button></li>').join('')+'</ul>' : '')+
+    '</div>';
+}
+function frysMatchClick(t){
+  const D = t.dataset;
+  if(D.frysuse){ const [w,d,id]=D.frysuse.split('|'); const f=(S.basis.frys||{})[id]; if(!f) return true;
+    // Står det en mengde (f.eks. «2 pk»), kan det være mer igjen, så varen blir liggende. Uten mengde tas den ut av fryseren.
+    const remove = !f.q;
+    setWeek(+w,{frysUse:{[d]:{[id]:{n:f.n, q:f.q||'', r:remove?1:null}}}}); if(remove) write('app/basis',{frys:{[id]:null}}, false, {quiet:true});
+    const dish=allDishes()[dishAt(+w,+d)]; toast(f.n+' tas fra fryseren til '+((dish&&dish.n)||'retten')+' '+DAYLONG[+d]+', og kommer ikke på handlelista.'+(remove ? ' Den er tatt ut av fryseren.' : ' Juster mengden i fryseren under Skapet.')+' Husk å ta den ut i tide.'); return true; }
+  if(D.frysunuse){ const [w,d,id]=D.frysunuse.split('|'); const u=(((weekDoc(+w).frysUse||{})[d])||{})[id]; if(!u) return true;
+    setWeek(+w,{frysUse:{[d]:{[id]:null}}}); if(u.r && !(S.basis.frys||{})[id]) write('app/basis',{frys:{[id]:{n:u.n, q:u.q||'', o:Date.now()}}}, false, {quiet:true});
+    toast(u.n+' er tilbake på handlelista og i fryseren.'); return true; }
+  if(D.frysign){ const i=D.frysign.indexOf('|'); const w=+D.frysign.slice(0,i), key=D.frysign.slice(i+1); setWeek(w,{frysIgn:{[key]:true}}); return true; }
+  return false;
 }
 function renderFrysCard(){
   const F = frysList(); const have = {}; F.forEach(f=>{ have[f.n.toLowerCase()]=1; });
@@ -885,6 +931,11 @@ function renderAdd(el){
 // ---------- Nytt i Middagshjulet ----------
 // Øverst står det nyeste. Gi hver oppdatering en ny dato-ID (ÅÅÅÅ-MM-DD), så ser alle den én gang.
 const NEWS = [
+  {id:'2026-11-27', title:'27. november', items:[
+    ['Meld fra om feil og ønsker', 'Under Oppsett kan dere melde fra om noe som ikke virker, eller ønske dere noe nytt. Der står også hvilken versjon av appen dere har.'],
+    ['Bruk det som ligger i fryseren', 'Ligger det noe i fryseren som en rett i uka trenger, står det «Fra fryseren» øverst på handlelista. Trykk «Bruk fra fryseren», så kommer det ikke på lista. På handledagen sier feltet øverst også fra.'],
+    ['Kartong som pakning', 'Under «Pakke» på handlelista kan dere nå velge kartong, f.eks. for melk og fløte, og liter som mål. Liter og desiliter legges sammen, så 1 l og 3 dl matfløte blir 3 kartonger hvis én kartong er 5 dl.'],
+    ['Dobbel porsjon når dere flytter middagen', 'Bytter middagen på dagen med dobbel porsjon plass med en annen dag, er det retten som står der nå, som lages dobbelt. Da blir det rester til restedagen som før.']]},
   {id:'2026-11-24.2', title:'24. november, del 2', items:[
     ['Tøm fryseren', 'Under Skapet kan dere skrive inn hva som ligger i fryseren. «Tøm fryseren» foreslår retter dere har som bruker det, og setter dem inn i planen denne eller neste uke. Varene fra fryseren kommer ikke på handlelista den dagen, og tas ut av fryseren.'],
     ['Foreslå en rett til alle', 'Har dere en god oppskrift på nett? Under Rettene kan dere sende lenken som forslag til de innebygde rettene som alle husstander får.'],
@@ -983,7 +1034,7 @@ function renderMove(el){
   el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Flytt middagen"><div class="shead"><div class="row"><h2>Flytt '+esc(A.n)+'</h2><button class="btn small" data-close>Avbryt</button></div>'+
     '<p class="note">Fra '+DAYLONG[a]+' '+fmt(addDays(weekStart(w),a))+' Gjelder bare denne uka. Neste runde kommer den vanlige planen tilbake.</p></div>'+
     '<div class="list">'+
-    '<div class="movehead"><h3>Bytt plass med en dag denne uka</h3><p class="note">'+(quickFirst?'Lite tid? De raske rettene står først. ':'')+'Handlelista blir den samme, for varene er de samme.</p></div>'+
+    '<div class="movehead"><h3>Bytt plass med en dag denne uka</h3><p class="note">'+(quickFirst?'Lite tid? De raske rettene står først. ':'')+(doubleOn(w) ? 'Det som står på '+DAYLONG[CFG.doubleDay]+', lages dobbelt, så det blir rester til '+DAYLONG[CFG.restDay]+'. Ellers blir handlelista den samme.' : 'Handlelista blir den samme, for varene er de samme.')+'</p></div>'+
     days.map(d=>row(w,d,'data-flyttil="'+w+'|'+d+'"')).join('')+
     (w2>=0 && aid!=='rest' ? '<div class="movehead"><h3>Ikke denne uka: utsett til Uke '+(w2+1)+'</h3><p class="note">Retten tar plassen til den som står der. Den hoppes over denne runden.</p>'+
       '<button class="pchip small" type="button" data-flytthad aria-pressed="'+(UI.moveHad!==false)+'">Varene er allerede kjøpt</button>'+
@@ -995,11 +1046,40 @@ function renderMove(el){
 // ---------- Forslag til nye innebygde retter ----------
 // Sendes til Netlify Forms (skjemaet «forslag»). Kuratoren ser forslagene i Netlify under Forms, og de føres inn i RETTER.md.
 // Husstandslenken sendes ikke med.
+function netlifyPost(data){ return fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(data).toString()}).then(r=>{ if(!r.ok) throw new Error(r.status); return r; }); }
+// ---------- Tilbakemelding: feil og ønsker ----------
+// Sendes til Netlify Forms (skjemaet «tilbakemelding»). Teknisk info (versjon, fane, skjerm, tid) sendes bare hvis det er krysset av,
+// og aldri husstandslenken eller husstandens data.
+const FB_HVOR = [['ukeplan','Ukeplanen'],['handleliste','Handlelista'],['retter','Rettene'],['skapet','Skapet'],['husarbeid','Husarbeid'],['kort','Medlemskort'],['oppsett','Oppsett'],['annet','Annet']];
+function appVersion(){ return NEWS && NEWS[0] ? NEWS[0].title : ''; }
+function renderFeedback(el){
+  const t = UI.feedback==='onske' ? 'onske' : 'feil';
+  el.className='sheet top'; el.hidden=false;
+  el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Tilbakemelding"><div class="shead"><div class="row"><h2>'+(t==='feil'?'Meld fra om en feil':'Ønsk dere noe nytt')+'</h2><button class="btn small" data-close>Avbryt</button></div>'+
+    '<div class="seg" role="group" aria-label="Type"><button type="button" data-fbtype="feil" aria-pressed="'+(t==='feil')+'">Noe virker ikke</button><button type="button" data-fbtype="onske" aria-pressed="'+(t==='onske')+'">Ønske eller idé</button></div></div>'+
+    '<form class="form edlist" data-fbform>'+
+    '<label class="field">'+(t==='feil'?'Hva skjedde?':'Hva ønsker dere dere?')+'<textarea id="fb-hva" rows="5" placeholder="'+(t==='feil'?'F.eks. handlelista viste to poser spinat, men retten trenger bare litt':'F.eks. at appen kan foreslå hva vi bør handle til frokost')+'"></textarea></label>'+
+    '<label class="field">Hvor i appen<select class="secsel" id="fb-hvor">'+FB_HVOR.map(o=>'<option value="'+o[0]+'"'+(((UI.tab||'').charAt(0)==='w'&&o[0]==='ukeplan')||UI.tab===o[0]||(UI.tab==='hus'&&o[0]==='husarbeid')?' selected':'')+'>'+o[1]+'</option>').join('')+'</select></label>'+
+    '<label class="field">E-post (valgfritt, hvis dere vil ha svar)<input id="fb-epost" type="email" inputmode="email" autocomplete="email"></label>'+
+    '<div class="checks"><label><input type="checkbox" id="fb-tek" checked> Ta med teknisk info (versjon '+esc(appVersion())+', fane og skjermstørrelse)</label></div>'+
+    '<p class="note">Lenken til husstanden og det som står i planen, sendes ikke med. '+'Netlify, som drifter siden, lagrer også IP-adressen og nettleseren til den som sender.'+'</p>'+
+    '<div class="tools"><span class="right"><button class="btn primary" type="button" data-submit>Send</button></span></div>'+
+    '</form></div>';
+}
+function feedbackSend(){
+  const hva = (document.getElementById('fb-hva').value||'').trim(); if(!hva){ toast('Skriv litt om hva det gjelder.'); return; }
+  const tek = document.getElementById('fb-tek').checked;
+  const data = {'form-name':'tilbakemelding', 'bot-field':'', type: UI.feedback==='onske' ? 'Ønske' : 'Feil', hvor: document.getElementById('fb-hvor').value, hva: hva, epost: (document.getElementById('fb-epost').value||'').trim(),
+    versjon: tek ? appVersion() : '', fane: tek ? String(UI.tab||'') : '', skjerm: tek ? (window.innerWidth+'×'+window.innerHeight) : '', tid: tek ? new Date().toISOString() : ''};
+  const btn = document.querySelector('[data-fbform] [data-submit]'); if(btn){ btn.disabled=true; btn.textContent='Sender …'; }
+  netlifyPost(data).then(()=>{ UI.feedback=null; render(); toast('Takk! Tilbakemeldingen er sendt.'); })
+    .catch(()=>{ if(btn){ btn.disabled=false; btn.textContent='Send'; } toast('Fikk ikke sendt. Sjekk nettet og prøv igjen.'); });
+}
 function urlKey(u){ try{ const x=new URL(u); return (x.hostname.replace(/^www\./,'')+x.pathname.replace(/\/+$/,'')).toLowerCase(); }catch(e){ return String(u||'').toLowerCase(); } }
 function renderForslag(el){
   el.className='sheet top'; el.hidden=false;
   el.innerHTML = '<div class="inner" role="dialog" aria-modal="true" aria-label="Foreslå en rett"><div class="shead"><div class="row"><h2>Foreslå en rett</h2><button class="btn small" data-close>Avbryt</button></div>'+
-    '<p class="note">Forslaget sendes til den som velger de innebygde rettene. Lenken til husstanden deres sendes ikke med.</p></div>'+
+    '<p class="note">Forslaget sendes til den som velger de innebygde rettene. Lenken til husstanden deres sendes ikke med. Netlify, som drifter siden, lagrer også IP-adressen og nettleseren til den som sender.</p></div>'+
     '<form class="form edlist" data-forslagform>'+
     '<label class="field">Lenke til oppskriften<input id="fs-lenke" type="url" inputmode="url" placeholder="https://www.matprat.no/oppskrifter/…" autocomplete="off"></label>'+
     '<label class="field">Navn på retten (valgfritt)<input id="fs-rett" autocomplete="off"></label>'+
@@ -1016,13 +1096,13 @@ function forslagSend(){
   if(has){ toast('Den finnes allerede: '+all[has].n+'.'); return; }
   const data = {'form-name':'forslag', 'bot-field':'', lenke:lenke, rett:(document.getElementById('fs-rett').value||'').trim(), kommentar:(document.getElementById('fs-kommentar').value||'').trim(), fra:(document.getElementById('fs-fra').value||'').trim()};
   const btn = document.querySelector('[data-forslagform] [data-submit]'); if(btn){ btn.disabled=true; btn.textContent='Sender …'; }
-  fetch('/', {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(data).toString()})
-    .then(r=>{ if(!r.ok) throw new Error(r.status); UI.forslag=null; render(); toast('Takk! Forslaget er sendt.'); })
+  netlifyPost(data)
+    .then(()=>{ UI.forslag=null; render(); toast('Takk! Forslaget er sendt.'); })
     .catch(()=>{ if(btn){ btn.disabled=false; btn.textContent='Send forslaget'; } toast('Fikk ikke sendt forslaget. Sjekk nettet og prøv igjen.'); });
 }
 function renderSheet(){
   const el = document.getElementById('sheet');
-  const kind = UI.news ? 'news' : UI.forslag ? 'forslag' : UI.frys ? 'frys:'+(UI.frysPick||'') : UI.move ? 'move:'+UI.move : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
+  const kind = UI.news ? 'news' : UI.feedback ? 'feedback:'+UI.feedback : UI.forslag ? 'forslag' : UI.frys ? 'frys:'+(UI.frysPick||'') : UI.move ? 'move:'+UI.move : UI.pack ? 'pack:'+UI.pack : UI.husEdit ? 'hus:'+UI.husEdit : UI.kortEdit ? 'kortedit:'+UI.kortEdit : UI.kort ? 'kort:'+UI.kort : UI.edit ? 'edit:'+UI.edit : UI.add ? 'add:'+UI.add : UI.recipe ? 'recipe:'+UI.recipe : UI.sheet ? 'pick:'+UI.sheet : '';
   if(kind.indexOf('recipe:')!==0) wake(false);
   const same = !el.hidden && !!kind && el.dataset.kind===kind;
   if(same && kind==='news') return;
@@ -1036,6 +1116,7 @@ function renderSheetBody(el){
   if(UI.news){ renderNews(el); return; }
   if(UI.pack){ renderPackEdit(el); return; }
   if(UI.forslag){ renderForslag(el); return; }
+  if(UI.feedback){ renderFeedback(el); return; }
   if(UI.frys){ renderFrys(el); return; }
   if(UI.husEdit){ renderHusEdit(el); return; }
   if(UI.kortEdit){ renderKortEdit(el); return; }
@@ -1553,7 +1634,8 @@ function husForm(f){
 }
 function renderOppsett(){
   return renderOppsettInner() + renderPeople() + renderHusSetup() + renderShare() + renderLp3() +
-    '<div class="card"><div class="cardhead"><h2>Nytt i Middagshjulet</h2><p class="note">Det som er nytt i de siste oppdateringene.</p></div><div class="form"><div><button class="btn" data-news>Vis nyhetene</button></div></div></div>';
+    '<div class="card"><div class="cardhead"><h2>Tilbakemelding</h2><p class="note">Er det noe som ikke virker, eller noe dere skulle ønske appen kunne? Si fra, så blir det sett på.</p></div><div class="form"><div class="tools"><span class="right"><button class="btn" data-feedback="feil">Meld fra om en feil</button><button class="btn" data-feedback="onske">Ønsk dere noe nytt</button></span></div></div></div>'+
+    '<div class="card"><div class="cardhead"><h2>Nytt i Middagshjulet</h2><p class="note">Det som er nytt i de siste oppdateringene.</p></div><div class="form"><div><button class="btn" data-news>Vis nyhetene</button></div><p class="note">Versjon: '+esc(appVersion())+'</p></div></div>';
 }
 function renderPeople(){
   const weeks = [0,1,2,3].map(w=>{ const n=servingsWeek(w); const ws=weekStart(w);
@@ -1662,9 +1744,9 @@ function parseItems(txt, prev){
   const P = {}; (prev||[]).forEach(r=>{ P[r[0].toLowerCase()] = r[3]; });
   return txt.split('\n').map(l=>l.trim()).filter(Boolean).map(l=>{
     let fresh = 0; if(/\*\s*$/.test(l)){ fresh = 1; l = l.replace(/\s*\*\s*$/,''); }
-    const m = l.match(/^(.*?)\s+(\d+(?:[.,]\d+)?)\s*(kg|g|stk|pk|pakke|pakker|boks|bokser|pose|poser|glass|beger|bunt|bunter|bit|biter|flaske|flasker|potte|potter|fedd|terning|terninger|l|dl|ss|ts)?$/i);
+    const m = l.match(/^(.*?)\s+(\d+(?:[.,]\d+)?)\s*(kg|g|stk|pk|pakke|pakker|boks|bokser|pose|poser|glass|beger|bunt|bunter|bit|biter|flaske|flasker|kartong|kartonger|potte|potter|fedd|terning|terninger|l|dl|ss|ts)?$/i);
     let name = l, q = null, u = '';
-    if(m){ name = m[1]; q = parseFloat(m[2].replace(',','.')); u = (m[3]||'stk').toLowerCase(); if(u==='kg'){ q*=1000; u='g'; } const back={bokser:'boks',poser:'pose',bunter:'bunt',biter:'bit',flasker:'flaske',potter:'potte',pakke:'pk',pakker:'pk'}; u = back[u]||u; }
+    if(m){ name = m[1]; q = parseFloat(m[2].replace(',','.')); u = (m[3]||'stk').toLowerCase(); if(u==='kg'){ q*=1000; u='g'; } const back={bokser:'boks',poser:'pose',bunter:'bunt',biter:'bit',flasker:'flaske',kartonger:'kartong',potter:'potte',pakke:'pk',pakker:'pk'}; u = back[u]||u; }
     const sec = P[name.toLowerCase()] || guessSec(name);
     const r = [name, q, u, sec]; if(fresh) r.push(1); return r;
   });
@@ -1676,6 +1758,9 @@ document.addEventListener('click', e=>{
   if(husClick(t)) return;
   if(kortClick(t)) return;
   if(frysClick(t)) return;
+  if(frysMatchClick(t)) return;
+  if(t.dataset.feedback){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.feedback=t.dataset.feedback; render(); const i=document.getElementById('fb-hva'); if(i) i.focus({preventScroll:true}); return; }
+  if(t.dataset.fbtype){ UI.feedback=t.dataset.fbtype; render(); return; }
   if(t.hasAttribute('data-forslag')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.forslag=true; render(); const i=document.getElementById('fs-lenke'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.flytt){ UI.sheet=null; UI.edit=null; UI.add=null; UI.recipe=null; UI.moveHad=true; UI.move=t.dataset.flytt; render(); return; }
   if(t.hasAttribute('data-flytthad')){ UI.moveHad = UI.moveHad===false; render(); return; }
@@ -1701,7 +1786,7 @@ document.addEventListener('click', e=>{
   if(t.dataset.tab){ UI.tab=t.dataset.tab; render(); window.scrollTo({top:0}); return; }
   if(t.dataset.seg){ UI.seg=t.dataset.seg; render(); return; }
   if(t.dataset.swap){ UI.pickFast=false; UI.sheet=t.dataset.swap; UI.filter= isQuickDay(+t.dataset.swap.split('-')[1]) ? 'rask' : 'alle'; render(); return; }
-  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); return; }
+  if(t.hasAttribute('data-close')){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; UI.feedback=null; render(); return; }
   if(t.dataset.addopen){ UI.add=t.dataset.addopen; UI.addSec=''; UI.sheet=null; UI.edit=null; render(); const i=document.getElementById('add-n'); if(i) i.focus({preventScroll:true}); return; }
   if(t.dataset.asec!=null){ UI.addSec=t.dataset.asec; document.querySelectorAll('[data-asec]').forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.asec===UI.addSec))); return; }
   if(t.dataset.edit){ UI.sheet=null; UI.edit=t.dataset.edit; render(); const f=document.getElementById('ed-n'); if(f) f.focus({preventScroll:true}); return; }
@@ -1774,6 +1859,7 @@ document.addEventListener('change', e=>{
 });
 function handleForm(f){
   if(f.hasAttribute('data-forslagform')){ forslagSend(); return; }
+  if(f.hasAttribute('data-fbform')){ feedbackSend(); return; }
   if(frysForm(f)) return;
   if(f.hasAttribute('data-packform')){ const n=UI.pack.split('|')[0]; const q=parseFloat(String(document.getElementById('pack-q').value).replace(',','.'));
     if(!(q>0)){ toast('Skriv hvor mye som er i én pakke.'); return; }
@@ -1826,8 +1912,8 @@ document.addEventListener('click', e=>{ const b=e.target.closest('button[data-su
 document.addEventListener('keydown', e=>{ if(e.key!=='Enter') return; const t=e.target; if(!t || t.tagName!=='INPUT' || t.type==='checkbox') return; const f=t.closest('form'); if(!f) return; e.preventDefault(); handleForm(f); });
 document.addEventListener('input', e=>{ if(e.target.id==='kort-v'){ kortPreview(); return; } if(e.target.id==='pantry-q'){ UI.pq=e.target.value; const r=document.getElementById('pantry-res'); if(r) r.innerHTML=pantryResults(); } });
 document.addEventListener('toggle', e=>{ const d=e.target; if(d && d.dataset && d.dataset.openkey) UI.open[d.dataset.openkey]=d.open; }, true);
-document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack||UI.move||UI.frys||UI.forslag)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); } });
-document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; render(); } });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && (UI.sheet||UI.edit||UI.add||UI.news||UI.husEdit||UI.kort||UI.kortEdit||UI.recipe||UI.pack||UI.move||UI.frys||UI.forslag||UI.feedback)){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; UI.feedback=null; render(); } });
+document.getElementById('sheet').addEventListener('click', e=>{ if(e.target.id==='sheet'){ UI.sheet=null; UI.edit=null; UI.add=null; UI.news=null; UI.husEdit=null; UI.kort=null; UI.kortEdit=null; UI.kortF=null; UI.recipe=null; UI.pack=null; UI.move=null; UI.frys=null; UI.frysPick=null; UI.forslag=null; UI.feedback=null; render(); } });
 
 // ---------- Rolig oppdatering: ikke tegn siden på nytt mens noen berører eller scroller ----------
 const lastSnap = {};
